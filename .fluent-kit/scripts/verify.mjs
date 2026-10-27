@@ -106,6 +106,7 @@ try { writeFileSync(join(outDir, ".gitignore"), "*\n"); } catch { /* ignore */ }
 
 const problems = [];
 const note = (level, where, msg) => problems.push({ level, where, msg });
+const shots = [];
 const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").slice(0, 60) || "page";
 
 // Try the bundled Chromium, then Edge, then Chrome already installed on the machine.
@@ -205,6 +206,7 @@ for (const url of urls) {
 
       const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
       await page.screenshot({ path: file, fullPage: true });
+      shots.push(file);
       // --click: open what is behind a button (drawer, dialog, menu, picker) and check that state too.
       if (clickSteps.length) {
         let opened = true;
@@ -215,6 +217,7 @@ for (const url of urls) {
         if (opened) {
           await runAxe(page, `${where} after clicking ${clickSteps.join(" then ")}`);
           await page.screenshot({ path: file.replace(/\.png$/, "-open.png") });
+          shots.push(file.replace(/\.png$/, "-open.png"));
         }
       }
       await ctx.close();
@@ -239,6 +242,7 @@ for (const g of uniq) {
 const errs = uniq.filter((p) => p.level === "error").length;
 console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s). Screenshots: ${outDir}`);
 console.log("Open the screenshots and review them against .fluent-kit/DESIGNER.md section 8 before reporting.");
+if (shots.length) console.log(`Screenshot files (open these; editor search skips this folder because it is git-ignored):\n${shots.slice(0, 16).map((f) => "  " + f).join("\n")}${shots.length > 16 ? `\n  ... and ${shots.length - 16} more in ${outDir}` : ""}`);
 if (rawErrors.length) {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "console-errors.txt"), [...new Set(rawErrors)].join("\n\n----\n\n"));
