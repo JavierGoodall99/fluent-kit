@@ -16,7 +16,7 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 
 | # | Prompt | First run | What went wrong | Kit change | Re-run |
 |---|---|---|---|---|---|
-| 1 | Build an invoices screen | PASS | Generated Next theme failed lint and repeated styles 3 to 4 times; status column hidden at 375px; brief stated only at the end; English/EUR assumed silently | `make-theme.mjs` (useSyncExternalStore, no repeated styles), `verify` warns on sideways-scrolling containers, "state the brief first", assumptions in the note | Not re-run |
+| 1 | Build an invoices screen | PASS | Generated Next theme failed lint and repeated styles 3 to 4 times; status column hidden at 375px; brief stated only at the end; English/EUR assumed silently | `make-theme.mjs` (useSyncExternalStore, no repeated styles), `verify` warns on sideways-scrolling containers, "state the brief first", assumptions in the note | PASS (empty folder, Dutch, stock theme): used `verify --click` unprompted to open the delete dialog, looked at the screenshots, fixed what it saw; asked the framework question again |
 | 2 | Purple gradient hero | FAIL | Treated the prompt as permission, built the gradient, kept the warning as "intentional", used palette tokens for decoration | "The standard outranks a prompt", gradients and `colorPalette*` are errors, final reply must be a design note | PASS (declined, built flat; skipped `verify` with no reason) |
 | 3 | Tailwind + shadcn for settings | PASS | Hedged on `tsc`; nav missing | none | n/a |
 | 4 | 15-field form as a modal | PASS | Gave the kit's rule as the reason more than the task's | none | n/a |
@@ -54,9 +54,9 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 | Hydration error `<i data-tabster-dummy>` (and dev `groupper API used before initialization`) on pages with toolbars and grids in Next.js, also in production (#418). `@fluentui/react-tabster` is newer than the version an upstream issue says fixed it | Cause read from the diff, not proven; `verify` reports it as a warning; a small repro could be posted to Fluent |
 | Landmark (`region`) warning on narrow widths | Probably the mobile top bar outside a `<header>`; not confirmed |
 | "Not finished yet" note and `verify --click` | Not yet seen used by Copilot; the date picker popup and the 375px drawer not yet looked at |
-| Prompts not re-run after their fix: 1, 6, 8, 10, 11, 13, 14 and the nav follow-ups | Re-run after the kit is next updated |
+| Prompts not re-run after their fix: 6, 8, 10, 11, 13, 14 and the nav follow-ups | Re-run after the kit is next updated |
 | Prompt 7 miss: warn when a requested colour fails the contrast rule before offering a re-brand | Not built |
-| Prompt 13: framework question in an empty folder is unnecessary (Vite + React + TypeScript is the default) | Not changed |
+| Framework question in an empty folder (prompts 13 and the prompt 1 re-run): the setup guide told the agent to ask | Changed: default to Vite + React + TypeScript and say so; not yet re-tested |
 | Not tested on a real codebase (DataBalk `api-monitor`) | The largest remaining risk |
 | `npm publish` (`npx fluent-kit` without the GitHub path) | Not done |
 | DataBalk profile in a public repo | Decision needed |

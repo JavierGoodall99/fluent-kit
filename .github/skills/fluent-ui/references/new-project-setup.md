@@ -8,7 +8,7 @@ Ask the user only what the script could not find:
 
 - **Brand:** a brand hex, or "stock" for the plain Microsoft blue. (A fresh scaffold's default colors are not a brand; ignore them.)
 - **UI language:** only if the script found no signal. Default English.
-- **Framework:** only if there is no `package.json` yet. Default: Vite + React + TypeScript.
+- **Framework:** do not ask. Use Vite + React + TypeScript and say so in the first message ("I'll scaffold Vite + React + TypeScript"). Use Next.js only when the request says so or needs server rendering or API routes.
 
 Record the brand decision so nobody asks again: `.fluent-kit/brand.json` with `{ "mode": "stock" }` or `{ "hex": "#rrggbb" }`.
 
