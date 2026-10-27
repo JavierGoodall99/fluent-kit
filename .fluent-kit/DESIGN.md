@@ -109,7 +109,7 @@ Use in this order: (1) the project's shared UI package, if it has one, (2) Fluen
 | Need | Use |
 |---|---|
 | Buttons | `Button` (one `primary` per view), `ToolbarButton` in command bars |
-| Form inputs | `Input`, `Textarea`, `Select`, `Dropdown`, `Combobox`, `Checkbox`, `Radio`, `Switch`, `SearchBox`, each inside `Field` |
+| Form inputs | `Input`, `Textarea`, `RadioGroup`, `Dropdown`, `Combobox`, `Checkbox`, `Switch`, `SearchBox`, `DatePicker` and `TimePicker` (companion packages, see below), each inside `Field`. `Select` is Fluent's styled wrapper around the browser's own `<select>`: its option list is the operating system's, not themed. Use it only for a long, plain list where that is fine; 2 to 5 visible choices are a `RadioGroup`, richer or searchable lists a `Dropdown` or `Combobox`. Never `<Input type="date">`, `time`, `datetime-local`, `month`, `week` or `range`: they open the browser's own control (`check.mjs` flags them). |
 | Lists and tables | The project's shared data table if it has one; otherwise `DataGrid` / `Table`. `DataGrid` when rows are selectable, sortable or navigable cell by cell; `Table` when columns and rows are purely visual; `List` when there is only one column of information (per the Fluent 2 DataGrid guidance) |
 | Command bar | `Toolbar` with `ToolbarButton`, `ToolbarDivider`, `Menu` for overflow |
 | Side panels (when the requirement calls for one) | `OverlayDrawer` (temporary) or `InlineDrawer` (persistent) with `DrawerHeader`, `DrawerBody` |
@@ -128,7 +128,7 @@ Full catalogue: `components.json`.
 
 ### Official companion packages
 
-Some Fluent v9 components ship in their own package, not in `@fluentui/react-components`. These are Fluent's own and may be added when the requirement needs them (they are not "another UI library"). Name the package and why in the design note. Several are pre-1.0 (`-compat`, `-preview`) so their API can change: pin the version and expect updates. Anything not on this list: ask before adding a dependency.
+Some Fluent v9 components ship in their own package, not in `@fluentui/react-components`. These are Fluent's own and may be added when the requirement needs them (they are not "another UI library"). Name the package and why in the design note. Several are pre-1.0 (`-compat`, `-preview`) so their API can change: pin the version and expect updates. Anything not on this list: ask before adding a dependency. A companion package being a separate install is not a reason to fall back to a native control: install it, pin it and name it in the design note.
 
 | Need | Package (checked on npm, 2026-10) |
 |---|---|
@@ -161,6 +161,8 @@ Details per component are in `.github/skills/fluent-ui/references/fluent2-compon
 | Plain-text hint or icon-button name | `Tooltip` | `Popover` |
 | Choose one of 2 to 5 options, visible | `RadioGroup` | `Dropdown` |
 | Choose one of many options | `Dropdown` or `Combobox` | `RadioGroup` |
+| Pick a date | `DatePicker` (`@fluentui/react-datepicker-compat`) | `Input type="date"` (the browser's own calendar, unthemed, browser-specific locale) |
+| Pick a time | `TimePicker` (`@fluentui/react-timepicker-compat`) | `Input type="time"` |
 | Setting that applies immediately | `Switch` | `Checkbox` |
 | Choice confirmed on save, or multi-select | `Checkbox` | `Switch` |
 | Label with extra info | `InfoLabel` | an icon next to a `Label` |

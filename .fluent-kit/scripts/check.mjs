@@ -147,6 +147,14 @@ for (const file of files) {
         if (!/fluent-kit-ignore/.test(lines[line - 1] || "") && !/fluent-kit-ignore/.test(lines[line - 2] || "")) add(file, line, "icon-button-name", "error", `Icon-only <${m[1]}> needs aria-label (and a Tooltip).`);
       }
     }
+    // Fluent's Input with a native date, time or range type renders the browser's own picker: unthemed, different in
+    // every browser, and it ignores the app's locale. Date and time come from Fluent's pickers; range from Slider.
+    for (const mm of text.matchAll(/<Input\b(?:(?!<Input\b)[\s\S]){0,400}?\btype=["'](date|time|datetime-local|month|week|range)["']/g)) {
+      const t = mm[1];
+      const use = t === "range" ? "Slider" : t === "time" ? "TimePicker (@fluentui/react-timepicker-compat)" : "DatePicker (@fluentui/react-datepicker-compat)";
+      const line = text.slice(0, mm.index).split("\n").length;
+      if (!/fluent-kit-ignore/.test(lines[line - 1] || "") && !/fluent-kit-ignore/.test(lines[line - 2] || "")) add(file, line, "native-picker", "error", `<Input type="${t}"> opens the browser's own control. Use Fluent ${use}; add the package and name it in the design note.`);
+    }
     // <img> without alt
     for (const mm of text.matchAll(/<img\b(?![^>]*\balt\s*=)[^>]*>/g)) add(file, text.slice(0, mm.index).split("\n").length, "img-alt", "error", "<img> without alt.");
   }
