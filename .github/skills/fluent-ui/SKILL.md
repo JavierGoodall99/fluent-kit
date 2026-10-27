@@ -26,7 +26,7 @@ Run `node .fluent-kit/scripts/detect-theme.mjs .` (or `--json`) in the project r
 - Several candidates ("ambiguous"): ask the user to pick one.
 - Nothing found: ask for the hex. If the user says the app should stay on the stock Microsoft theme, write `{ "mode": "stock" }` to `.fluent-kit/brand.json` so nobody asks again. If you derive a ramp or the user picks a color, you may also record it as `{ "hex": "#rrggbb" }` there.
 - A `.fluent-kit/brand.json` already present is a saved decision: follow it.
-- If the contrast checks fail, say so and ask. Do not use that ramp for buttons or text.
+- If the contrast checks fail, say so and ask. Do not use that ramp for buttons or text. Never pass `--force` to `make-theme.mjs` to get around a failed contrast check; that flag is only for a design owner who has approved the colour. Offer the nearest passing darker shade (the script prints the contrast numbers) instead.
 
 Rules that always hold, whatever the result: Fluent components, Fluent icons, tokens only, UI text in the project's language. Only the brand ramp is decided in this step. Never change an existing project's theme as a side effect of an unrelated task; if the theme looks wrong, report it instead.
 

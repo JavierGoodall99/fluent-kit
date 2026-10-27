@@ -55,7 +55,7 @@ How the brand is chosen. Nobody sets the brand beforehand; the agent finds it:
 3. **No ramp, but a brand color is found** (a `colorBrandBackground` override, a variable named brand/primary/accent, or the most-used saturated color): run `node .fluent-kit/scripts/generate-ramp.mjs <hex> --ts`, put the result where the theme is created, and tell the user in one line which color was used. Do not ask first. If the color came only from usage counts (the script says "medium" confidence), say in the same line that it is a guess.
 4. **Several candidate colors** (the script says "ambiguous"): ask the user to pick one. Show the candidates.
 5. **No brand color found**: ask the user for the brand hex, or whether the app should stay on the stock Microsoft theme. Never invent one. Save the answer in `.fluent-kit/brand.json` (`{ "mode": "stock" }` or `{ "hex": "#rrggbb" }`) so it is not asked again; `detect-theme.mjs` honours that file.
-6. If the generated ramp fails a contrast check (the script reports it), say so and ask. Do not ship it for buttons or text.
+6. If the generated ramp fails a contrast check (the script reports it), say so and ask. Do not ship it for buttons or text. Never use `--force` on `make-theme.mjs` to bypass it unless the design owner approved the colour.
 
 `.fluent-kit/scripts/generate-ramp.mjs` puts the brand color at step 80 exactly and follows the curve of Microsoft's default ramp for the other steps. Given Microsoft's own blue (`#0f6cbd`) it reproduces Microsoft's default ramp exactly. For other colors it is an approximation of Microsoft's Theme Designer, not a copy. If the design owner supplies an official ramp, that replaces the generated one.
 
