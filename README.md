@@ -6,9 +6,19 @@ It is guidance plus a few scripts. It does not need a build step, a package, or 
 
 ## Install
 
+From the root of your repo:
+
 ```
-node install.mjs /path/to/your-repo
+npx github:JavierGoodall99/fluent-kit
 ```
+
+Or point it at another folder (an empty folder works too):
+
+```
+npx github:JavierGoodall99/fluent-kit /path/to/your-repo
+```
+
+Needs Node 18 or newer. No npm account or registry package is involved; npx fetches the kit straight from GitHub. If you clone the repo instead, `node install.mjs [target]` does the same thing. The target defaults to the current folder.
 
 Options:
 

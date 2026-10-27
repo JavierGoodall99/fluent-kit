@@ -1,0 +1,14 @@
+{
+  "name": "@javiergoodall99/fluent-kit",
+  "version": "1.3.0",
+  "description": "Makes GitHub Copilot and other coding agents build React UI with Fluent UI v9, Fluent icons and design tokens only.",
+  "license": "MIT",
+  "author": "Javier Goodall",
+  "type": "module",
+  "bin": { "fluent-kit": "install.mjs" },
+  "files": ["install.mjs", ".fluent-kit", ".github", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "repository": { "type": "git", "url": "git+https://github.com/JavierGoodall99/fluent-kit.git" },
+  "homepage": "https://github.com/JavierGoodall99/fluent-kit#readme",
+  "keywords": ["fluent-ui", "fluentui", "github-copilot", "copilot", "agent-skills", "design-system", "microsoft"]
+}

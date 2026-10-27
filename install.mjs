@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Installs the Fluent kit into any repo.
-// Usage: node install.mjs <target-repo> [--profile <name>] [--agents] [--dry-run]
+// Usage: npx @javiergoodall99/fluent-kit [target-repo] [--profile <name>] [--agents] [--dry-run]   (target defaults to the current folder)
 //   --profile <name>  copy .fluent-kit/profiles/<name>.md to <target>/.fluent-kit/PROFILE.md (organisation overrides)
 //   --agents          also add the short rules block to AGENTS.md (read by Copilot's coding agent, Codex, Cursor and others)
 //   --brand <stock|#hex>  record the brand decision in .fluent-kit/brand.json ("stock" = keep the stock Microsoft theme)
@@ -21,8 +21,8 @@ const target = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--pro
 const dry = flag("--dry-run");
 const profile = opt("--profile");
 const brandOpt = opt("--brand");
-if (!target) { console.error("Usage: node install.mjs <target-repo> [--profile <name>] [--agents] [--dry-run]"); process.exit(1); }
-const dest = resolve(target);
+if (flag("--help") || flag("-h")) { console.log("Usage: npx fluent-kit [target-repo] [--profile <name>] [--agents] [--brand <stock|#hex>] [--dry-run]\nTarget defaults to the current folder."); process.exit(0); }
+const dest = resolve(target || process.cwd());
 if (!existsSync(dest) || !statSync(dest).isDirectory()) { console.error(`Not a directory: ${dest}`); process.exit(1); }
 if (resolve(here) === dest) { console.error("Target is the kit itself."); process.exit(1); }
 
