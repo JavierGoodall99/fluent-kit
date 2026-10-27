@@ -17,7 +17,7 @@ UI in this repo must look and feel like a Microsoft application: Fluent UI React
 
 Before you finish any UI change:
 1. Run `node .fluent-kit/scripts/check.mjs --changed` (rules checker, no setup needed) and fix every error.
-2. If the app can run, start it and run `node .fluent-kit/scripts/verify.mjs <url of the changed page>`. It renders light and dark at three widths, checks layout and accessibility, and saves screenshots to `.fluent-kit/out/`. Open the screenshots and look at them. Fix errors. Do not skip it because it is slow or because an earlier run had trouble: start the dev server and try. If it truly cannot run, give the concrete reason (for example "dev server would not start: <error>") and do not claim the UI was verified.
+2. Run `node .fluent-kit/scripts/verify.mjs --start /path-of-the-changed-page` (it starts the dev server itself, so never run `npm run dev` in your terminal, and stops it afterwards; if a server is already running, pass its full URL instead). It renders light and dark at three widths, checks layout and accessibility, and saves screenshots to `.fluent-kit/out/`. Open the screenshots and look at them. Fix errors. Do not skip it because it is slow or because an earlier run had trouble: start the dev server and try. If it truly cannot run, give the concrete reason (for example "dev server would not start: <error>") and do not claim the UI was verified.
 3. Run `tsc`, the project's lint, and the checklist in `.github/skills/fluent-ui/checklist.md`.
 A check that fails is not a reason to edit the check. Fix the code. To skip one real exception, use `// fluent-kit-ignore -- reason` and mention it in your reply.
 

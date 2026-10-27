@@ -1,20 +1,26 @@
 #!/usr/bin/env node
-// Fluent kit visual verification. Opens a running page in a real browser and checks it.
-// Usage: node .fluent-kit/scripts/verify.mjs <url> [<url> ...] [--widths 1440,768,375] [--schemes light,dark]
-//                                            [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
-// Needs the dev server to be running, and Playwright in the project (npm i -D playwright; npx playwright install chromium).
-// For accessibility checks also: npm i -D axe-core
+// Fluent kit visual verification. Opens a page in a real browser and checks it.
+// Usage: node .fluent-kit/scripts/verify.mjs --start /invoices          (starts the dev server itself, checks, stops it)
+//        node .fluent-kit/scripts/verify.mjs http://localhost:3000/invoices   (dev server already running)
+// Options: [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
+//          [--start] [--cmd "npm run dev"]   --start runs the project's dev script (or --cmd) and waits for its URL; paths like /invoices are
+//                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
+// Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
 // Writes one screenshot per url x scheme x width, then LOOK AT THEM (open the PNG files) before reporting.
-// Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, page did not load).
+// Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
 import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait"]);
-const urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
-if (!urls.length) { console.error("Usage: node .fluent-kit/scripts/verify.mjs <url> [--widths 1440,768,375] [--schemes light,dark]"); process.exit(2); }
+const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd"]);
+const startServer = args.includes("--start") || args.includes("--cmd");
+let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
+if (startServer && !urls.length) urls = ["/"];
+if (!urls.length) { console.error("Usage: node .fluent-kit/scripts/verify.mjs --start /path   or   node .fluent-kit/scripts/verify.mjs <url>"); process.exit(2); }
+if (!startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
 const widths = opt("--widths", "1440,768,375").split(",").map(Number);
 const schemes = opt("--schemes", "light,dark").split(",");
 const outDir = resolve(opt("--out", ".fluent-kit/out"));
@@ -27,6 +33,38 @@ for (const name of ["playwright", "@playwright/test", "playwright-core"]) { try 
 if (!pw?.chromium) {
   console.error("Playwright is not installed in this project, so the page could not be checked.\nInstall it:  npm i -D playwright  &&  npx playwright install chromium\nThen run this script again. Until then say clearly that visual verification was NOT done.");
   process.exit(2);
+}
+// Optionally start the dev server, wait for its URL, and stop it when we are done.
+let server = null;
+const stopServer = () => {
+  if (!server) return;
+  try { if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(server.pid), "/T", "/F"]); else process.kill(-server.pid); } catch { /* already gone */ }
+  server = null;
+};
+process.on("exit", stopServer);
+process.on("SIGINT", () => process.exit(130));
+if (startServer) {
+  const cwd = process.cwd();
+  let cmd = opt("--cmd", null);
+  if (!cmd) {
+    let dev = null; try { dev = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")).scripts?.dev; } catch { /* none */ }
+    if (!dev) { console.error("No \"dev\" script in package.json. Pass the command with --cmd \"...\", or start the server yourself and pass a full URL."); process.exit(2); }
+    cmd = existsSync(join(cwd, "pnpm-lock.yaml")) ? "pnpm run dev" : existsSync(join(cwd, "yarn.lock")) ? "yarn dev" : (existsSync(join(cwd, "bun.lockb")) || existsSync(join(cwd, "bun.lock"))) ? "bun run dev" : "npm run dev";
+  }
+  console.log(`Starting dev server: ${cmd}`);
+  let log = "";
+  server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
+  const ready = new Promise((resolveUrl) => {
+    const onData = (d) => { log = (log + d.toString()).slice(-4000); const m = log.replace(/\x1b\[[0-9;]*m/g, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/); if (m) resolveUrl(m[0]); };
+    server.stdout.on("data", onData); server.stderr.on("data", onData);
+    server.on("exit", (code) => resolveUrl(null, code));
+    setTimeout(() => resolveUrl(null), 90000);
+  });
+  const base = await ready;
+  if (!base) { console.error(`The dev server did not report a URL within 90 seconds.\nLast output:\n${log.slice(-800)}\nFix the server error, or start it yourself and pass a full URL. Say that verification was NOT done.`); process.exit(2); }
+  for (let i = 0; i < 60; i++) { try { await fetch(base); break; } catch { await new Promise((r) => setTimeout(r, 500)); } }
+  urls = urls.map((u) => (u.startsWith("/") ? base + u : u));
+  console.log(`Dev server ready at ${base}`);
 }
 let axeSource = null;
 if (useAxe) { try { axeSource = readFileSync(req.resolve("axe-core/axe.min.js"), "utf8"); } catch { /* optional */ } }
