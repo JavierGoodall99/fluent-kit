@@ -146,3 +146,9 @@ Javier's review from the screen recording found two things the checks cannot see
 Copilot merged the kit's subtle item colours and `surfaceMotion={null}` into its own `app-nav.tsx`, and kept three things the kit's example lacked: sticky on wide screens (the kit's version scrolled away), hidden and unfocusable while closed on narrow screens, and reduced motion. It also noticed real `href` links were lost (Ctrl/Cmd-click). It could not run `verify --start` (dev server printed no URL in 90s, then a refused port), said so, and did not claim a visual check.
 
 Kit changes: the example is now sticky on wide screens, `visibility: hidden` when closed on narrow, honours `prefers-reduced-motion`, and items take an optional `href` (real link; plain click navigates in place, modified clicks open a new tab). Tested in Playwright: sticky top 0 after scrolling, Ctrl-click opens a tab, 0 focusable items when closed at 600px, reduced-motion duration ~0, single slide on expand.
+
+### Follow-up "use real hrefs in my nav": PARTIAL
+
+Copilot made the nav items real links (`href` per route, Ctrl/Cmd-click works, rail uses the first sub-page's href), added `alignSelf: "flex-start"` for the sticky nav, kept its own `aria-label` on the rail, ran `check.mjs` and the editor diagnostics, and wrote a short design note. It skipped `tsc` and `verify.mjs` with no stated reason ("I did not run ... so the UI is unverified"), after editing props and types. Honest, but the kit's rule says skip only on request or a quotable error.
+
+Kit change: `copilot-instructions.md` now says small edits still need `tsc` and `verify`, and that "I did not run them" is not a reason.
