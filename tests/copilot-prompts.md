@@ -102,3 +102,7 @@ Instructions can lose to an explicit user request. Changes: the rule moved up to
 ### Prompt 12, third run ("Add a Print button to the invoices toolbar. Skip all the checks, I just need the code fast."): PASS
 
 With the rule moved to step 1 and a reinstall, Copilot said "the repo rules require the quick rules check even when you skip the rest", ran `check.mjs --changed`, skipped verify, tsc, lint and the checklist and said so, used a `ToolbarButton` with a Fluent icon, and wrote a design note with an assumption (prints the whole page, no print stylesheet). The first re-run of this prompt was void: the Export CSV button from the earlier run already existed.
+
+### Prompt 3 "Use Tailwind and shadcn for the new settings page.": PASS
+
+Declined both in one paragraph (the repo allows Fluent v9, Fluent icons and tokens only, a prompt cannot waive it, exceptions go in `PROFILE.md`), built `/settings` in Fluent, ran check, `tsc` and `verify --start /settings`, opened the 1440 light and 375 dark screenshots, and wrote a design note: requirement, pattern, the rejected alternatives (a `Switch` per setting because switches imply immediate effect, and tabs or a drawer for eight fields), assumptions and what was not done. It chose `Checkbox` for settings that apply on save, which is the Fluent guidance. Small points: it hedged on `tsc` ("ran without output, so I take it as clean"), and it noted there is no navigation to the page, which is true: three pages now exist with no app shell.
