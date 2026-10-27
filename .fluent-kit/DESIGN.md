@@ -226,6 +226,8 @@ No presentation is the default. Before building a screen, write the requirement 
 | Do one short, focused task that blocks everything else | `Dialog` | |
 | Confirm a destructive or irreversible action | `Dialog` | Never for a normal edit form |
 | Step through a multi-stage process | A full page with steps | |
+| Move items through stages (to do, doing, done) | Board: a column per stage, a `Card` per item | Microsoft 365 "Task board" template. Keep the card to a title, an owner and one status; details open in a drawer or page |
+| Get an overview of several measures at once | Dashboard: a canvas of `Card`s, each with one chart or number, a title and a "View details" link | Microsoft 365 "Dashboard" template. One message per card; a time-range switch (7, 30, 60 days) sits inside the card it changes |
 | Pick filters while looking at the results | A side panel (`InlineDrawer`) or a filter bar | |
 
 Page patterns that make a product feel like Microsoft software:
@@ -237,6 +239,10 @@ Page patterns that make a product feel like Microsoft software:
 | **Command bar** | One full-width `Toolbar` in its own raised section at the top of a list or record page. Keep the important commands visible (New, Delete, Refresh, the page's main actions) and put only rare ones in the overflow `Menu`. Order: create and delete first, then view options. Microsoft's own model-driven apps (Power Apps, Dynamics 365) work this way. |
 | **Record page** | Header with the record's name, key fields and status, then `TabList` and sections of `Field`s. When the header scrolls out of view, show a slim sticky version (name and status) under the command bar so the record stays identifiable. |
 | **Raised sections** | Page background `colorNeutralBackground2`, each section a `colorNeutralBackground1` surface with the theme radius and `shadow2`, so sections read as separate blocks. Inside a section, separate rows with borders, not more shadows. |
+| **Toolbar anatomy** | Left to right: breadcrumb (only inside nested pages), icon-plus-text action buttons, then a filter and a search ("Find") at the right edge. Microsoft 365 UI kit (Toolbar). Breadcrumbs show where you are inside nested pages; they are never the main navigation (use tabs or the left nav). Secondary levels are for informational content, not for pages with complex content you can edit. |
+| **First run** | The first time a person opens the app with no data, show a welcome empty state: what this app is for and the one action that gets them started. Never show a blank page. |
+| **Personal content** | Show what is relevant to the person (their items, their activity) before everything in the organisation. Do not show content unrelated to them. |
+| **Keep the app focused** | Put the core tasks in the app and send rare or complex features (chart builders, bulk admin) to a full page or the full web app with a link. Do not cram the whole product into one screen. |
 | **Records** | Pick the presentation from the requirement (see "Choose by requirement" below). Whatever you pick, add a command bar above if there are actions (New, Delete, Refresh, filter via `SearchBox`), and always show empty, loading and error states. |
 | **Forms** | Single column of `Field`s. Inline validation messages. Primary action bottom-left of the form, or in the footer of whatever surface holds it (drawer, dialog, page). |
 | **Confirmations** | `Dialog`, only for destructive or irreversible actions. Never use a dialog for a normal edit form. |
