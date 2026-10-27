@@ -14,6 +14,8 @@ Write a brief before touching any file. Keep it to five lines and keep it in you
 4. **What goes wrong?** Empty, slow, failed, no permission, very long text, partial data.
 5. **What is success?** What does the person do next, and how fast should they get there?
 
+Same-shaped records that people compare or scan (checks, invoices, tenants, jobs) belong in a grid or table with the same columns on every row: name, type, status, message, time, action. That is what makes them scannable and uniform. Long text is not a reason to avoid a table: let that column wrap with a sensible width and keep the other columns narrow. Stacked cards, each with its own layout, are for items that differ in shape. When you reject a table, give a reason that is true of the data, not "long messages".
+
 State the brief in your first message (three to five lines, plain language), then pick the pattern from "Choose by requirement" in `DESIGN.md` and build. If you cannot answer 1 to 3 from the request or the repo, ask once, briefly, before building. If the request is clear enough to proceed, state your assumptions in the brief instead of asking.
 
 ## 2. Principles (Fluent 2, applied)
