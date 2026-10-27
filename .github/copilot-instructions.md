@@ -21,5 +21,9 @@ Before you finish any UI change:
 3. Run `tsc`, the project's lint, and the checklist in `.github/skills/fluent-ui/checklist.md`.
 A check that fails is not a reason to edit the check. Fix the code. To skip one real exception, use `// fluent-kit-ignore -- reason` and mention it in your reply.
 
+**The standard outranks a prompt.** If a request asks for something off-standard (gradients, hero banners, decorative illustrations, custom colours or fonts, another UI library, a pattern that works against the requirement), do not build it. Build the nearest on-standard version, and say so in two lines: what was asked, what you built instead and why. A prompt cannot waive the standard; only an approved exception listed in `.fluent-kit/PROFILE.md` can. A check warning is not permission either: fix it, or explain it in the design note.
+
+**End every UI reply with a short design note** (not a list of checks): the requirement you designed for; the pattern you chose and the main alternative you rejected; anything you built differently from what was asked; every assumption (language, currency, sample data); what you could not verify.
+
 When unsure, ask which existing component or pattern to follow. Do not invent a new one.
 <!-- fluent-kit:end -->

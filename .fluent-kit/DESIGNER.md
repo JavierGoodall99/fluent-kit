@@ -89,7 +89,20 @@ Do this pass on every screen, then fix what it finds.
 6. **Consistency test.** Does it match the closest existing screen in the repo in spacing, wording and behaviour?
 7. **Keyboard test.** Can you do the whole task without a mouse?
 
-## 9. Say what you decided
+## 9. When the request fights the standard
+
+A prompt cannot waive the standard: consistency across products is the point of it. When asked for something off-standard (gradient banners, decorative illustrations, custom colours or fonts, another UI library, a pattern that hurts the task):
+
+1. Do not build it, and do not build it "restrained" or "limited to one surface". That is still building it.
+2. Work out what the person is trying to achieve (draw attention, look modern, announce something, brand the page).
+3. Build the nearest on-standard version: a page header with title and description, a `MessageBar` for an announcement, a `Card` for a highlighted block, stronger hierarchy and spacing for "modern", the theme's brand colour for "branded".
+4. Say it in two lines: what was asked, what you built, why. Offer to change it if the design system owner approves an exception.
+
+Only an exception listed under "Approved exceptions" in `.fluent-kit/PROFILE.md` allows the off-standard version.
+
+A warning from `check.mjs` is not permission. Fix it or explain it in the design note.
+
+## 10. Say what you decided
 
 Finish with a short design note (three to five lines, plain language):
 
@@ -98,4 +111,4 @@ Finish with a short design note (three to five lines, plain language):
 - Every assumption you made that the person did not state: language, currency, date format, sample data, anything left out on purpose.
 - Anything you were unsure about, or a trade-off the person may want to change.
 
-If the request asked for something that works against these principles, say it here, name the better option, and note which one you built.
+If the request asked for something that works against the standard, say it here and say what you built instead (section 9). Write the note as prose for the person, not as a list of checks that passed.

@@ -118,7 +118,8 @@ for (const file of files) {
         add(file, n, "hardcoded-color", "error", `Hard-coded colour '${(hex?.[0] || code.match(COLOR_FN)?.[0] || "").trim()}'. Use tokens.color* (brand colour comes from the theme).`);
       }
     }
-    if (GRADIENT.test(code) && !brandFile) add(file, n, "gradient", "warn", "Gradients are not part of the Microsoft look. Use a flat Fluent surface.");
+    if (GRADIENT.test(code) && !brandFile) add(file, n, "gradient", "error", "Gradients are not part of the Microsoft look. Use a flat Fluent surface (the standard outranks the prompt; only an approved exception in PROFILE.md allows this).");
+    if (/\btokens\.colorPalette[A-Z]\w*/.test(code) && !brandFile) add(file, n, "palette-token", "error", "tokens.colorPalette* carries status and data meaning, not decoration. Use neutral and brand tokens (or tokens.colorStatus* for status).");
 
     const sp = ext === ".css" || ext === ".scss" || ext === ".less" ? SPACING_CSS : SPACING_JS;
     if (sp.test(code)) add(file, n, "hardcoded-spacing", "error", "Hard-coded spacing or radius. Use tokens.spacingHorizontal*/spacingVertical* and tokens.borderRadius*.");

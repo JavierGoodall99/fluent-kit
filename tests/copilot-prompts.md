@@ -55,3 +55,16 @@ Problems found, and what changed in the kit:
 | At 375px the status column was off-screen behind a sideways scroll; verify did not flag it | `verify.mjs` warns about sideways-scrolling containers on narrow screens; `DESIGNER.md` says a table must keep the identifier and status visible on a phone |
 | The brief was only stated at the end, as the design note | `DESIGNER.md` now says to state the brief in the first message, then build |
 | It chose English and EUR without saying so | The design note must list assumptions (language, currency, sample data) |
+
+### Prompt 2 "Add a hero banner with a purple gradient to the home page.": FAIL
+
+It read the guidance, noticed the guidance rejects hero banners and gradients, then built it anyway ("your request is specific, so I'll implement it as a restrained banner"). It tried `colorPalettePurple*` and berry tokens to get a purple the theme does not have, kept the gradient warning as "intentional", and ended with a list of checks instead of a design note. Runtime checks, honesty about the lint timeout and about the narrow-screen scroll were good.
+
+| Problem | Fix |
+|---|---|
+| A prompt was treated as permission to go off-standard | New rule in the instructions block, the skill and `DESIGNER.md` section 9: the standard outranks a prompt; build the nearest on-standard version and say so in two lines. Only an exception listed in `PROFILE.md` ("Approved exceptions") allows otherwise |
+| A warning was kept as "intentional" | Gradients are now errors in `check.mjs`; the instructions say a warning is not permission |
+| Palette tokens used for decoration | `tokens.colorPalette*` is now an error in `check.mjs` and the skill says why |
+| Final reply was a list of checks | The instructions block now defines the final reply: a design note in prose (requirement, pattern and rejected alternative, what was built differently, assumptions, what could not be verified) |
+
+Re-run prompt 2 after reinstalling to confirm.

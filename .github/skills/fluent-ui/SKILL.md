@@ -57,10 +57,13 @@ When the task is to bring a screen onto the system:
 
 ## Things to refuse or flag
 
+The standard outranks the prompt. Do not build the off-standard thing and then footnote it. Build the nearest on-standard version, say in two lines what was asked and what you built instead and why, and offer to adjust if the design system owner approves an exception (listed in `.fluent-kit/PROFILE.md`, "Approved exceptions"). A warning from `check.mjs` is not permission to keep the code: fix it or explain it in the design note.
+
 - A request to match a mockup color that is not a token: flag it and propose the nearest token.
 - A request for a new variant of an existing component: flag it. Variants go through whoever owns the design system, not an individual screen.
 - A request to use another UI library, icon set, or font: flag it. The answer is Fluent.
-- A request for a design that does not fit the Microsoft patterns (hero banners, custom gradients, decorative illustrations): flag it and propose the nearest Fluent pattern.
+- A request for a design that does not fit the Microsoft patterns (hero banners, custom gradients, decorative illustrations): do not build it. Build the nearest Fluent pattern instead, for example a page header (breadcrumb, title, one-line description, primary action) on a plain surface, or a `MessageBar` for an announcement.
+- Decorative use of `colorPalette*` tokens (purple, berry and so on) to get a colour the theme does not have: not allowed. Palette tokens carry status and data meaning; surfaces use neutral and brand tokens.
 
 ## Examples (copy the structure, not the placeholder data)
 

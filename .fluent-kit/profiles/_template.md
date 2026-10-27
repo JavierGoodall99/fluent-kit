@@ -13,6 +13,12 @@ Copy this file to `.fluent-kit/PROFILE.md` and fill in what applies. Anything wr
 - Shared UI package: <name, or none>
 - Shared theme/provider package: <name, or none>
 
+## Approved exceptions
+
+Things the design system owner has approved that are normally off-standard (for example a marketing landing page with its own look). Agents may only build off-standard UI that is listed here.
+
+- <none>
+
 ## Other rules
 
 - <anything else that is specific to this organisation, one line each>
