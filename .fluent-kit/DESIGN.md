@@ -188,7 +188,7 @@ Page patterns that make a product feel like Microsoft software:
 
 | Pattern | How |
 |---|---|
-| **App shell** | Left navigation (`NavDrawer`) plus a slim top header with the app name, an organisation or environment selector if the app needs one, and the user `Persona`. Collapsible nav on narrow screens. |
+| **App shell** | Left navigation (`NavDrawer`) plus a slim top header with the app name, an organisation or environment selector if the app needs one, and the user `Persona`. Collapsible nav: full drawer, 56px icon rail, and a slide-over drawer on narrow screens (see `examples/app-nav.tsx`). |
 | **Page layout** | `PageHeader` (breadcrumb, title, primary action), a command bar (`Toolbar`) under it, then content on `colorNeutralBackground2` with surfaces in `colorNeutralBackground1`. |
 | **Lists** | `DataGrid` with a command bar above (New, Delete, Refresh, filter via `SearchBox`). Row click opens details in a drawer. Sortable columns. Always show empty, loading, and error states. |
 | **Details and edit** | `OverlayDrawer` from the right, with `DrawerHeader` and a footer with Save (primary) and Cancel. Prefer a drawer to a full-page route for quick edits. |

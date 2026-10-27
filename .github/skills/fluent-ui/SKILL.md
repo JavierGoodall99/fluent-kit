@@ -70,7 +70,7 @@ Working, type-checked examples are in `examples/`. Before writing a screen of th
 - `edit-drawer.tsx`: `OverlayDrawer` form with `Field` and validation.
 - `confirm-dialog.tsx`: `Dialog` for destructive actions only.
 - `notifications.tsx`: `Toast` and `MessageBar`.
-- `app-nav.tsx`: `NavDrawer` with `bundleIcon`.
+- `app-nav.tsx`: collapsible sidebar. Expanded `NavDrawer` (Hamburger, `bundleIcon`, `NavCategory` for sub-pages), collapsed 56px icon rail (subtle Buttons with Tooltips, primary when selected), slide-over under 1024px.
 
 They are generic. Where a real screen in the project already does the same thing, prefer that screen's conventions.
 
