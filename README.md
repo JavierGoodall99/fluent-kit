@@ -104,5 +104,5 @@ Limits: the banned-library lists are not exhaustive; add any your team has used.
 - React only. Fluent UI React v9 is the target; Angular, Vue and Blazor are not covered.
 - The kit has been tested on small fake projects and with TypeScript and ESLint on its own examples, not yet on a large real repo.
 - Keep `copilot-instructions.md` short. Long always-on files get ignored; detail lives in the path-specific file and the skill.
-- Component guidance paraphrases Microsoft's Fluent 2 Web Figma community kit, and checked against `@fluentui/react-components` 9.74.x. Fluent UI is MIT-licensed. This kit is not affiliated with or endorsed by Microsoft. Check the terms of the Figma community file before publishing the kit outside your organisation, and add your own license file.
+- Component guidance paraphrases Microsoft's Fluent 2 Web Figma community kit, and checked against `@fluentui/react-components` 9.74.x. Fluent UI is MIT-licensed. This kit is not affiliated with or endorsed by Microsoft. Check the terms of the Figma community file before reusing the guidance outside this repo. The kit itself is released under the [MIT License](LICENSE).
 - Organisation-level Copilot instructions exist but only apply to some Copilot surfaces, so keep the repo files as the source of truth.
