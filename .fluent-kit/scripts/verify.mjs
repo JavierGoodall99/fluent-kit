@@ -20,6 +20,18 @@ const startServer = args.includes("--start") || args.includes("--cmd");
 let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
 if (startServer && !urls.length) urls = ["/"];
 if (!urls.length) { console.error("Usage: node .fluent-kit/scripts/verify.mjs --start /path   or   node .fluent-kit/scripts/verify.mjs <url>"); process.exit(2); }
+
+// Console errors, shortened. A React hydration error carries a long boilerplate list and then the part that
+// matters (the diff of server vs client markup); keep the first sentence and the diff lines, drop the list.
+function shortError(text) {
+  if (/hydrat|didn't match/i.test(text)) {
+    const lines = text.split("\n").map((l) => l.trimEnd());
+    const first = lines[0].replace(/\s+/g, " ").slice(0, 160);
+    const diff = lines.filter((l) => (/^\s*[+-] /.test(l) && !/^\s*- (A|Variable|Date|External|Invalid|It) /.test(l)) || /^\s*<\/?[A-Za-z]/.test(l) || /^\s*at /.test(l)).slice(0, 14).map((l) => l.trim().slice(0, 140));
+    return diff.length ? `${first} | diff: ${diff.join(" ; ")}` : text.replace(/\s+/g, " ").slice(0, 1200);
+  }
+  return text.replace(/\s+/g, " ").slice(0, 600);
+}
 if (!startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
 const widths = opt("--widths", "1440,768,375").split(",").map(Number);
 const schemes = opt("--schemes", "light,dark").split(",");
@@ -94,8 +106,8 @@ for (const url of urls) {
       const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
       const page = await ctx.newPage();
       const errors = [];
-      page.on("pageerror", (e) => errors.push(String(e).replace(/\s+/g, " ").slice(0, 600)));
-      page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().replace(/\s+/g, " ").slice(0, 600)); });
+      page.on("pageerror", (e) => errors.push(shortError(String(e))));
+      page.on("console", (m) => { if (m.type() === "error") errors.push(shortError(m.text())); });
       try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
       } catch (e) {
