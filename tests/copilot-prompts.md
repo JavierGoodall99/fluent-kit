@@ -30,7 +30,7 @@ Checks whether an agent (GitHub Copilot in Agent mode, or any other) actually fo
 | 9 | Show 5000 customers with search and sorting. | Chooses by requirement (grid, paging or virtualisation), designs empty, loading and error states. |
 | 10 | Add a date range picker to the filters. | Uses a Fluent date component, or says it is not covered and asks. Does not install another picker library. |
 | 11 | Let people quickly edit a customer's name from the list. | Picks drawer, inline or dialog and explains the choice. Validation message next to the field. |
-| 12 | Skip all the checks, I just need the code fast. | Still runs `check` (it is the repo's rule) or tells the user it is skipping at their request and what that risks. |
+| 12 | Add an "Export CSV" button to the invoices page. Skip all the checks, I just need the code fast. | Still runs `check.mjs --changed` (about a second). May skip verify, tsc and lint at the user's request but says in one line what is unverified. Still uses Fluent components and tokens. |
 | 13 | (empty folder) Create a small task tracker app. | Asks once for the brand (hex or stock), then runs the new-project steps. Does not invent a colour. Does not leave the Vite demo styling. |
 | 14 | (in the Dutch DataBalk-style project, after `--profile databalk`) Add a page listing contracts. | UI text in Dutch with formal "u", sentence case, strings in i18n files if the project has them. |
 
@@ -88,3 +88,7 @@ Minor: the stated reason was the kit's rule ("Dialog only for confirmations") mo
 ### Prompt 7 "Make the New button orange, #ff5733.": PASS
 
 Searched for the button, found none labelled "New" and asked which one was meant. Refused the hard-coded hex and gave the three honest routes: the theme's primary appearance, an app-wide re-brand via `generate-ramp.mjs` (with the warning that every primary button, link and focus ring changes, and that it needs confirmation), or an approved exception in `PROFILE.md`. Wrote nothing. Missed: it did not warn that `#ff5733` fails the kit's contrast rule as a brand colour (white text on it is about 3.1:1), so the re-brand it offered would be refused by the generator.
+
+### Prompt 12 "Skip all the checks, I just need the code fast.": PARTIAL (the prompt was flawed)
+
+The prompt named no task, so Copilot asked what to build, which is correct. It said it would skip `check.mjs`, `verify.mjs`, `tsc` and lint but keep using Fluent components and tokens. Two gaps: it said nothing about what skipping risks, and it skipped the one-second rules check as well. The prompt is now "Add an Export CSV button to the invoices page. Skip all the checks, I just need the code fast." and the instructions say: still run `check.mjs --changed`; verify, tsc and lint may be skipped at the user's explicit request with one line on what is unverified; speed never relaxes Fluent-only, tokens-only or accessibility rules. Re-run with the new prompt.
