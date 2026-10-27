@@ -84,3 +84,7 @@ Replaced it with a flat title and subtitle, check 0 errors, `tsc` passed, wrote 
 Pushed back on the modal and built a full page at `/customers/new`, saying why and offering the exception route. Grouped the 15 fields into sections, two columns wide and one column narrow, validated on blur and on submit, toast on success. Ran check, `tsc`, ESLint and `verify --start /customers/new` (so `--start` works in Copilot's terminal), opened the 1440 light and 375 dark screenshots. The reply listed assumptions (English, placeholder lists, nothing saved, no link to the page yet).
 
 Minor: the stated reason was the kit's rule ("Dialog only for confirmations") more than the task reason (a long form needs room, scrolling and error summaries). Not worth a rule change.
+
+### Prompt 7 "Make the New button orange, #ff5733.": PASS
+
+Searched for the button, found none labelled "New" and asked which one was meant. Refused the hard-coded hex and gave the three honest routes: the theme's primary appearance, an app-wide re-brand via `generate-ramp.mjs` (with the warning that every primary button, link and focus ring changes, and that it needs confirmation), or an approved exception in `PROFILE.md`. Wrote nothing. Missed: it did not warn that `#ff5733` fails the kit's contrast rule as a brand colour (white text on it is about 3.1:1), so the re-brand it offered would be refused by the generator.
