@@ -140,3 +140,9 @@ Kit changes: `verify.mjs` now prints up to 600 characters of each console error 
 Copilot adapted `app-nav.tsx` into `app-nav.tsx` and `app-shell.tsx`, wired it through `layout.tsx`, swapped `minHeight: "100vh"` on the pages for `flexGrow: 1`, kept Customers selected on `/customers/new`, tested the mobile drawer and the collapsed rail in a browser, and wrote a design note. It was honest about an unconfirmed console error and the port clash with `--start`.
 
 Javier's review from the screen recording found two things the checks cannot see: every nav item had Fluent's near-black Background4 fill (hover was invisible against it), and expanding the rail played two slides (our width transition, then the NavDrawer's own slide-in). Measured in Playwright: drawer transform -320px to 0 after the width reached 260px. Fixed in the example: item class with subtle background tokens, `surfaceMotion={null}`. Rule added to `DESIGN.md` and the checklist.
+
+### Follow-up "update the sidebar to match the kit's app-nav": PASS, and it found three kit defects
+
+Copilot merged the kit's subtle item colours and `surfaceMotion={null}` into its own `app-nav.tsx`, and kept three things the kit's example lacked: sticky on wide screens (the kit's version scrolled away), hidden and unfocusable while closed on narrow screens, and reduced motion. It also noticed real `href` links were lost (Ctrl/Cmd-click). It could not run `verify --start` (dev server printed no URL in 90s, then a refused port), said so, and did not claim a visual check.
+
+Kit changes: the example is now sticky on wide screens, `visibility: hidden` when closed on narrow, honours `prefers-reduced-motion`, and items take an optional `href` (real link; plain click navigates in place, modified clicks open a new tab). Tested in Playwright: sticky top 0 after scrolling, Ctrl-click opens a tab, 0 focusable items when closed at 600px, reduced-motion duration ~0, single slide on expand.

@@ -3,6 +3,8 @@
 //   and a NavCategory when an item has sub-pages.
 // - Collapsed: a 56px icon rail. Each item is a subtle Button with a Tooltip; the selected one is primary.
 // - The drawer's own slide-in is off (surfaceMotion={null}); the aside animates width/transform once.
+// - Items with an href are real links: plain click navigates in place, Ctrl/Cmd-click opens a new tab.
+// - Wide screens: the nav is sticky. Narrow: closed means hidden (not focusable), and reduced motion is respected.
 // - Under 1024px the drawer slides over the page and has a close button.
 // - Router-agnostic: the page passes the selected value and handles navigation. Labels come from props, not hard-coded.
 import {
@@ -32,7 +34,7 @@ import {
   Settings20Regular,
   bundleIcon,
 } from "@fluentui/react-icons";
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useState, type MouseEvent, type ReactElement } from "react";
 
 const HomeIcon = bundleIcon(Home20Filled, Home20Regular);
 const PeopleIcon = bundleIcon(People20Filled, People20Regular);
@@ -42,8 +44,10 @@ export interface NavEntry {
   value: string;
   label: string;
   icon: ReactElement;
+  /** Real URL. Gives a proper link (Ctrl/Cmd-click opens a new tab); plain clicks still call onNavigate. */
+  href?: string;
   /** Sub-pages. The item becomes a NavCategory; in the collapsed rail it opens the first sub-page. */
-  children?: { value: string; label: string }[];
+  children?: { value: string; label: string; href?: string }[];
 }
 
 interface AppNavProps {
@@ -71,12 +75,16 @@ const useStyles = makeStyles({
     zIndex: 50,
     width: "260px",
     transform: "translateX(-100%)",
-    transitionProperty: "transform, width, box-shadow",
+    // Closed on narrow screens: out of the tab order and the accessibility tree, not just off-screen.
+    visibility: "hidden",
+    transitionProperty: "transform, width, box-shadow, visibility",
     transitionDuration: tokens.durationSlow,
     transitionTimingFunction: tokens.curveEasyEase,
-    [`@media ${WIDE}`]: { position: "relative", transform: "translateX(0)", flexShrink: 0 },
+    "@media (prefers-reduced-motion: reduce)": { transitionDuration: "0.01ms" },
+    // Wide: sticky so the nav stays put while the page scrolls.
+    [`@media ${WIDE}`]: { position: "sticky", alignSelf: "flex-start", transform: "translateX(0)", visibility: "visible", flexShrink: 0 },
   },
-  asideMobileOpen: { transform: "translateX(0)", boxShadow: tokens.shadow64, [`@media ${WIDE}`]: { boxShadow: "none" } },
+  asideMobileOpen: { transform: "translateX(0)", visibility: "visible", boxShadow: tokens.shadow64, [`@media ${WIDE}`]: { boxShadow: "none" } },
   asideCollapsed: { [`@media ${WIDE}`]: { width: "56px" } },
   drawer: {
     height: "100%",
@@ -147,6 +155,14 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
     return c ? [c] : [];
   });
 
+  const hrefs = new Map(items.flatMap((i) => [[i.value, i.href] as const, ...(i.children ?? []).map((c) => [c.value, c.href] as const)]));
+  // Plain left-click navigates in place; modified clicks fall through so the browser opens a new tab.
+  const onLinkClick = (value: string) => (e: MouseEvent<HTMLElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    go(value);
+  };
+
   const go = (value: string) => {
     onNavigate(value);
     onCloseMobile();
@@ -163,7 +179,9 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
           surfaceMotion={null}
           selectedValue={selectedValue}
           openCategories={openCategories}
-          onNavItemSelect={(_, data) => go(data.value)}
+          onNavItemSelect={(_, data) => {
+            if (!hrefs.get(data.value)) go(data.value);
+          }}
           onNavCategoryItemToggle={(_, data) =>
             setOpenCategories((open) => (open.includes(data.value) ? open.filter((v) => v !== data.value) : [...open, data.value]))
           }
@@ -186,14 +204,14 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
                   <NavCategoryItem icon={item.icon} className={styles.item}>{item.label}</NavCategoryItem>
                   <NavSubItemGroup>
                     {item.children.map((child) => (
-                      <NavSubItem key={child.value} value={child.value} className={styles.item}>
+                      <NavSubItem key={child.value} value={child.value} href={child.href} onClick={child.href ? onLinkClick(child.value) : undefined} className={styles.item}>
                         {child.label}
                       </NavSubItem>
                     ))}
                   </NavSubItemGroup>
                 </NavCategory>
               ) : (
-                <NavItem key={item.value} value={item.value} icon={item.icon} className={styles.item}>
+                <NavItem key={item.value} value={item.value} icon={item.icon} href={item.href} onClick={item.href ? onLinkClick(item.value) : undefined} className={styles.item}>
                   {item.label}
                 </NavItem>
               ),
@@ -204,13 +222,15 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
         <nav className={styles.rail}>
           <Hamburger onClick={onToggle} aria-label={labels.expand} />
           {items.map((item) => {
+            const rail = item.children?.[0] ?? item;
             const active = item.value === selectedValue || !!item.children?.some((c) => c.value === selectedValue);
             return (
               <Tooltip key={item.value} content={item.label} relationship="label" positioning="after">
                 <Button
                   appearance={active ? "primary" : "subtle"}
                   icon={item.icon}
-                  onClick={() => go(item.children?.[0].value ?? item.value)}
+                  {...(rail.href ? { as: "a" as const, href: rail.href } : {})}
+                  onClick={rail.href ? onLinkClick(rail.value) : () => go(rail.value)}
                   aria-label={item.label}
                   aria-current={active ? "page" : undefined}
                 />
@@ -230,7 +250,7 @@ export function AppNavExample() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selected, setSelected] = useState("home");
   const items: NavEntry[] = [
-    { value: "home", label: "Home", icon: <HomeIcon /> },
+    { value: "home", label: "Home", href: "/", icon: <HomeIcon /> },
     {
       value: "people",
       label: "People",
