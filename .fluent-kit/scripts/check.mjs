@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Fluent kit checker. No dependencies, no ESLint needed.
-// Usage: node .fluent-kit/scripts/check.mjs [dir] [--changed] [--json] [--baseline] [--allow pkg,pkg]
+// Usage: node .fluent-kit/scripts/check.mjs [dir] [--changed] [--json] [--baseline] [--allow pkg,pkg] [--no-next]
 //   --changed   only files changed in git (staged, unstaged, untracked). Use this while working.
 //   --baseline  record today's findings in .fluent-kit/baseline.json; later runs fail only on NEW findings.
 //               Use it once when adopting the kit in a repo that already has old violations.
@@ -197,5 +197,13 @@ if (json) {
   for (const f of reported) console.log(`${f.severity === "error" ? "ERROR" : "warn "}  ${f.file}:${f.line}  [${f.rule}]  ${f.message}`);
   console.log(`\nfluent-kit check: ${files.length} files, ${errors.length} error(s), ${warns.length} warning(s)${tolerated ? `, ${tolerated} tolerated by baseline` : ""}.`);
   if (errors.length) console.log("Fix the errors before presenting the work. Use tokens and Fluent components; see .fluent-kit/DESIGN.md.");
+  // This check passing is not the end of the job. Say what is still missing, at the moment the agent is reading this.
+  const uiFiles = files.filter((f) => /\.(tsx|jsx)$/.test(f));
+  if (flag("--changed") && !flag("--no-next") && uiFiles.length) {
+    const OVERLAY = /\b(OverlayDrawer|InlineDrawer|Dialog|DialogSurface|Popover|MenuPopover|DatePicker|TimePicker|Combobox|Dropdown|Toast|Tooltip)\b/;
+    const withOverlay = uiFiles.filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
+    console.log("\nNot finished yet. Still to do: `tsc`, then `node .fluent-kit/scripts/verify.mjs --start /page` and look at the screenshots. \"I did not run verify\" is not an acceptable ending; the only reasons to skip are an explicit request from the user or an error you can quote.");
+    if (withOverlay.length) console.log(`These changed files contain something that opens on a click (${withOverlay.slice(0, 4).join(", ")}). Open it with: verify.mjs --start /page --click "role=button[name='<the button that opens it>']" and look at the -open.png screenshot.`);
+  }
 }
 process.exit(errors.length ? 1 : 0);

@@ -206,3 +206,9 @@ Kit change: `verify.mjs --click "<selector>[;<selector>]"` clicks through to the
 Javier showed the open list from the task drawer: the operating system's native menu, not a Fluent one. Fluent's `Select` is a wrapper around the browser's `<select>`, so the popup is native by design. The kit's own text still allowed `Select` for plain lists, which was wrong for a kit whose job is the Fluent look; the first fix (a rule for `type="date"`) did not cover it.
 
 Kit changes: `check.mjs` now fails on `<Select>` (rule `native-select`) and on native `<option>` / `<optgroup>`, and points to `Dropdown` (with `Option`), `Combobox`, or `RadioGroup` for 2 to 5 visible choices. `DESIGN.md`, the component guidance, the instructions and the checklist no longer allow `Select`. Tested on a copy of the drawer pattern: `Select` and `option` flagged, `Dropdown`/`Option`/`RadioGroup` clean.
+
+### Follow-up "Fix the check errors." (Select and option in the task drawer): PASS on the choice, MISS on finishing
+
+Copilot replaced `Select` with a horizontal `RadioGroup` without being told which control to use, with a sound reason in the design note (three visible choices, a `Dropdown` adds a click for nothing), kept the field's values, and re-ran `check` and `tsc`. It skipped `verify` with no reason ("I didn't run verify") for the third time in this test series, although the instructions say that is not acceptable; its last command also ended in `exit 0`, which hides the exit code.
+
+Kit change: instructions alone did not stop this, so `check.mjs --changed` now ends with a "Not finished yet" note that lists `tsc` and `verify` and says what the only valid reasons to skip are, and names changed files that contain something opened by a click (drawer, dialog, popover, picker, dropdown, toast, tooltip) with the exact `verify --click` command. `--no-next` silences it (the pre-commit hook uses it). Tested: shown for a changed `OverlayDrawer` file, silent with `--no-next`.

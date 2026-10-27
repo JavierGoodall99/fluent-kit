@@ -117,7 +117,7 @@ if (flag("--hooks") && !dry) {
   else {
     const hook = join(hookDir, "pre-commit");
     const body = '#!/bin/sh\n# fluent-kit: block commits that break the UI rules\nnode .fluent-kit/scripts/check.mjs --changed || { echo "fluent-kit: fix the errors above before committing."; exit 1; }\n';
-    if (existsSync(hook) && !readFileSync(hook, "utf8").includes("fluent-kit")) log("a pre-commit hook already exists: not changed. Add this line to it:  node .fluent-kit/scripts/check.mjs --changed || exit 1");
+    if (existsSync(hook) && !readFileSync(hook, "utf8").includes("fluent-kit")) log("a pre-commit hook already exists: not changed. Add this line to it:  node .fluent-kit/scripts/check.mjs --changed --no-next || exit 1");
     else { mkdirSync(hookDir, { recursive: true }); writeFileSync(hook, body, { mode: 0o755 }); log("installed .git/hooks/pre-commit (runs check.mjs --changed)"); }
   }
 }
