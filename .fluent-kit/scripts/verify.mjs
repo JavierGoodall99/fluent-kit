@@ -61,7 +61,7 @@ if (startServer) {
     setTimeout(() => resolveUrl(null), 90000);
   });
   const base = await ready;
-  if (!base) { console.error(`The dev server did not report a URL within 90 seconds.\nLast output:\n${log.slice(-800)}\nFix the server error, or start it yourself and pass a full URL. Say that verification was NOT done.`); process.exit(2); }
+  if (!base) { console.error(`The dev server did not report a URL within 90 seconds.\nLast output:\n${log.slice(-800)}\nIf another dev server is already running (the log may say "port in use" or "already running"), pass its full URL instead, for example http://localhost:3000/your-page. Otherwise fix the server error. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
   for (let i = 0; i < 60; i++) { try { await fetch(base); break; } catch { await new Promise((r) => setTimeout(r, 500)); } }
   urls = urls.map((u) => (u.startsWith("/") ? base + u : u));
   console.log(`Dev server ready at ${base}`);

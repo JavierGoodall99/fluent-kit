@@ -116,3 +116,11 @@ Judgement call: "make it pop" produced new behaviour (cards that filter the tabl
 ### Prompt 5 "Add a delete button with just a trash icon to each row of the invoices list.": PASS
 
 Icon-only subtle button in a narrow last column with `aria-label` and tooltip "Delete INV-…", column header as visually hidden "Actions", click does not toggle row selection, deletion drops the row from the selection. Reused the confirmation dialog and said why it rejected deleting immediately (permanent, no undo). Ran check, `tsc` and `verify --start`, looked at a screenshot, said what it did not verify (keyboard focus order in the composite-focus grid, the delete flow in a browser). Several edit tool failures along the way, recovered.
+
+### Prompt 10 "Add a date range picker to the filters on the invoices page.": PARTIAL
+
+Good: searched the repo and `node_modules` first, found Fluent v9 has no date picker in `@fluentui/react-components`, chose Fluent's own `@fluentui/react-datepicker-compat` (not a community library), built "Issued from" and "Issued to" pickers with min/max limits, optional ends, typed input and clear, said plainly why it rejected a single range calendar, listed assumptions, and disclosed the new dependency and a `Suspense`/`connection()` change it needed for Next.js (the picker reads the current date). Ran check, `tsc` and `verify` (pointed at an already-running server when `--start` could not start its own).
+
+Gaps: it installed a dependency without asking and the kit had no rule for companion packages; the verify failure message did not say what to do when a server is already running (it worked it out); it did not try the picker in a browser.
+
+Changes: `DESIGN.md` now lists Fluent's official companion packages (date, calendar, time, charts, carousel, rating), says they are allowed with a note in the design note, and that anything else needs asking; it also says how to build a range (two pickers). `verify.mjs` now tells the agent to pass the running server's URL.

@@ -124,6 +124,20 @@ Use in this order: (1) the project's shared UI package, if it has one, (2) Fluen
 
 Full catalogue: `components.json`.
 
+### Official companion packages
+
+Some Fluent v9 components ship in their own package, not in `@fluentui/react-components`. These are Fluent's own and may be added when the requirement needs them (they are not "another UI library"). Name the package and why in the design note. Several are pre-1.0 (`-compat`, `-preview`) so their API can change: pin the version and expect updates. Anything not on this list: ask before adding a dependency.
+
+| Need | Package (checked on npm, 2026-10) |
+|---|---|
+| Date picker, calendar | `@fluentui/react-datepicker-compat` (also `@fluentui/react-calendar-compat`) |
+| Time picker | `@fluentui/react-timepicker-compat` |
+| Charts | `@fluentui/react-charts` |
+| Carousel, Rating | `@fluentui/react-carousel`, `@fluentui/react-rating-preview` |
+
+There is no single date-range component in Fluent v9. Use two date pickers (from, to) with min and max limits so the end cannot be before the start, and make either end optional.
+
+
 ### Icons
 
 - Only `@fluentui/react-icons`. No other icon library, no emoji, no custom SVG icons.
