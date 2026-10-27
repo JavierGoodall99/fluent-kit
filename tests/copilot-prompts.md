@@ -160,3 +160,11 @@ Stated the requirement, chose inline edit in the cell (rejected a drawer or dial
 Gap: `verify` still reported a hydration error and a landmark warning; it called the hydration error pre-existing (seen on invoices too) without proving it and did not read the landmark warning.
 
 Kit change: `copilot-instructions.md` now requires proof (stash, rerun, compare) before calling a verify error pre-existing, and says to read warnings.
+
+### verify finding on /customers: `data-tabster-dummy` hydration error (kit fix, not an app bug)
+
+After prompt 11 `verify` kept reporting a hydration error on the light renders only. A fresh server (`--start`) gave the same result, so it was not a stale dev server. The full error (now saved to `.fluent-kit/out/console-errors.txt`) showed the only server-side difference was a hidden `<i data-tabster-dummy ...>` helper before the toolbar button: Fluent's tabster inserted it before React hydrated that chunk. The page code was fine.
+
+Kit changes: `verify.mjs` prints the hydration diff, saves the raw errors to a file, and downgrades a tabster-only hydration diff to a warning with an explanation; `DESIGN.md` tells agents not to rewrite pages, add client-only mounts or `suppressHydrationWarning` for it. Other hydration differences are still errors. Not confirmed: whether it also happens in a production build.
+
+The landmark warning (4 of 6 renders, i.e. probably the two narrow widths in both colour schemes) is most likely the mobile top bar with the Hamburger sitting outside any landmark; the example now says to put it in a `<header>`.

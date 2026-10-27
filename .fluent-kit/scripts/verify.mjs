@@ -23,6 +23,15 @@ if (!urls.length) { console.error("Usage: node .fluent-kit/scripts/verify.mjs --
 
 // Console errors, shortened. A React hydration error carries a long boilerplate list and then the part that
 // matters (the diff of server vs client markup); keep the first sentence and the diff lines, drop the list.
+// True when every server-side ("-") line of a hydration diff belongs to a tabster helper element.
+function tabsterOnly(e) {
+  if (!/Hydration failed/i.test(e) || !/data-tabster-dummy/.test(e)) return false;
+  const parts = e.split("| diff:")[1];
+  if (!parts) return false;
+  const server = parts.split(" ; ").map((l) => l.trim()).filter((l) => /^-\s/.test(l));
+  const helper = /^-\s+(<i\b|<\/i>|>|tabindex=|role=|data-tabster|aria-hidden=|style=)/;
+  return server.length > 0 && server.every((l) => helper.test(l));
+}
 const rawErrors = [];
 function shortError(text) {
   rawErrors.push(text);
@@ -165,7 +174,14 @@ for (const url of urls) {
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
       if (info.tiny) note("warn", where, `${info.tiny} Fluent control(s) smaller than 24px. Check touch targets.`);
       if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("warn", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
-      if (errors.length) note("error", where, `Console errors: ${[...new Set(errors)].slice(0, 3).join(" | ")}`);
+      // Fluent's focus helper (tabster) can insert hidden <i data-tabster-dummy> elements before React hydrates a
+      // page chunk. React then reports a mismatch whose only server-side difference is those helpers. It is a known
+      // Fluent + Next.js timing issue, not a mistake in the page, so it is a warning, not an error.
+      const isTabsterOnly = tabsterOnly;
+      const real = errors.filter((e) => !isTabsterOnly(e));
+      const tab = errors.filter(isTabsterOnly);
+      if (real.length) note("error", where, `Console errors: ${[...new Set(real)].slice(0, 3).join(" | ")}`);
+      if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
 
       if (axeSource) {
         try {

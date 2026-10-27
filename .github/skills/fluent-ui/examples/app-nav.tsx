@@ -275,7 +275,7 @@ export function AppNavExample() {
         onCloseMobile={() => setMobileOpen(false)}
         labels={{ expand: "Expand navigation", collapse: "Collapse navigation", close: "Close" }}
       />
-      <main style={{ flex: 1, overflow: "auto" }}>{/* page content; a top bar with a Hamburger calls setMobileOpen(true) on narrow screens */}</main>
+      <main style={{ flex: 1, overflow: "auto" }}>{/* page content. On narrow screens put a top bar with a Hamburger (calls setMobileOpen(true)) inside a <header> so it sits in a landmark. */}</main>
     </div>
   );
 }
