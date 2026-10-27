@@ -27,7 +27,10 @@ function shortError(text) {
   if (/hydrat|didn't match/i.test(text)) {
     const lines = text.split("\n").map((l) => l.trimEnd());
     const first = lines[0].replace(/\s+/g, " ").slice(0, 160);
-    const diff = lines.filter((l) => (/^\s*[+-] /.test(l) && !/^\s*- (A|Variable|Date|External|Invalid|It) /.test(l)) || /^\s*<\/?[A-Za-z]/.test(l) || /^\s*at /.test(l)).slice(0, 14).map((l) => l.trim().slice(0, 140));
+    const isDelta = (l) => /^\s*[+-] /.test(l) && !/^\s*- (A|Variable|Date|External|Invalid|It) /.test(l);
+    const delta = lines.filter(isDelta).slice(0, 10).map((l) => l.trim().slice(0, 160));
+    const ctx = lines.filter((l) => !isDelta(l) && /^\s*<[A-Za-z]/.test(l)).slice(-4).map((l) => l.trim().slice(0, 120));
+    const diff = delta.length ? [...delta, "context:", ...ctx] : ctx;
     return diff.length ? `${first} | diff: ${diff.join(" ; ")}` : text.replace(/\s+/g, " ").slice(0, 1200);
   }
   return text.replace(/\s+/g, " ").slice(0, 600);
