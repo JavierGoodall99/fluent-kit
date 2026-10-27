@@ -21,7 +21,7 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 | 3 | Tailwind + shadcn for settings | PASS | Hedged on `tsc`; nav missing | none | n/a |
 | 4 | 15-field form as a modal | PASS | Gave the kit's rule as the reason more than the task's | none | n/a |
 | 5 | Trash-icon button per row | PASS | Keyboard focus order and delete flow not tested (said so) | none | n/a |
-| 6 | "Make it pop" | PASS | Added new behaviour (cards that filter) untested | A visual request changes how it looks, not what it does | Not re-run |
+| 6 | "Make it pop" | PASS | Added new behaviour (cards that filter) untested | A visual request changes how it looks, not what it does | PASS on re-run (Dutch page): stayed on-standard and suggested a summary strip instead of adding it; its desktop screenshots caught only the loading skeleton, so `verify` now waits for loading to finish |
 | 7 | Orange button `#ff5733` | PASS | Did not warn the colour fails the contrast rule as a brand colour | none yet (open) | n/a |
 | 8 | Dark mode toggle | PARTIAL | Footer button centred while nav items are left-aligned; never clicked the toggle | `footerAction` in the nav example (left-aligned, rail variant) | Not re-run |
 | 9 | 5000 customers | PASS | Hydration error needed a long hunt | Virtualized grid guidance and example, client-only note for Next, longer error output in `verify` | n/a |
