@@ -42,7 +42,7 @@ When asking the user, ask one short question and wait. Do not guess a brand colo
 3. **Look for an existing component.** Search the project (its shared UI package if it has one, and the repo) before writing a new one. Prefer reuse over variation.
 4. **Pick the page pattern** from `.fluent-kit/DESIGN.md` section 5 (app shell, command bar, list, drawer, confirmation). The result must feel like a Microsoft application.
 5. **Build with Fluent v9, Fluent icons and tokens.** Follow `.github/instructions/fluent-ui.instructions.md`. No hard-coded colors, spacing, or radii. No other UI or icon library. No native form controls.
-6. **Critique, then verify.** Do the critique pass in `DESIGNER.md` section 8 (squint, remove-one, five-second, worst-case, keyboard). Run the lint rules and `tsc`, then go through `checklist.md`.
+6. **Critique, then verify.** Do the critique pass in `DESIGNER.md` section 8 (squint, remove-one, five-second, worst-case, keyboard). Run `node .fluent-kit/scripts/check.mjs --changed` and fix every error. Start the app and run `node .fluent-kit/scripts/verify.mjs <url>` (renders light and dark at three widths, runs layout and accessibility checks, saves screenshots to `.fluent-kit/out/`); open the screenshots and look at them. If verify cannot run, say so; never claim the UI was verified when it was not. Then run `tsc`, the project's lint, and go through `checklist.md`. Never weaken or edit a check to make it pass.
 7. **Report.** Give the short design note (requirement, pattern chosen, main alternative rejected and why; `DESIGNER.md` section 9). Say which existing components you reused, which new component (if any) you created and why, and anything that deviates from `.fluent-kit/DESIGN.md`.
 
 ## Migrating an existing screen

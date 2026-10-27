@@ -4,6 +4,7 @@
 //   --profile <name>  copy .fluent-kit/profiles/<name>.md to <target>/.fluent-kit/PROFILE.md (organisation overrides)
 //   --agents          also add the short rules block to AGENTS.md (read by Copilot's coding agent, Codex, Cursor and others)
 //   --brand <stock|#hex>  record the brand decision in .fluent-kit/brand.json ("stock" = keep the stock Microsoft theme)
+//   --wire            also add an npm script "ui:check" to package.json
 //   --dry-run         show what would change, write nothing
 // Safe to run again to update: kit files are replaced, your PROFILE.md and .fluent-kit/brands/ files are not touched,
 // and the block in copilot-instructions.md is replaced between its markers (the rest of that file is left alone).
@@ -89,9 +90,32 @@ console.log("\nWhat the kit found in this project:\n");
 if (!dry) spawnSync(process.execPath, [join(dest, ".fluent-kit", "scripts", "detect-theme.mjs"), dest], { stdio: "inherit" });
 else spawnSync(process.execPath, [join(here, ".fluent-kit", "scripts", "detect-theme.mjs"), dest], { stdio: "inherit" });
 
+// 6. how much old code already breaks the rules
+const checkScript = join(dry ? here : dest, ".fluent-kit", "scripts", "check.mjs");
+const chk = spawnSync(process.execPath, [checkScript, dest, "--json"], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+let existingErrors = 0;
+try { const r = JSON.parse(chk.stdout); existingErrors = r.errors; console.log(`Existing code: ${r.filesChecked} files checked, ${r.errors} rule violation(s), ${r.warnings} warning(s).`); } catch { /* no report */ }
+
+// 7. optional: npm script
+if (flag("--wire") && !dry) {
+  const pj = join(dest, "package.json");
+  if (existsSync(pj)) {
+    try {
+      const j = JSON.parse(readFileSync(pj, "utf8"));
+      j.scripts = j.scripts || {};
+      if (!j.scripts["ui:check"]) { j.scripts["ui:check"] = "node .fluent-kit/scripts/check.mjs"; writeFileSync(pj, JSON.stringify(j, null, 2) + "\n"); log('added npm script "ui:check" to package.json'); }
+      else log('npm script "ui:check" already exists: left as is');
+    } catch { log("could not edit package.json: add the ui:check script by hand"); }
+  }
+}
+
 console.log(`
 Next steps (nothing else is required):
   - Commit .fluent-kit/ and .github/. Copilot reads .github/ on its own.
-  - Optional lint: see "Lint setup" in the kit README (needs eslint v9). The agent still follows the rules without it.
+  - The agent runs two checks before it finishes UI work:
+      node .fluent-kit/scripts/check.mjs --changed          rules: colours, spacing, imports, native controls, labels
+      node .fluent-kit/scripts/verify.mjs <url>             renders the page (light/dark, 3 widths), checks layout and accessibility
+    Add the first to CI (and a pre-commit hook if you like) so nothing slips through. verify needs: npm i -D playwright axe-core
+${existingErrors ? `  - This repo already has ${existingErrors} violation(s) in old code. To fail only on NEW ones, run once: node .fluent-kit/scripts/check.mjs --baseline  (then commit .fluent-kit/baseline.json)\n` : ""}  - Optional lint: see "Lint setup" in the kit README (needs eslint v9). The agent follows the rules without it.
   - Check that your Copilot version supports Agent Skills (.github/skills/); the instructions files work without it.
 `);

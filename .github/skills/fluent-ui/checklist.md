@@ -17,6 +17,8 @@ Go through every item before presenting UI work. Report any item you could not v
 - [ ] No new component created when an existing one fits
 - [ ] Brand color appears only via `tokens.colorBrand*`
 - [ ] Status colors use `tokens.colorStatus*`
+- [ ] `node .fluent-kit/scripts/check.mjs --changed` reports 0 errors
+- [ ] `node .fluent-kit/scripts/verify.mjs <url>` reports 0 errors, and the screenshots (light, dark, narrow) were opened and looked at; or the reply says verification could not be run
 - [ ] `fluent-kit/no-hardcoded-styles` and the Fluent-only lint config pass with zero warnings (if the project has them set up)
 - [ ] `tsc` passes (catches wrong prop names and nonexistent tokens)
 

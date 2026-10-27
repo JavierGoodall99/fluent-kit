@@ -15,6 +15,7 @@ import {
   type TableColumnDefinition,
   createTableColumn,
   makeStyles,
+  mergeClasses,
   tokens,
 } from "@fluentui/react-components";
 import {
@@ -43,6 +44,11 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground1,
     border: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`,
     borderRadius: tokens.borderRadiusMedium,
+  },
+  // Let the command bar wrap on narrow screens instead of cutting buttons off.
+  toolbar: {
+    flexWrap: "wrap",
+    rowGap: tokens.spacingVerticalXS,
   },
   footer: {
     padding: tokens.spacingVerticalS,
@@ -75,12 +81,12 @@ export function ItemListPage({ items }: { items: Item[] }) {
   const hasSelection = selected.size > 0;
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <Text as="h1" size={600} weight="semibold">
         Items
       </Text>
 
-      <Toolbar aria-label="Actions" className={styles.surface}>
+      <Toolbar aria-label="Actions" className={mergeClasses(styles.surface, styles.toolbar)}>
         <ToolbarButton appearance="primary" icon={<Add20Regular />}>
           New
         </ToolbarButton>
@@ -124,6 +130,6 @@ export function ItemListPage({ items }: { items: Item[] }) {
           Rows: {items.length}
         </Text>
       </div>
-    </div>
+    </main>
   );
 }

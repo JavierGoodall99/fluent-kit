@@ -15,7 +15,11 @@ UI in this repo must look and feel like a Microsoft application: Fluent UI React
 - **Text:** write UI text in the language the project already uses (see `.fluent-kit/DESIGN.md` section 10). Put strings in the project's i18n files if it has them.
 - Before building a component, check whether the project already has one. Reuse what exists. Never import a package that is not in `package.json`.
 
-Before you finish any UI change, run the checklist in `.github/skills/fluent-ui/checklist.md`, the lint rules if the project has them, and `tsc`. Fix failures before presenting the result.
+Before you finish any UI change:
+1. Run `node .fluent-kit/scripts/check.mjs --changed` (rules checker, no setup needed) and fix every error.
+2. If the app can run, start it and run `node .fluent-kit/scripts/verify.mjs <url of the changed page>`. It renders light and dark at three widths, checks layout and accessibility, and saves screenshots to `.fluent-kit/out/`. Open the screenshots and look at them. Fix errors. If it cannot run (no browser, no dev server), say so plainly: do not claim the UI was verified.
+3. Run `tsc`, the project's lint, and the checklist in `.github/skills/fluent-ui/checklist.md`.
+A check that fails is not a reason to edit the check. Fix the code. To skip one real exception, use `// fluent-kit-ignore -- reason` and mention it in your reply.
 
 When unsure, ask which existing component or pattern to follow. Do not invent a new one.
 <!-- fluent-kit:end -->

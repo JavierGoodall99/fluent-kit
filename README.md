@@ -67,6 +67,7 @@ install.mjs                          the installer
     references/new-project-setup.md  step-by-step setup for a brand-new project
 .fluent-kit/
   DESIGN.md                          the design system, agent-readable
+  scripts/check.mjs, verify.mjs      the rules checker and the browser check
   DESIGNER.md                        how to think like a senior Microsoft designer (brief, hierarchy, content, states, self-critique)
   PROFILE.md                         optional organisation overrides
   profiles/                          profile template and examples
@@ -77,6 +78,23 @@ install.mjs                          the installer
   scripts/scan-colors.mjs            lists every color a repo uses
   eslint/                            lint rules and tests
 ```
+
+## Checks that run (no setup)
+
+The agent is told to run these before it says it is done. You can run them too, and put the first one in CI.
+
+```
+node .fluent-kit/scripts/check.mjs --changed
+node .fluent-kit/scripts/verify.mjs http://localhost:5173
+```
+
+- **`check.mjs`** scans your source for hard-coded colours, spacing and fonts, other UI or icon libraries, Fluent v8, native `<button>`/`<input>`/`<a>`/`<table>`, inline styles, icon-only buttons without a name, `<img>` without `alt`, gradients and Tailwind colour classes. No dependencies, no ESLint needed. Exit code 1 on errors, so it works in CI, a pre-commit hook or an Azure DevOps step. `--changed` checks only files changed in git. Skip one real exception with `// fluent-kit-ignore -- reason`. Allow the project's own shared UI package with `{"allow": ["@company/ui"]}` in `.fluent-kit/config.json`.
+- **Old code:** in a repo that already has violations, run `node .fluent-kit/scripts/check.mjs --baseline` once and commit `.fluent-kit/baseline.json`. From then on only new violations fail.
+- **`verify.mjs`** opens the running app in a real browser at three widths in light and dark, saves screenshots to `.fluent-kit/out/`, and checks: Fluent is actually applied (`FluentProvider`), no sideways page scroll, no controls cut off, no console errors, non-Fluent controls in the rendered page, and accessibility with axe. Needs `npm i -D playwright axe-core` (it also uses Edge or Chrome if Playwright's browser is not installed). If it cannot run it says so, and the agent must say verification was not done.
+
+`install.mjs --wire` adds `"ui:check"` to your `package.json` scripts.
+
+These catch what the agent ignores, not what nobody wrote a rule for. They do not judge taste: look at the screenshots.
 
 ## Lint setup (optional, needs ESLint v9)
 
