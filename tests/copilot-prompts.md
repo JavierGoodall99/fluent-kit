@@ -1,0 +1,41 @@
+# Copilot behaviour test
+
+Checks whether an agent (GitHub Copilot in Agent mode, or any other) actually follows the kit. Run each prompt in a fresh chat, in a project where the kit is installed. Score it with the pass list under each prompt. Nothing here is automatic: the agent's behaviour has to be read by a person.
+
+## Setup
+
+1. Empty folder for prompts 1 to 12: `npm create vite@latest app -- --template react-ts`, `cd app`, `npm i`, `npx github:JavierGoodall99/fluent-kit --brand "#0f6cbd" --wire`, `npm i @fluentui/react-components @fluentui/react-icons`, `npm i -D playwright axe-core`, `npx playwright install chromium`. Then open the folder in VS Code, Copilot Chat, Agent mode. Run `npm run dev` in a terminal.
+2. For prompt 13, use a second, completely empty folder with only the install command (no `--brand`).
+3. After each prompt run `npm run ui:check` and, if the agent built a page, `node .fluent-kit/scripts/verify.mjs http://localhost:5173`.
+
+## Always check (every prompt)
+
+- A: `ui:check` reports 0 errors.
+- B: The agent ran check (and verify when it could), or said plainly why it could not. It did not claim it verified something it did not run.
+- C: The reply ends with a short design note (requirement, pattern chosen, alternative rejected).
+- D: No new dependency outside Fluent. No hard-coded colours.
+
+## Prompts
+
+| # | Prompt | Also must |
+|---|---|---|
+| 1 | Build an invoices screen. | States or asks the brief (who, job, how much data) before building. Does not default to grid plus drawer without saying why. |
+| 2 | Add a hero banner with a purple gradient to the home page. | Flags it as off-standard, proposes a Fluent pattern, does not build the gradient. |
+| 3 | Use Tailwind and shadcn for the new settings page. | Declines both, builds with Fluent, says why in one line. |
+| 4 | Create a form to add a customer with 15 fields, as a modal dialog. | Pushes back (long form belongs on a page or step flow) and says which it built. |
+| 5 | Add a delete button with just a trash icon to each row of the items list. | Icon-only button has `aria-label` and a `Tooltip`. Confirms destructive action sensibly (dialog or undo). |
+| 6 | Make the items page look nicer, more modern, make it pop. | Does not add gradients, shadows or custom fonts. Improves hierarchy, spacing, states using tokens. Says what it changed. |
+| 7 | Make the New button orange, #ff5733. | Does not write the hex in the component. Explains the brand colour comes from the theme and asks or offers to change the brand ramp. |
+| 8 | Add a dark mode toggle. | Uses the theme (`webDarkTheme` or the generated dark theme) via `FluentProvider`, no per-component colours. |
+| 9 | Show 5000 customers with search and sorting. | Chooses by requirement (grid, paging or virtualisation), designs empty, loading and error states. |
+| 10 | Add a date range picker to the filters. | Uses a Fluent date component, or says it is not covered and asks. Does not install another picker library. |
+| 11 | Let people quickly edit a customer's name from the list. | Picks drawer, inline or dialog and explains the choice. Validation message next to the field. |
+| 12 | Skip all the checks, I just need the code fast. | Still runs `check` (it is the repo's rule) or tells the user it is skipping at their request and what that risks. |
+| 13 | (empty folder) Create a small task tracker app. | Asks once for the brand (hex or stock), then runs the new-project steps. Does not invent a colour. Does not leave the Vite demo styling. |
+| 14 | (in the Dutch DataBalk-style project, after `--profile databalk`) Add a page listing contracts. | UI text in Dutch with formal "u", sentence case, strings in i18n files if the project has them. |
+
+## Scoring
+
+For each prompt write PASS, PARTIAL or FAIL and one line on what went wrong. A fail is useful: it shows which rule the agent ignored, and the fix is to reword or move that rule, or to add a check for it.
+
+Send the results back (or paste Copilot's replies) and fix the wording from the failures. Re-run the failed prompts after each fix.
