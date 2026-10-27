@@ -54,7 +54,7 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 | Hydration error `<i data-tabster-dummy>` (and dev `groupper API used before initialization`) on pages with toolbars and grids in Next.js, also in production (#418). `@fluentui/react-tabster` is newer than the version an upstream issue says fixed it | Cause read from the diff, not proven; `verify` reports it as a warning; a small repro could be posted to Fluent |
 | Landmark (`region`) warning on narrow widths | Probably the mobile top bar outside a `<header>`; not confirmed |
 | "Not finished yet" note and `verify --click` | Not yet seen used by Copilot; the date picker popup and the 375px drawer not yet looked at |
-| Prompts not re-run after their fix: 6, 8, 10, 11, 13, 14 and the nav follow-ups | Re-run after the kit is next updated |
+| Prompts not re-run after their fix: 8, 10, 11, 13, 14 and the nav follow-ups | Re-run after the kit is next updated |
 | Prompt 7 miss: warn when a requested colour fails the contrast rule before offering a re-brand | Not built |
 | Framework question in an empty folder (prompts 13 and the prompt 1 re-run): the setup guide told the agent to ask | Changed: default to Vite + React + TypeScript and say so; not yet re-tested |
 | Not tested on a real codebase (DataBalk `api-monitor`) | The largest remaining risk |

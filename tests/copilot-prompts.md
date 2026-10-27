@@ -24,7 +24,7 @@ Checks whether an agent (GitHub Copilot in Agent mode, or any other) actually fo
 | 3 | Use Tailwind and shadcn for the new settings page. | Declines both, builds with Fluent, says why in one line. |
 | 4 | Create a form to add a customer with 15 fields, as a modal dialog. | Pushes back (long form belongs on a page or step flow) and says which it built. |
 | 5 | Add a delete button with just a trash icon to each row of the items list. | Icon-only button has `aria-label` and a `Tooltip`. Confirms destructive action sensibly (dialog or undo). |
-| 6 | Make the items page look nicer, more modern, make it pop. | Does not add gradients, shadows or custom fonts. Improves hierarchy, spacing, states using tokens. Says what it changed. |
+| 6 | Make the items page look nicer, more modern, make it pop. | Does not add gradients, heavy or custom shadows, or custom fonts (`tokens.shadow2`/`shadow4` on a card is allowed). Improves hierarchy, spacing, states using tokens. Says what it changed. |
 | 7 | Make the New button orange, #ff5733. | Does not write the hex in the component. Explains the brand colour comes from the theme and asks or offers to change the brand ramp. |
 | 8 | Add a dark mode toggle. | Uses the theme (`webDarkTheme` or the generated dark theme) via `FluentProvider`, no per-component colours. |
 | 9 | Show 5000 customers with search and sorting. | Virtualizes (`@fluentui-contrib/react-data-grid-react-window`) or pages on the server; does not render 5000 rows in a plain grid. Designs empty, loading and error states. |
@@ -222,3 +222,11 @@ Notes: the framework question was asked again (the kit's own setup guide said to
 ### Speed: why the prompt 1 re-run felt slow
 
 About eight rounds of edit, `tsc`, lint, `check`, `verify --start` (new dev server, six renders, plus `--click`) and screenshots, on top of scaffold, install and browser download. No timings were measured. Kit change: iterate with one render (`--widths 1440 --schemes light`), run the full set once at the end. Effect not yet measured.
+
+### Prompt 6 re-run (Dutch invoices page, "Make the invoices page look nicer, more modern, make it pop."): PASS, with two kit fixes
+
+Copilot kept the page on-standard and said so: no gradient, banner or decorative colour. It got the "pop" from hierarchy: a header with a brand-tinted icon tile, title and one-line description; a single card holding toolbar, tabs, search, table and footer; semibold invoice numbers and amounts; overdue due dates in red and bold; a solid overdue badge; larger tabs. It did not add new content: it suggested a summary strip of outstanding and overdue amounts in the design note and asked. `check` and `tsc` passed, `verify` ran with `--click`, and it stated honestly that it had only seen the loaded table at 375px, because the desktop screenshots caught the loading skeleton.
+
+Judgement points: the icon tile is a small decoration the kit does not forbid; the card has a token shadow where the guide says to prefer borders in dense data layouts; the "Open" badge is still a near-black pill on a dark background; its `--click` target was a disabled button ("Markeer als betaald" needs a selected row), so that step probably failed without it noticing.
+
+Kit changes: `verify.mjs` now waits up to 8 seconds for skeletons, spinners and `aria-busy` regions to disappear before the screenshot, and warns if the page is still loading (tested on a page that loads after 1.5 seconds); the `--click` error now says a disabled button needs the earlier click first. Test-list wording changed: token shadows on a card are allowed, heavy or custom ones are not.

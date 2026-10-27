@@ -145,6 +145,9 @@ for (const url of urls) {
       }
       if (waitFor) { try { await page.waitForSelector(waitFor, { timeout: 10000 }); } catch { note("error", where, `Selector '${waitFor}' never appeared.`); } }
       await page.waitForTimeout(500);
+      // Do not photograph a loading state: wait until skeletons, spinners and aria-busy regions are gone.
+      try { await page.waitForFunction(() => !document.querySelector(".fui-Skeleton, .fui-Spinner, [aria-busy='true']"), undefined, { timeout: 8000 }); await page.waitForTimeout(200); }
+      catch { note("warn", where, "Still showing a loading state (skeleton, spinner or aria-busy) after 8 seconds, so the screenshots show loading, not content. Use --wait \"<selector of the loaded content>\" or check that the data loads."); }
       loaded++;
 
       const info = await page.evaluate(() => {
@@ -207,7 +210,7 @@ for (const url of urls) {
         let opened = true;
         for (const step of clickSteps) {
           try { await page.locator(step).first().click({ timeout: 5000 }); await page.waitForTimeout(600); }
-          catch { note("error", where, `--click '${step}' found nothing to click. Use a Playwright selector such as "role=button[name='New task']" or "text=New task".`); opened = false; break; }
+          catch { note("error", where, `--click '${step}' could not be clicked within 5 seconds (not on the page, covered, or disabled: a button that needs a selected row stays disabled until you add that click first, for example --click \"role=checkbox[name='Row 1'];role=button[name='Delete']\"). Use a Playwright selector such as "role=button[name='New task']" or "text=New task".`); opened = false; break; }
         }
         if (opened) {
           await runAxe(page, `${where} after clicking ${clickSteps.join(" then ")}`);
