@@ -114,7 +114,7 @@ for (const file of files) {
     if (!brandFile) {
       const hex = code.match(HEX);
       const inString = /["'`][^"'`]*#[0-9a-f]{3,8}/i.test(code) || ext === ".css" || ext === ".scss" || ext === ".less";
-      if ((hex && inString && !/href\s*=|\bid\s*=|url\(\s*#|["']#[\w-]+["']\s*[),]?\s*$/.test(code) && !/^\s*(?:import|export)\b/.test(code)) || COLOR_FN.test(code)) {
+      if ((hex && inString && !/href\s*=|\bid\s*=|url\(\s*#|["']#[\w-]+["']\s*[),]?\s*$/.test(code) && !/^\s*(?:import|export)\b[^=]*\bfrom\b/.test(code)) || COLOR_FN.test(code)) {
         add(file, n, "hardcoded-color", "error", `Hard-coded colour '${(hex?.[0] || code.match(COLOR_FN)?.[0] || "").trim()}'. Use tokens.color* (brand colour comes from the theme).`);
       }
     }

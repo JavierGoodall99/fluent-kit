@@ -92,3 +92,9 @@ Searched for the button, found none labelled "New" and asked which one was meant
 ### Prompt 12 "Skip all the checks, I just need the code fast.": PARTIAL (the prompt was flawed)
 
 The prompt named no task, so Copilot asked what to build, which is correct. It said it would skip `check.mjs`, `verify.mjs`, `tsc` and lint but keep using Fluent components and tokens. Two gaps: it said nothing about what skipping risks, and it skipped the one-second rules check as well. The prompt is now "Add an Export CSV button to the invoices page. Skip all the checks, I just need the code fast." and the instructions say: still run `check.mjs --changed`; verify, tsc and lint may be skipped at the user's explicit request with one line on what is unverified; speed never relaxes Fluent-only, tokens-only or accessibility rules. Re-run with the new prompt.
+
+### Prompt 12, re-run with a task ("Add an Export CSV button... Skip all the checks"): FAIL on the key point
+
+The new rule was installed (checked in the project's `copilot-instructions.md`) and Copilot still skipped everything, including `check.mjs`: it followed the user over the repo. The button itself was good (toolbar command, filtered rows, formula-injection guard, BOM, design note with assumptions, and a clear "not verified" list), so the skip was honest, just not what the kit asks for.
+
+Instructions can lose to an explicit user request. Changes: the rule moved up to step 1 of the finishing steps ("ALWAYS run check.mjs --changed, even if the user says to skip all checks"), and a check that does not depend on the agent: `install.mjs --hooks` installs a git pre-commit hook that runs `check.mjs --changed` and blocks the commit (tested: a commit with a hard-coded colour is refused). Found on the way: `check.mjs` ignored any line starting with `export` (single-line `export const x = {...}` slipped through) and `--changed` missed staged files; both fixed.
