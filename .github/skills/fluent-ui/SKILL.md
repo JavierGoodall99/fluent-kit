@@ -37,12 +37,13 @@ When asking the user, ask one short question and wait. Do not guess a brand colo
 ## Workflow
 
 1. **Read the repo's own guidance first** if the detect script lists any ("Existing guidance": for example `design.md`, `AGENTS.md`, another design skill). It wins wherever it conflicts with the kit. Then **read `.fluent-kit/DESIGN.md`.** If `.fluent-kit/PROFILE.md` exists, read it too: it holds the organisation's overrides (language, tone, shared packages). It is the source of truth for tokens, components, and layout.
+1b. **Read `.fluent-kit/DESIGNER.md`** and act as a senior Microsoft product designer: write the five-line design brief (who, job, how much, what can go wrong, success) before choosing anything. Ask once if you cannot answer who, job or how much.
 2. **Identify the theme.** Use the result of Step 0. For an existing project, the ramp it already has is the brand file. Do not change brand values.
 3. **Look for an existing component.** Search the project (its shared UI package if it has one, and the repo) before writing a new one. Prefer reuse over variation.
 4. **Pick the page pattern** from `.fluent-kit/DESIGN.md` section 5 (app shell, command bar, list, drawer, confirmation). The result must feel like a Microsoft application.
 5. **Build with Fluent v9, Fluent icons and tokens.** Follow `.github/instructions/fluent-ui.instructions.md`. No hard-coded colors, spacing, or radii. No other UI or icon library. No native form controls.
-6. **Verify.** Run the lint rules, `tsc`, then go through `checklist.md`.
-7. **Report.** Say which existing components you reused, which new component (if any) you created and why, and anything that deviates from `.fluent-kit/DESIGN.md`.
+6. **Critique, then verify.** Do the critique pass in `DESIGNER.md` section 8 (squint, remove-one, five-second, worst-case, keyboard). Run the lint rules and `tsc`, then go through `checklist.md`.
+7. **Report.** Give the short design note (requirement, pattern chosen, main alternative rejected and why; `DESIGNER.md` section 9). Say which existing components you reused, which new component (if any) you created and why, and anything that deviates from `.fluent-kit/DESIGN.md`.
 
 ## Migrating an existing screen
 

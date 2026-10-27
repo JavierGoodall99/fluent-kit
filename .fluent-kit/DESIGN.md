@@ -4,6 +4,8 @@ Read by AI agents and developers. Fluent UI React v9 is the foundation, so every
 
 Some projects have their own shared UI or theme package. Use it only if the project already depends on one; `.fluent-kit/scripts/detect-theme.mjs` lists likely candidates. If there is none, use Fluent v9 directly. Never import or create a package that is not in `package.json`. Checked against `@fluentui/react-components` 9.74.x.
 
+Read `.fluent-kit/DESIGNER.md` as well: it covers how to think about a screen (brief, hierarchy, content, states, self-critique), where this file covers the parts and tokens.
+
 ## Framework and styling notes
 
 - **Next.js (App Router):** a file that uses `makeStyles`, Fluent hooks or event handlers needs `"use client"`. Do not pass icon components or elements from a Server Component to a Client Component; pass a string and pick the icon inside the client component.

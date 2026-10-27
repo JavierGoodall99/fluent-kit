@@ -20,6 +20,15 @@ Go through every item before presenting UI work. Report any item you could not v
 - [ ] `fluent-kit/no-hardcoded-styles` and the Fluent-only lint config pass with zero warnings (if the project has them set up)
 - [ ] `tsc` passes (catches wrong prop names and nonexistent tokens)
 
+## Design judgement
+
+- [ ] A design brief was written (who, job, how much data, what can go wrong) before building
+- [ ] One clear primary action; the main thing on the screen is obvious at a glance
+- [ ] Empty, loading, error and extreme-content states are designed, not only the happy path
+- [ ] Button labels are verbs with objects; errors say what happened and what to do next
+- [ ] The critique pass in `.fluent-kit/DESIGNER.md` section 8 was done
+- [ ] The final reply includes a short design note (requirement, choice, rejected alternative)
+
 ## Behavior and accessibility
 
 - [ ] Fully usable by keyboard; focus order is logical; focus is visible

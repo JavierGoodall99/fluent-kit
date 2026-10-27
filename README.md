@@ -67,6 +67,7 @@ install.mjs                          the installer
     references/new-project-setup.md  step-by-step setup for a brand-new project
 .fluent-kit/
   DESIGN.md                          the design system, agent-readable
+  DESIGNER.md                        how to think like a senior Microsoft designer (brief, hierarchy, content, states, self-critique)
   PROFILE.md                         optional organisation overrides
   profiles/                          profile template and examples
   brands/_template.md                optional place to save brand ramps
