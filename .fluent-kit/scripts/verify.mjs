@@ -23,12 +23,14 @@ if (!urls.length) { console.error("Usage: node .fluent-kit/scripts/verify.mjs --
 
 // Console errors, shortened. A React hydration error carries a long boilerplate list and then the part that
 // matters (the diff of server vs client markup); keep the first sentence and the diff lines, drop the list.
+const rawErrors = [];
 function shortError(text) {
+  rawErrors.push(text);
   if (/hydrat|didn't match/i.test(text)) {
     const lines = text.split("\n").map((l) => l.trimEnd());
     const first = lines[0].replace(/\s+/g, " ").slice(0, 160);
     const isDelta = (l) => /^\s*[+-] /.test(l) && !/^\s*- (A|Variable|Date|External|Invalid|It) /.test(l);
-    const delta = lines.filter(isDelta).slice(0, 10).map((l) => l.trim().slice(0, 160));
+    const delta = lines.filter(isDelta).slice(0, 40).map((l) => l.trim().slice(0, 160));
     const ctx = lines.filter((l) => !isDelta(l) && /^\s*<[A-Za-z]/.test(l)).slice(-4).map((l) => l.trim().slice(0, 120));
     const diff = delta.length ? [...delta, "context:", ...ctx] : ctx;
     return diff.length ? `${first} | diff: ${diff.join(" ; ")}` : text.replace(/\s+/g, " ").slice(0, 1200);
@@ -197,4 +199,9 @@ for (const g of uniq) {
 const errs = uniq.filter((p) => p.level === "error").length;
 console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s). Screenshots: ${outDir}`);
 console.log("Open the screenshots and review them against .fluent-kit/DESIGNER.md section 8 before reporting.");
+if (rawErrors.length) {
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, "console-errors.txt"), [...new Set(rawErrors)].join("\n\n----\n\n"));
+  console.log(`Full console errors (unshortened): ${join(outDir, "console-errors.txt")}`);
+}
 process.exit(errs ? 1 : 0);
