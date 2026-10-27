@@ -228,7 +228,7 @@ Page patterns that make a product feel like Microsoft software:
 
 | Pattern | How |
 |---|---|
-| **App shell** | Left navigation (`NavDrawer`) plus a slim top header with the app name, an organisation or environment selector if the app needs one, and the user `Persona`. Collapsible nav: full drawer, 56px icon rail, and a slide-over drawer on narrow screens (see `examples/app-nav.tsx`). |
+| **App shell** | Left navigation (`NavDrawer`) plus a slim top header with the app name, an organisation or environment selector if the app needs one, and the user `Persona`. Collapsible nav: full drawer, 56px icon rail, and a slide-over drawer on narrow screens (see `examples/app-nav.tsx`). Nav items blend into the drawer by default (`colorSubtleBackground`), with `colorSubtleBackgroundHover` on hover and `colorSubtleBackgroundSelected` plus the accent bar when selected; Fluent's stock item background is near-black, so override it. Set `surfaceMotion={null}` on `NavDrawer` when the wrapper already animates width or transform, otherwise the drawer slides in twice. |
 | **Page layout** | `PageHeader` (breadcrumb, title, primary action), a command bar (`Toolbar`) under it, then content on `colorNeutralBackground2` with surfaces in `colorNeutralBackground1`. |
 | **Records** | Pick the presentation from the requirement (see "Choose by requirement" below). Whatever you pick, add a command bar above if there are actions (New, Delete, Refresh, filter via `SearchBox`), and always show empty, loading and error states. |
 | **Forms** | Single column of `Field`s. Inline validation messages. Primary action bottom-left of the form, or in the footer of whatever surface holds it (drawer, dialog, page). |

@@ -2,6 +2,7 @@
 // - Expanded: NavDrawer with a Hamburger toggle, NavItems with bundleIcon icons (filled when selected),
 //   and a NavCategory when an item has sub-pages.
 // - Collapsed: a 56px icon rail. Each item is a subtle Button with a Tooltip; the selected one is primary.
+// - The drawer's own slide-in is off (surfaceMotion={null}); the aside animates width/transform once.
 // - Under 1024px the drawer slides over the page and has a close button.
 // - Router-agnostic: the page passes the selected value and handles navigation. Labels come from props, not hard-coded.
 import {
@@ -99,6 +100,15 @@ const useStyles = makeStyles({
     whiteSpace: "nowrap",
     overflow: "hidden",
   },
+  // Fluent paints nav items with a dark Background4 by default. Items blend into the drawer instead,
+  // with the standard subtle hover and selected colours.
+  item: {
+    backgroundColor: tokens.colorSubtleBackground,
+    ":hover": { backgroundColor: tokens.colorSubtleBackgroundHover },
+    ":active": { backgroundColor: tokens.colorSubtleBackgroundPressed },
+    "&[aria-current=page]": { backgroundColor: tokens.colorSubtleBackgroundSelected },
+    "&[aria-current=page]:hover": { backgroundColor: tokens.colorSubtleBackgroundSelected },
+  },
   controls: { display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalXS },
   desktopOnly: { display: "none", [`@media ${WIDE}`]: { display: "inline-flex" } },
   mobileOnly: { [`@media ${WIDE}`]: { display: "none" } },
@@ -150,6 +160,7 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
           type="inline"
           size="small"
           className={styles.drawer}
+          surfaceMotion={null}
           selectedValue={selectedValue}
           openCategories={openCategories}
           onNavItemSelect={(_, data) => go(data.value)}
@@ -172,17 +183,17 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
             {items.map((item) =>
               item.children ? (
                 <NavCategory key={item.value} value={item.value}>
-                  <NavCategoryItem icon={item.icon}>{item.label}</NavCategoryItem>
+                  <NavCategoryItem icon={item.icon} className={styles.item}>{item.label}</NavCategoryItem>
                   <NavSubItemGroup>
                     {item.children.map((child) => (
-                      <NavSubItem key={child.value} value={child.value}>
+                      <NavSubItem key={child.value} value={child.value} className={styles.item}>
                         {child.label}
                       </NavSubItem>
                     ))}
                   </NavSubItemGroup>
                 </NavCategory>
               ) : (
-                <NavItem key={item.value} value={item.value} icon={item.icon}>
+                <NavItem key={item.value} value={item.value} icon={item.icon} className={styles.item}>
                   {item.label}
                 </NavItem>
               ),
