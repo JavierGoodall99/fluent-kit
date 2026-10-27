@@ -63,7 +63,7 @@ function changedFiles() {
   if (run(["rev-parse", "--is-inside-work-tree"]).status !== 0) return null;
   const top = run(["rev-parse", "--show-toplevel"]).stdout.trim();
   const names = new Set();
-  for (const a of [["diff", "--name-only", "HEAD"], ["ls-files", "--others", "--exclude-standard"]]) {
+  for (const a of [["diff", "--name-only", "HEAD"], ["diff", "--name-only", "--cached"], ["ls-files", "--others", "--exclude-standard"]]) {
     for (const l of run(a).stdout.split("\n").filter(Boolean)) names.add(resolve(top, l));
   }
   return [...names].filter((f) => existsSync(f) && CODE.has(extname(f)) && f.startsWith(root + sep) && !f.split(sep).some((s) => SKIP_DIRS.has(s)));

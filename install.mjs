@@ -4,6 +4,7 @@
 //   --profile <name>  copy .fluent-kit/profiles/<name>.md to <target>/.fluent-kit/PROFILE.md (organisation overrides)
 //   --agents          also add the short rules block to AGENTS.md (read by Copilot's coding agent, Codex, Cursor and others)
 //   --brand <stock|#hex>  record the brand decision in .fluent-kit/brand.json ("stock" = keep the stock Microsoft theme)
+//   --hooks           also install a git pre-commit hook that runs check.mjs --changed (blocks commits with rule violations, whatever the agent did)
 //   --wire            also add an npm script "ui:check" to package.json
 //   --dry-run         show what would change, write nothing
 // Safe to run again to update: kit files are replaced, your PROFILE.md and .fluent-kit/brands/ files are not touched,
@@ -106,6 +107,18 @@ if (flag("--wire") && !dry) {
       if (!j.scripts["ui:check"]) { j.scripts["ui:check"] = "node .fluent-kit/scripts/check.mjs"; writeFileSync(pj, JSON.stringify(j, null, 2) + "\n"); log('added npm script "ui:check" to package.json'); }
       else log('npm script "ui:check" already exists: left as is');
     } catch { log("could not edit package.json: add the ui:check script by hand"); }
+  }
+}
+
+// 8. optional: git pre-commit hook
+if (flag("--hooks") && !dry) {
+  const hookDir = join(dest, ".git", "hooks");
+  if (!existsSync(join(dest, ".git"))) log("no .git folder here: hook not installed");
+  else {
+    const hook = join(hookDir, "pre-commit");
+    const body = '#!/bin/sh\n# fluent-kit: block commits that break the UI rules\nnode .fluent-kit/scripts/check.mjs --changed || { echo "fluent-kit: fix the errors above before committing."; exit 1; }\n';
+    if (existsSync(hook) && !readFileSync(hook, "utf8").includes("fluent-kit")) log("a pre-commit hook already exists: not changed. Add this line to it:  node .fluent-kit/scripts/check.mjs --changed || exit 1");
+    else { mkdirSync(hookDir, { recursive: true }); writeFileSync(hook, body, { mode: 0o755 }); log("installed .git/hooks/pre-commit (runs check.mjs --changed)"); }
   }
 }
 
