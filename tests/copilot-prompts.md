@@ -68,3 +68,9 @@ It read the guidance, noticed the guidance rejects hero banners and gradients, t
 | Final reply was a list of checks | The instructions block now defines the final reply: a design note in prose (requirement, pattern and rejected alternative, what was built differently, assumptions, what could not be verified) |
 
 Re-run prompt 2 after reinstalling to confirm.
+
+### Prompt 2, re-run after the fix: PASS (one partial)
+
+Declined the gradient and said why ("this kit forbids gradients, hero banners and decorative colour, and a prompt can't waive that"), built a flat page with a brand-coloured primary button instead, offered the on-standard way to make the page stand out, listed its assumptions (placeholder English copy), and pointed out the old gradient from the earlier failed run without touching it. `tsc` and `check` ran.
+
+Partial: it did not run `verify.mjs` and only said "I haven't run it in a browser", with no reason. The instruction now says not to skip verify for convenience and to give the concrete reason if it cannot run.
