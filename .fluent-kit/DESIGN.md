@@ -109,7 +109,7 @@ Use in this order: (1) the project's shared UI package, if it has one, (2) Fluen
 | Need | Use |
 |---|---|
 | Buttons | `Button` (one `primary` per view), `ToolbarButton` in command bars |
-| Form inputs | `Input`, `Textarea`, `RadioGroup`, `Dropdown`, `Combobox`, `Checkbox`, `Switch`, `SearchBox`, `DatePicker` and `TimePicker` (companion packages, see below), each inside `Field`. `Select` is Fluent's styled wrapper around the browser's own `<select>`: its option list is the operating system's, not themed. Use it only for a long, plain list where that is fine; 2 to 5 visible choices are a `RadioGroup`, richer or searchable lists a `Dropdown` or `Combobox`. Never `<Input type="date">`, `time`, `datetime-local`, `month`, `week` or `range`: they open the browser's own control (`check.mjs` flags them). |
+| Form inputs | `Input`, `Textarea`, `RadioGroup`, `Dropdown`, `Combobox`, `Checkbox`, `Switch`, `SearchBox`, `DatePicker` and `TimePicker` (companion packages, see below), each inside `Field`. **Do not use `Select`**: it wraps the browser's own `<select>`, so the open list is the operating system's menu, not a Fluent one (`check.mjs` flags it). 2 to 5 visible choices are a `RadioGroup`; anything longer or searchable is a `Dropdown` (with `Option`) or `Combobox`. Never `<Input type="date">`, `time`, `datetime-local`, `month`, `week` or `range`: they open the browser's own control (`check.mjs` flags them). |
 | Lists and tables | The project's shared data table if it has one; otherwise `DataGrid` / `Table`. `DataGrid` when rows are selectable, sortable or navigable cell by cell; `Table` when columns and rows are purely visual; `List` when there is only one column of information (per the Fluent 2 DataGrid guidance) |
 | Command bar | `Toolbar` with `ToolbarButton`, `ToolbarDivider`, `Menu` for overflow |
 | Side panels (when the requirement calls for one) | `OverlayDrawer` (temporary) or `InlineDrawer` (persistent) with `DrawerHeader`, `DrawerBody` |
@@ -263,7 +263,7 @@ Page patterns that make a product feel like Microsoft software:
 **Don't**
 
 - Use any other UI or icon library, or `@fluentui/react` (v8).
-- Write native `<button>`, `<input>`, `<select>`, `<textarea>`, `<a>`, `<table>`, `<dialog>`.
+- Write native `<button>`, `<input>`, `<select>`, `<option>`, `<textarea>`, `<a>`, `<table>`, `<dialog>`, or use Fluent's `Select` (it is a native `<select>` underneath).
 - Write hex or rgb values. Ever.
 - Override Fluent classes (`.fui-*`) with global CSS.
 - Create a second button, input, or dialog.

@@ -37,7 +37,7 @@ const BANNED_ICONS = [
   /^bootstrap-icons/, /^react-feather$/, /^feather-icons/, /^@ant-design\/icons/, /^@iconify\//, /^@radix-ui\/react-icons$/, /^material-icons/, /^@material-ui\/icons/,
 ];
 const STYLE_LIBS_WARN = [/^styled-components$/, /^@emotion\//, /^tailwind-merge$/];
-const NATIVE = /<(button|input|select|textarea|a|table|dialog)(?=[\s>/])/g;
+const NATIVE = /<(button|input|select|option|optgroup|textarea|a|table|dialog)(?=[\s>/])/g;
 const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\s*\(/i;
 const HEX = /(?<![\w&])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![0-9a-z_-])/gi;
 const SPACING = "padding|paddingTop|paddingRight|paddingBottom|paddingLeft|paddingBlock|paddingInline|margin|marginTop|marginRight|marginBottom|marginLeft|marginBlock|marginInline|gap|rowGap|columnGap|borderRadius|borderTopLeftRadius|borderTopRightRadius|borderBottomLeftRadius|borderBottomRightRadius";
@@ -128,7 +128,7 @@ for (const file of files) {
       NATIVE.lastIndex = 0;
       let m;
       while ((m = NATIVE.exec(code))) {
-        const map = { button: "Button", input: "Input / Checkbox / Switch / Radio", select: "Select / Dropdown", textarea: "Textarea", a: "Link", table: "Table / DataGrid", dialog: "Dialog" };
+        const map = { button: "Button", input: "Input / Checkbox / Switch / Radio", select: "Dropdown / Combobox / RadioGroup", option: "Dropdown with Fluent Option", optgroup: "OptionGroup in a Dropdown", textarea: "Textarea", a: "Link", table: "Table / DataGrid", dialog: "Dialog" };
         add(file, n, "native-control", "error", `Native <${m[1]}>. Use Fluent ${map[m[1]]}. (Real exception: add '// fluent-kit-ignore -- reason'.)`);
       }
       if (INLINE_STYLE_PROP.test(code)) add(file, n, "inline-style", "error", "Inline style sets colour, type or spacing. Use makeStyles with tokens.");
@@ -154,6 +154,11 @@ for (const file of files) {
       const use = t === "range" ? "Slider" : t === "time" ? "TimePicker (@fluentui/react-timepicker-compat)" : "DatePicker (@fluentui/react-datepicker-compat)";
       const line = text.slice(0, mm.index).split("\n").length;
       if (!/fluent-kit-ignore/.test(lines[line - 1] || "") && !/fluent-kit-ignore/.test(lines[line - 2] || "")) add(file, line, "native-picker", "error", `<Input type="${t}"> opens the browser's own control. Use Fluent ${use}; add the package and name it in the design note.`);
+    }
+    // Fluent's Select wraps the browser's <select>: its open list is the operating system's menu, not a Fluent one.
+    for (const mm of text.matchAll(/<Select\b/g)) {
+      const line = text.slice(0, mm.index).split("\n").length;
+      if (!/fluent-kit-ignore/.test(lines[line - 1] || "") && !/fluent-kit-ignore/.test(lines[line - 2] || "")) add(file, line, "native-select", "error", "<Select> opens the operating system's own option list, which is not themed. Use Dropdown (with Option) or Combobox; for 2 to 5 visible choices use RadioGroup.");
     }
     // <img> without alt
     for (const mm of text.matchAll(/<img\b(?![^>]*\balt\s*=)[^>]*>/g)) add(file, text.slice(0, mm.index).split("\n").length, "img-alt", "error", "<img> without alt.");

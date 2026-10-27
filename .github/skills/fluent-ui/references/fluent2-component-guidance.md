@@ -140,7 +140,9 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Sizes:** 16 to 120px.
 - **AvatarGroup:** shows multiple avatars as spread, stack or pie, with a `+N` overflow.
 
-## Dropdown (and Select, Combobox)
+## Dropdown (and Combobox)
+
+- Do not use Fluent's `Select`: it is the browser's native `<select>` with a Fluent border, and the open list is the operating system's menu. Use `Dropdown`, `Combobox` or, for 2 to 5 visible choices, `RadioGroup`.
 
 - Lets people choose one or more options from a list. Use it in forms where options need custom styling, or as a component to filter or sort information. Put it in a `Field` when you need a label, info button and validation.
 - **Appearance:** outline, transparent, fill lighter, fill darker. **Sizes:** small, medium (default), large.

@@ -72,7 +72,7 @@ Rules:
 ## Components and patterns
 
 - Check whether the project already has a component for the job (page header, data table, form layout), in its shared UI package or in the repo. If so, use it.
-- Otherwise use the Fluent v9 component directly. Do not rebuild Button, Input, Select, Dialog, Table, TabList/Tab, Toast, or MessageBar.
+- Otherwise use the Fluent v9 component directly. Do not rebuild Button, Input, Dropdown, Dialog, Table, TabList/Tab, Toast, or MessageBar.
 - Wrap inputs in `Field` for labels, hints, and validation messages.
 - Buttons: one `appearance="primary"` per view. Secondary actions use `secondary` or `subtle`.
 - Follow the page patterns in `.fluent-kit/DESIGN.md` section 5. In short: app shell with left nav, command bar (`Toolbar`) above lists, `Dialog` only for confirmations, `MessageBar` for inline status. For lists, details and edits, state the requirement in one line and pick from the "Choose by requirement" table (grid, table, list, cards, drawer, detail page, full-page form…). No presentation is the default.

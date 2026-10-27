@@ -47,5 +47,5 @@ Go through every item before presenting UI work. Report any item you could not v
 - [ ] Verified in dark mode if the product supports it
 - [ ] Primary buttons and links meet contrast against their background in that theme
 - [ ] Navigation: items are transparent at rest, subtle hover, subtle selected colour (not black or brand-filled); opening or collapsing animates once, not twice.
-- [ ] Dates and times use `DatePicker` / `TimePicker` (not `Input type="date"`); 2 to 5 visible choices are a `RadioGroup`, not a `Select`.
+- [ ] Dates and times use `DatePicker` / `TimePicker` (not `Input type="date"`); 2 to 5 visible choices are a `RadioGroup`; longer lists a `Dropdown`/`Combobox`. Never `Select` or `<option>` (the open list would be the operating system's).
 - [ ] Anything behind a click (drawer, dialog, menu, picker) was opened with `verify --click` and its `-open.png` screenshot was looked at.
