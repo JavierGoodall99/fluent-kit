@@ -127,8 +127,8 @@ Next steps (nothing else is required):
   - Commit .fluent-kit/ and .github/. Copilot reads .github/ on its own.
   - The agent runs two checks before it finishes UI work:
       node .fluent-kit/scripts/check.mjs --changed          rules: colours, spacing, imports, native controls, labels
-      node .fluent-kit/scripts/verify.mjs <url>             renders the page (light/dark, 3 widths), checks layout and accessibility
-    Add the first to CI (and a pre-commit hook if you like) so nothing slips through. verify needs: npm i -D playwright axe-core
+      node .fluent-kit/scripts/verify.mjs --start /page   starts the dev server, renders the page (light/dark, 3 widths), checks layout and accessibility
+    Add the first to CI so nothing slips through (--hooks adds a pre-commit hook). verify needs: npm i -D playwright axe-core
 ${existingErrors ? `  - This repo already has ${existingErrors} violation(s) in old code. To fail only on NEW ones, run once: node .fluent-kit/scripts/check.mjs --baseline  (then commit .fluent-kit/baseline.json)\n` : ""}  - Optional lint: see "Lint setup" in the kit README (needs eslint v9). The agent follows the rules without it.
   - Check that your Copilot version supports Agent Skills (.github/skills/); the instructions files work without it.
 `);
