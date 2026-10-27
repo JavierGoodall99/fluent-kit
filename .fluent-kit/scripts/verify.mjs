@@ -5,6 +5,8 @@
 // Options: [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
 //          [--start] [--cmd "npm run dev"]   --start runs the project's dev script (or --cmd) and waits for its URL; paths like /invoices are
 //                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
+//          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
+//                                            Use it for drawers, dialogs, menus and pickers: the page alone never shows them.
 // Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
 // Writes one screenshot per url x scheme x width, then LOOK AT THEM (open the PNG files) before reporting.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
@@ -15,7 +17,7 @@ import { join, resolve } from "node:path";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd"]);
+const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click"]);
 const startServer = args.includes("--start") || args.includes("--cmd");
 let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
 if (startServer && !urls.length) urls = ["/"];
@@ -54,6 +56,7 @@ const widths = opt("--widths", "1440,768,375").split(",").map(Number);
 const schemes = opt("--schemes", "light,dark").split(",");
 const outDir = resolve(opt("--out", ".fluent-kit/out"));
 const waitFor = opt("--wait", null);
+const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
 const useAxe = !args.includes("--no-axe");
 
 const req = createRequire(join(process.cwd(), "package.json"));
@@ -116,6 +119,15 @@ if (!browser) {
   process.exit(2);
 }
 let loaded = 0;
+async function runAxe(page, where) {
+  if (!axeSource) return;
+  try {
+    await page.evaluate(axeSource);
+    const res = await page.evaluate(async () => { const r = await window.axe.run({ exclude: [["[data-tabster-dummy]"]] }, { resultTypes: ["violations"] }); return r.violations.map((v) => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, target: v.nodes[0]?.target?.join(" "), html: (v.nodes[0]?.html || "").replace(/\s+/g, " ").slice(0, 160) })); });
+    for (const v of res) note(v.impact === "critical" || v.impact === "serious" ? "error" : "warn", where, `Accessibility [${v.id}] ${v.help} (${v.nodes} element(s), e.g. ${v.target}${v.html ? ` , html: ${v.html}` : ""})`);
+  } catch (e) { note("warn", where, `axe could not run: ${String(e).split("\n")[0]}`); }
+}
+
 for (const url of urls) {
   for (const scheme of schemes) {
     for (const width of widths) {
@@ -186,16 +198,22 @@ for (const url of urls) {
       if (real.length) note("error", where, `Console errors: ${[...new Set(real)].slice(0, 3).join(" | ")}`);
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
 
-      if (axeSource) {
-        try {
-          await page.evaluate(axeSource);
-          const res = await page.evaluate(async () => { const r = await window.axe.run({ exclude: [["[data-tabster-dummy]"]] }, { resultTypes: ["violations"] }); return r.violations.map((v) => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, target: v.nodes[0]?.target?.join(" "), html: (v.nodes[0]?.html || "").replace(/\s+/g, " ").slice(0, 160) })); });
-          for (const v of res) note(v.impact === "critical" || v.impact === "serious" ? "error" : "warn", where, `Accessibility [${v.id}] ${v.help} (${v.nodes} element(s), e.g. ${v.target}${v.html ? ` , html: ${v.html}` : ""})`);
-        } catch (e) { note("warn", where, `axe could not run: ${String(e).split("\n")[0]}`); }
-      }
+      await runAxe(page, where);
 
       const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
       await page.screenshot({ path: file, fullPage: true });
+      // --click: open what is behind a button (drawer, dialog, menu, picker) and check that state too.
+      if (clickSteps.length) {
+        let opened = true;
+        for (const step of clickSteps) {
+          try { await page.locator(step).first().click({ timeout: 5000 }); await page.waitForTimeout(600); }
+          catch { note("error", where, `--click '${step}' found nothing to click. Use a Playwright selector such as "role=button[name='New task']" or "text=New task".`); opened = false; break; }
+        }
+        if (opened) {
+          await runAxe(page, `${where} after clicking ${clickSteps.join(" then ")}`);
+          await page.screenshot({ path: file.replace(/\.png$/, "-open.png") });
+        }
+      }
       await ctx.close();
     }
   }

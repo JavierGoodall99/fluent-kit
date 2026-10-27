@@ -48,3 +48,4 @@ Go through every item before presenting UI work. Report any item you could not v
 - [ ] Primary buttons and links meet contrast against their background in that theme
 - [ ] Navigation: items are transparent at rest, subtle hover, subtle selected colour (not black or brand-filled); opening or collapsing animates once, not twice.
 - [ ] Dates and times use `DatePicker` / `TimePicker` (not `Input type="date"`); 2 to 5 visible choices are a `RadioGroup`, not a `Select`.
+- [ ] Anything behind a click (drawer, dialog, menu, picker) was opened with `verify --click` and its `-open.png` screenshot was looked at.
