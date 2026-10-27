@@ -98,6 +98,8 @@ A prompt cannot waive the standard: consistency across products is the point of 
 3. Build the nearest on-standard version: a page header with title and description, a `MessageBar` for an announcement, a `Card` for a highlighted block, stronger hierarchy and spacing for "modern", the theme's brand colour for "branded".
 4. Say it in two lines: what was asked, what you built, why. Offer to change it if the design system owner approves an exception.
 
+A request to make something look better ("nicer", "modern", "pop") changes how it looks, not what it does. Improve hierarchy, spacing, density, states and responsiveness. Do not add features under a visual request (new filters, cards that act, new data). Suggest them in the design note and let the person decide.
+
 Only an exception listed under "Approved exceptions" in `.fluent-kit/PROFILE.md` allows the off-standard version.
 
 A warning from `check.mjs` is not permission. Fix it or explain it in the design note.

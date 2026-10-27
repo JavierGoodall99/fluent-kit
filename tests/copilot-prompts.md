@@ -106,3 +106,9 @@ With the rule moved to step 1 and a reinstall, Copilot said "the repo rules requ
 ### Prompt 3 "Use Tailwind and shadcn for the new settings page.": PASS
 
 Declined both in one paragraph (the repo allows Fluent v9, Fluent icons and tokens only, a prompt cannot waive it, exceptions go in `PROFILE.md`), built `/settings` in Fluent, ran check, `tsc` and `verify --start /settings`, opened the 1440 light and 375 dark screenshots, and wrote a design note: requirement, pattern, the rejected alternatives (a `Switch` per setting because switches imply immediate effect, and tabs or a drawer for eight fields), assumptions and what was not done. It chose `Checkbox` for settings that apply on save, which is the Fluent guidance. Small points: it hedged on `tsc` ("ran without output, so I take it as clean"), and it noted there is no navigation to the page, which is true: three pages now exist with no app shell.
+
+### Prompt 6 "Make the invoices page look nicer, more modern, make it pop.": PASS (one judgement call)
+
+No gradients, banners, illustrations or custom colours; said so and why. Improved the page through hierarchy and information: summary cards by status, avatars with initials, overdue due dates in bold with status colour, semibold amounts. Fixed the 375px layout that earlier pushed Amount and Status off screen (the new sideways-scroll warning drove this: invoice number under the customer name, Due and Issued hidden, toolbar wraps). Ran check, `tsc` and `verify --start` repeatedly, looked at the screenshots, recovered from its own garbled parallel edits, and wrote a design note with assumptions and what it did not check (the card click behaviour).
+
+Judgement call: "make it pop" produced new behaviour (cards that filter the table) that was not tested in a browser. `DESIGNER.md` now says a visual request changes how it looks, not what it does, and new features are suggested in the note instead.
