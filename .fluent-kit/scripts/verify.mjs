@@ -44,6 +44,9 @@ function shortError(text) {
     const diff = delta.length ? [...delta, "context:", ...ctx] : ctx;
     return diff.length ? `${first} | diff: ${diff.join(" ; ")}` : text.replace(/\s+/g, " ").slice(0, 1200);
   }
+  if (/Minified React error #(418|423|425)\b/.test(text)) {
+    return text.replace(/\s+/g, " ").slice(0, 200) + " | This is a React hydration mismatch from a production build; the message is stripped, so the element is unknown. Run verify against a dev server (--start) to get the diff. If that diff is only <i data-tabster-dummy>, it is the known Fluent focus-helper issue.";
+  }
   return text.replace(/\s+/g, " ").slice(0, 600);
 }
 if (!startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
