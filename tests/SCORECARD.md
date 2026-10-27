@@ -32,6 +32,8 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 | 14 | Contracts page, Dutch project | PASS | "Expiring soon" stored, not computed | Date-based statuses must be computed | n/a |
 | nav | "Add navigation" | PASS behaviour, FAIL look | Items black (Fluent default), opened with a double slide | Subtle item colours, `surfaceMotion={null}`, sticky, hidden when closed, reduced motion, real `href` links | Follow-ups PASS / PARTIAL |
 
+Added test: a feature with no table and no drawer (overdue-invoice chase page): PASS. The kit steered it to a one-at-a-time full page, with the rejected alternatives named.
+
 ## What the tests changed in the kit
 
 - **Runnable checks instead of advice.** `check.mjs` rules: hard-coded colour, spacing and font; other UI or icon libraries; native controls (now including `<option>`); inline style; icon-only buttons without a name; `<img>` without alt; gradients; palette tokens; `Input type="date|time|range|..."`; Fluent `Select`. Tailwind colours and style libraries warn. Baseline file for existing code, git pre-commit hook (`--hooks`), "Not finished yet" note at the end of `check --changed`.

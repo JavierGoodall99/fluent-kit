@@ -66,6 +66,7 @@ For each screen or component, decide and build:
 - Validate when the person leaves a field or submits, not on every keystroke. Put the message next to the field.
 - Keep the person in context: do not navigate away from a list to edit one field, and do not open a dialog from a dialog.
 - Make the safe action easy and the destructive action deliberate (separate it, confirm it, name it).
+- An action that reaches someone else (send a reminder or email, publish, pay, share) cannot be taken back once it has gone. Give it an undo window or a confirmation that names the recipient and the consequence, and say which you chose in the design note. A toast after the fact is not enough. If the action is simulated, say so in the note.
 
 ## 7. Responsive and accessible by default
 
