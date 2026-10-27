@@ -128,3 +128,9 @@ Changes: `DESIGN.md` now lists Fluent's official companion packages (date, calen
 ### Guidance added before running prompt 9
 
 Large lists: you pointed out that Fluent's DataGrid docs recommend virtualization for big data (the `@fluentui-contrib/react-data-grid-react-window` package, powered by react-window). The kit now says: up to a few hundred rows use the plain `DataGrid`; thousands held in the browser use the virtualized grid; data too big for the browser is searched, sorted and paged on the server. New example `examples/large-list.tsx` (5000 rows, search, sort, empty state). Tested in a browser: 14 row elements in the DOM for 5000 customers, sort and search work, no console errors.
+
+### Prompt 9 "Show 5000 customers with search and sorting.": PASS
+
+Stated the brief up front ("someone scanning and finding customers, about 5,000 rows held in the browser"), chose the virtualized grid and installed `@fluentui-contrib/react-data-grid-react-window` and `react-window@1` (named in the note), rejected a plain grid (renders 5000 rows) and server paging (not needed at this size). Search over five fields with an empty state and "Clear search", sortable headers, count footer, narrow screens hide email and country, then city, so company and contact stay on screen. `verify` caught a real hydration error (console error); Copilot dug into it, made the grid client-only with a spinner, re-ran everything and looked at screenshots. ESLint timed out (environment) and it said so.
+
+Kit changes: `verify.mjs` now prints up to 600 characters of each console error (Copilot had to write its own Playwright scripts to read the hydration message); `DESIGN.md` and the large-list example now say to mount the virtualized grid client-only in Next.js.

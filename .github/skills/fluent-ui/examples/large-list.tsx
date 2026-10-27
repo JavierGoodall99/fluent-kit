@@ -2,6 +2,7 @@
 // Use this when the requirement is "scan, search and sort hundreds or thousands of rows in the browser". Under about 200 rows use the plain DataGrid (list-page.tsx).
 // If the data lives on a server and is bigger than the browser should hold, search, sort and page on the server instead and show one page at a time.
 // Package: npm i @fluentui-contrib/react-data-grid-react-window react-window@1 (Fluent's own virtualized DataGrid; pin the version).
+// Next.js: mount the grid on the client only (see DESIGN.md, framework notes), or the server and browser markup differ and hydration fails.
 // Only the visible rows exist in the DOM. Row height is fixed, so keep cells to one line (truncate). The row renderer must be memoized.
 import {
   DataGrid,

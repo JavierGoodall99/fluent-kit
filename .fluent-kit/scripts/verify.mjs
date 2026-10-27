@@ -94,8 +94,8 @@ for (const url of urls) {
       const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
       const page = await ctx.newPage();
       const errors = [];
-      page.on("pageerror", (e) => errors.push(String(e).split("\n")[0]));
-      page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().split("\n")[0]); });
+      page.on("pageerror", (e) => errors.push(String(e).replace(/\s+/g, " ").slice(0, 600)));
+      page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().replace(/\s+/g, " ").slice(0, 600)); });
       try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
       } catch (e) {

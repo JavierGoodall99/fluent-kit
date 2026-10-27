@@ -9,6 +9,7 @@ Read `.fluent-kit/DESIGNER.md` as well: it covers how to think about a screen (b
 ## Framework and styling notes
 
 - **Next.js (App Router):** a file that uses `makeStyles`, Fluent hooks or event handlers needs `"use client"`. Do not pass icon components or elements from a Server Component to a Client Component; pass a string and pick the icon inside the client component.
+- **Next.js and the virtualized DataGrid:** the sortable virtualized grid can fail hydration when it is rendered on the server (the header does not match what the browser renders). Mount it on the client only and show a `Spinner` until then (`useSyncExternalStore(() => () => {}, () => true, () => false)` as the "mounted" flag). Found in the Copilot behaviour test (prompt 9).
 - **Tailwind:** if the project uses it, keep its existing use for page layout. In new code, take colors, typography, radii and shadows from Fluent tokens (`makeStyles` + `tokens`), not Tailwind color utilities, unless the project's own guidance says otherwise.
 
 ## 0. Source of truth
