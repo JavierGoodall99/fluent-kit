@@ -34,7 +34,7 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 
 Added test: a feature with no table and no drawer (overdue-invoice chase page): PASS. The kit steered it to a one-at-a-time full page, with the rejected alternatives named.
 
-Added tests with real data shapes (Dutch project): tenants list (51 tenants) PASS: environment-matrix grid, filter tabs, states, disclosed assumptions. Tenant health report PASS with one gap: the data file was not in the project, so it invented sample data (disclosed), and its final re-check was killed before the closing "all pass" claim. It used `verify --click` unprompted both times.
+Added tests with real data shapes (Dutch project): tenants list (51 tenants) PASS: environment-matrix grid, filter tabs, states, disclosed assumptions. Tenant health report: first scored PASS from the transcript, then PARTIAL once Javier showed the screenshot (messages ran the full screen width in a near-black block; repeat cards, failing and healthy rows had different layouts). Also the data file was missing: the data file was not in the project, so it invented sample data (disclosed), and its final re-check was killed before the closing "all pass" claim. It used `verify --click` unprompted both times.
 
 ## What the tests changed in the kit
 

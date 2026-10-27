@@ -169,6 +169,14 @@ for (const url of urls) {
           emptyBody: document.body.innerText.trim().length === 0,
           // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
           hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).length : 0,
+          // Reading text that runs far across a wide window: lines over about 100 characters are hard to read.
+          longlines: window.innerWidth >= 768 ? [...document.querySelectorAll("p, span, div, code, pre, li, td")].filter((el) => {
+            const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
+            if (own.length < 100) return false;
+            const r = el.getBoundingClientRect(); if (!r.width || !r.height) return false;
+            const cs = getComputedStyle(el); const mono = /mono|consolas|courier/i.test(cs.fontFamily);
+            return r.width / (parseFloat(cs.fontSize) * (mono ? 0.6 : 0.5)) > 100;
+          }).slice(0, 3).map((el) => `"${(el.textContent || "").trim().slice(0, 28)}..." (${Math.round(el.getBoundingClientRect().width)}px wide)`) : [],
           // Controls or headings cut off by a container with overflow hidden (content you cannot reach).
           clipped: [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Input, h1, h2, h3, .fui-Text")].filter((el) => {
             const r = el.getBoundingClientRect();
@@ -187,6 +195,7 @@ for (const url of urls) {
       if (!info.provider) note("error", where, "No FluentProvider on the page. Fluent components will be unstyled. Wrap the app in FluentProvider with the project theme.");
       if (info.provider && info.font && !/Segoe UI/i.test(info.font)) note("warn", where, `Page font is '${info.font.slice(0, 50)}', not Segoe UI. Use the theme's font (tokens.fontFamilyBase).`);
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);
+      if (info.longlines.length) note("warn", where, `Text lines are too long to read comfortably (over about 100 characters across): ${info.longlines.join("; ")}. Cap the text width (max-width around 70 to 80ch, tokens for spacing) and let the card or page be wider than the text.`);
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");

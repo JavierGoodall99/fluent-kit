@@ -31,6 +31,8 @@ State the brief in your first message (three to five lines, plain language), the
 - Hide what is rarely needed: put secondary actions in a `Menu`, advanced options in an `Accordion` or a "More" step. Do not hide what is needed to finish the task.
 - Show the most important thing without scrolling. Put the page's main action near its title or its content, not in a footer nobody sees.
 - Density follows the job: dense for scanning and comparing, roomy for reading and onboarding.
+- Cap the width of reading text. A line of prose or an error message should stay around 70 to 80 characters (`max-width` in `ch`), even when the card or page is wider. Long messages in a monospace block wrap inside that cap and are never stretched across the screen. Use a neutral surface token for such blocks, not a near-black fill.
+- One kind of thing gets one row design. If a list holds items in different states (healthy, degraded, failed; paid, due, overdue), every item uses the same layout, with the same parts in the same places. State changes the badge, the icon and the emphasis, never the structure. Build one component and give it a status prop.
 
 ## 4. Content is part of the design
 
@@ -43,6 +45,7 @@ Text is interface. Write it as carefully as the layout. Language and tone come f
 - Confirmation dialogs name the thing being affected and the consequence. The destructive button repeats the action ("Delete invoice").
 - Cut words. If a sentence survives deletion of a word, delete it. Do not explain what the UI already shows.
 - Placeholder data has the shape of real data. A status that depends on a date or a count ("expiring soon", "overdue", "low stock") is computed from that date or count, not stored as a label, or it goes stale the day after.
+- Use every status the data can have. If the source documents a set of statuses (Healthy, Degraded, Unhealthy), design and sample all of them, and give each a distinct, named treatment. If the sample or the file you were told about is missing, say so first and ask before inventing a shape.
 - Same concept, same word, everywhere. Do not alternate "customer", "client" and "account".
 
 ## 5. Design every state, not only the happy path
@@ -90,6 +93,7 @@ Do this pass on every screen, then fix what it finds.
 5. **Worst-case test.** Check with 0 items, 1 item, 1000 items, a 120-character name, and an error.
 6. **Consistency test.** Does it match the closest existing screen in the repo in spacing, wording and behaviour?
 7. **Keyboard test.** Can you do the whole task without a mouse?
+8. **Row test.** Put one item of every status next to each other. Do they share the same layout? Is any line of text longer than about 80 characters at 1440px?
 
 ## 9. When the request fights the standard
 
