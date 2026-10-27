@@ -215,6 +215,7 @@ No presentation is the default. Before building a screen, write the requirement 
 | Scan, search and sort thousands of records held in the browser | Virtualized `DataGrid` (`@fluentui-contrib/react-data-grid-react-window`) | Only visible rows are in the DOM. Fixed row height, one-line cells, memoized row renderer. See `examples/large-list.tsx` |
 | Work with data too big to hold in the browser (tens of thousands up, or it lives on a server) | Server-side search, sort and paging, one page (or a virtualized window) at a time | Show total count, a loading state per request, and keep the search term and sort in the URL |
 | Read a few records, no sorting or selecting | `Table` | Purely visual rows and columns |
+| Find what is failing among many checks, jobs or steps grouped under a parent (integrations, services, pipelines), and read why | Grouped `Table`: same columns on every row, problems first and open, healthy groups collapsed | One row component for every status; message column wraps, capped at about 75ch. See `examples/status-grid.tsx` |
 | Read a single column of items | `List` | |
 | Browse items visually (images, summaries) | A grid of `Card`s | |
 | Navigate a hierarchy | `Tree` | |
