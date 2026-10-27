@@ -84,6 +84,8 @@ for (const url of urls) {
           strayCount: stray.length,
           tiny,
           emptyBody: document.body.innerText.trim().length === 0,
+          // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
+          hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).length : 0,
           // Controls or headings cut off by a container with overflow hidden (content you cannot reach).
           clipped: [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Input, h1, h2, h3, .fui-Text")].filter((el) => {
             const r = el.getBoundingClientRect();
@@ -103,6 +105,7 @@ for (const url of urls) {
       if (info.provider && info.font && !/Segoe UI/i.test(info.font)) note("warn", where, `Page font is '${info.font.slice(0, 50)}', not Segoe UI. Use the theme's font (tokens.fontFamilyBase).`);
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
+      if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
       if (info.tiny) note("warn", where, `${info.tiny} Fluent control(s) smaller than 24px. Check touch targets.`);

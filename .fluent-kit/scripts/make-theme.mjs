@@ -44,24 +44,35 @@ if (stock) {
 }
 
 const nextImports = next ? "  RendererProvider,\n  SSRProvider,\n  createDOMRenderer,\n  renderToStyleElements,\n" : "";
-const reactImport = next ? 'import { useEffect, useState, type ReactNode } from "react";\nimport { useServerInsertedHTML } from "next/navigation";' : 'import { useEffect, useState, type ReactNode } from "react";';
+const reactImport = next ? 'import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";\nimport { useServerInsertedHTML } from "next/navigation";' : 'import { useSyncExternalStore, type ReactNode } from "react";';
 const body = `
+function subscribeDark(onChange: () => void) {
+  const query = window.matchMedia("(prefers-color-scheme: dark)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
 function useSystemDark(): boolean {
-  const [dark, setDark] = useState(false); // false on the server and on first render, so hydration matches
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    setDark(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setDark(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-  return dark;
+  // false on the server and during hydration, so the markup matches
+  return useSyncExternalStore(
+    subscribeDark,
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => false,
+  );
 }
 ${next ? `
 export function AppProvider({ children }: { children: ReactNode }) {
   const dark = useSystemDark();
   const [renderer] = useState(() => createDOMRenderer());
-  useServerInsertedHTML(() => <>{renderToStyleElements(renderer)}</>);
+  const seen = useRef(0);
+  useServerInsertedHTML(() => {
+    // Next calls this on every streamed flush. Send the styles again only when new ones were added
+    // since the last flush (sending them every time repeats the whole sheet 3 to 4 times).
+    const count = Object.keys(renderer.insertionCache).length;
+    if (count === seen.current) return null;
+    seen.current = count;
+    return <>{renderToStyleElements(renderer)}</>;
+  });
   return (
     <RendererProvider renderer={renderer}>
       <SSRProvider>

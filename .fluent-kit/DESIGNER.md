@@ -14,7 +14,7 @@ Write a brief before touching any file. Keep it to five lines and keep it in you
 4. **What goes wrong?** Empty, slow, failed, no permission, very long text, partial data.
 5. **What is success?** What does the person do next, and how fast should they get there?
 
-Then pick the pattern from "Choose by requirement" in `DESIGN.md`. If you cannot answer 1 to 3 from the request or the repo, ask once, briefly. Do not guess and build.
+State the brief in your first message (three to five lines, plain language), then pick the pattern from "Choose by requirement" in `DESIGN.md` and build. If you cannot answer 1 to 3 from the request or the repo, ask once, briefly, before building. If the request is clear enough to proceed, state your assumptions in the brief instead of asking.
 
 ## 2. Principles (Fluent 2, applied)
 
@@ -71,6 +71,7 @@ For each screen or component, decide and build:
 Rules and numbers are in `DESIGN.md` sections 5 and 8. In practice:
 
 - Design the narrow layout first, then add what wide screens allow. One responsive layout, not two.
+- A data table on a phone must keep the identifying column and the status (or the value the job is about) on screen without sideways scrolling. Hide or move the less important columns, or switch to a list of rows. Sideways scrolling that pushes the key column off-screen is a design failure, not a layout detail.
 - Touch targets and spacing hold up on touch. Nothing relies on hover alone.
 - Colour never carries meaning alone: pair it with an icon or text.
 - Every control has an accessible name; icon-only buttons have `aria-label` and a `Tooltip`.
@@ -94,6 +95,7 @@ Finish with a short design note (three to five lines, plain language):
 
 - The requirement you designed for.
 - The pattern you chose and the main alternative you rejected, with the reason.
+- Every assumption you made that the person did not state: language, currency, date format, sample data, anything left out on purpose.
 - Anything you were unsure about, or a trade-off the person may want to change.
 
 If the request asked for something that works against these principles, say it here, name the better option, and note which one you built.

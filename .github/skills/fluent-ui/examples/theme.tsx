@@ -11,7 +11,7 @@ import {
   FluentProvider,
   type Theme,
 } from "@fluentui/react-components";
-import { useEffect, useState, type ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 
 const brand: BrandVariants = {
   10: "#061724", 20: "#082338", 30: "#0a2e4a", 40: "#0c3b5e",
@@ -24,16 +24,19 @@ const brand: BrandVariants = {
 const lightTheme: Theme = createLightTheme(brand);
 const darkTheme: Theme = createDarkTheme(brand);
 
+function subscribeDark(onChange: () => void) {
+  const query = window.matchMedia("(prefers-color-scheme: dark)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
 function useSystemDark(): boolean {
-  const [dark, setDark] = useState(false); // false on the server and on first render, so hydration matches
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    setDark(query.matches);
-    const onChange = (event: MediaQueryListEvent) => setDark(event.matches);
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-  return dark;
+  // false on the server and during hydration, so the markup matches
+  return useSyncExternalStore(
+    subscribeDark,
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => false,
+  );
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {

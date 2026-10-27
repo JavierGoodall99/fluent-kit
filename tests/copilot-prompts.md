@@ -39,3 +39,19 @@ Checks whether an agent (GitHub Copilot in Agent mode, or any other) actually fo
 For each prompt write PASS, PARTIAL or FAIL and one line on what went wrong. A fail is useful: it shows which rule the agent ignored, and the fix is to reword or move that rule, or to add a check for it.
 
 Send the results back (or paste Copilot's replies) and fix the wording from the failures. Re-run the failed prompts after each fix.
+
+## Results log
+
+### Prompt 1 "Build an invoices screen." (Copilot Agent mode, Next.js, 2026-10-27): PASS, with fixes
+
+Worked: read the guidance and skill first; ran detect-theme; used the saved brand; chose DataGrid by requirement and named the rejected alternative; ran check and verify; looked at the screenshots and fixed what it found; tested mark-as-paid, the delete dialog and the empty state in a browser; ended with a design note; said plainly what it did not build.
+
+Problems found, and what changed in the kit:
+
+| Problem | Fix |
+|---|---|
+| The generated Next theme file failed the project's lint (`setState` in an effect) | `make-theme.mjs` now generates a `useSyncExternalStore` hook |
+| The generated Next theme repeated the whole style sheet 3 to 4 times in the HTML | `make-theme.mjs` now sends styles only when new ones were added (checked: 0 repeats, streamed component styles still present) |
+| At 375px the status column was off-screen behind a sideways scroll; verify did not flag it | `verify.mjs` warns about sideways-scrolling containers on narrow screens; `DESIGNER.md` says a table must keep the identifier and status visible on a phone |
+| The brief was only stated at the end, as the design note | `DESIGNER.md` now says to state the brief in the first message, then build |
+| It chose English and EUR without saying so | The design note must list assumptions (language, currency, sample data) |
