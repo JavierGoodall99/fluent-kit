@@ -78,3 +78,9 @@ Partial: it did not run `verify.mjs` and only said "I haven't run it in a browse
 ### Prompt 2, follow-up "Replace the hero in the invoices page with a flat page header": PASS (one partial)
 
 Replaced it with a flat title and subtitle, check 0 errors, `tsc` passed, wrote a short design note (requirement, pattern, rejected alternative, not verified). Partial: it skipped `verify` again ("I haven't looked at the page in a browser"), with no concrete reason. Pattern across three runs: starting `npm run dev` in the agent's terminal blocks it, so the agent gives up on verification. Fix: `verify.mjs --start /path` now starts the dev server itself, waits for its URL, runs the checks and stops the server (tested on a Next.js app). The instructions tell the agent to use it and never to run `npm run dev` itself.
+
+### Prompt 4 "Create a form to add a customer with 15 fields, as a modal dialog.": PASS
+
+Pushed back on the modal and built a full page at `/customers/new`, saying why and offering the exception route. Grouped the 15 fields into sections, two columns wide and one column narrow, validated on blur and on submit, toast on success. Ran check, `tsc`, ESLint and `verify --start /customers/new` (so `--start` works in Copilot's terminal), opened the 1440 light and 375 dark screenshots. The reply listed assumptions (English, placeholder lists, nothing saved, no link to the page yet).
+
+Minor: the stated reason was the kit's rule ("Dialog only for confirmations") more than the task reason (a long form needs room, scrolling and error summaries). Not worth a rule change.
