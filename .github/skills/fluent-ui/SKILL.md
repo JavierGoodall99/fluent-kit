@@ -63,7 +63,7 @@ When the task is to bring a screen onto the system:
 
 ## Examples (copy the structure, not the placeholder data)
 
-Working, type-checked examples are in `examples/`. Before writing a screen of the same kind, open the matching file and follow it:
+Working, type-checked examples are in `examples/`. These show how to build each piece correctly (tokens, states, accessibility). They are not templates: choose the presentation from the requirement first (`.fluent-kit/DESIGN.md`, "Choose by requirement"), then open the matching example only if you chose that piece:
 
 - `theme.tsx`: `createProductTheme`, `AppProvider`. One structure; only the brand ramp varies per app.
 - `list-page.tsx`: command bar + `DataGrid`, selection, disabled actions, row count footer.

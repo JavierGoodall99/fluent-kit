@@ -1,4 +1,5 @@
 // Edit drawer: opens from the right. Save is the one primary button. Every input sits in a Field.
+// Use this when the requirement is a quick edit of one record while keeping the list visible. A long form or many sections belongs on a full page.
 import {
   Button,
   DrawerBody,

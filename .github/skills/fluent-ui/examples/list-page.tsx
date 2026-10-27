@@ -1,4 +1,5 @@
 // List page: command bar above a DataGrid. Actions that need a selection stay visible but disabled.
+// Use this when the requirement is "scan, compare, sort or select many records". For other needs see "Choose by requirement" in .fluent-kit/DESIGN.md.
 import {
   Badge,
   DataGrid,

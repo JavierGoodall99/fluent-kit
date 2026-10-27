@@ -75,7 +75,7 @@ Rules:
 - Otherwise use the Fluent v9 component directly. Do not rebuild Button, Input, Select, Dialog, Table, TabList/Tab, Toast, or MessageBar.
 - Wrap inputs in `Field` for labels, hints, and validation messages.
 - Buttons: one `appearance="primary"` per view. Secondary actions use `secondary` or `subtle`.
-- Follow the page patterns in `.fluent-kit/DESIGN.md` section 5. In short: app shell with left nav, command bar (`Toolbar`) above lists, `DataGrid` for lists, `OverlayDrawer` or `InlineDrawer` for details and edit forms, `Dialog` only for confirmations, `MessageBar` for inline status.
+- Follow the page patterns in `.fluent-kit/DESIGN.md` section 5. In short: app shell with left nav, command bar (`Toolbar`) above lists, `Dialog` only for confirmations, `MessageBar` for inline status. For lists, details and edits, state the requirement in one line and pick from the "Choose by requirement" table (grid, table, list, cards, drawer, detail page, full-page form…). No presentation is the default.
 
 ## Theming
 

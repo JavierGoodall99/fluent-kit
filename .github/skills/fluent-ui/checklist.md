@@ -10,7 +10,7 @@ Go through every item before presenting UI work. Report any item you could not v
 - [ ] No imports from `@fluentui/react` (v8) or another UI library
 - [ ] Icons come only from `@fluentui/react-icons` (no emoji, no custom SVG icons)
 - [ ] No native `<button>`, `<input>`, `<select>`, `<textarea>`, `<a>`, `<table>` or `<dialog>`
-- [ ] Page follows a pattern from `.fluent-kit/DESIGN.md` section 5 (shell, command bar, list, drawer, dialog for confirmations only)
+- [ ] Page follows `.fluent-kit/DESIGN.md` section 5: shell, command bar, dialog for confirmations only; and the way records, details and edits are presented was chosen from the requirement ("Choose by requirement"), not copied from an example
 - [ ] Fonts, radii, shadows and motion are Fluent's defaults, with no gradients or illustrations
 - [ ] Would look at home next to the Azure portal or Microsoft 365
 - [ ] Existing project components (shared UI package or repo) reused wherever one exists

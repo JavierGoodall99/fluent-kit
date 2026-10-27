@@ -108,7 +108,7 @@ Use in this order: (1) the project's shared UI package, if it has one, (2) Fluen
 | Form inputs | `Input`, `Textarea`, `Select`, `Dropdown`, `Combobox`, `Checkbox`, `Radio`, `Switch`, `SearchBox`, each inside `Field` |
 | Lists and tables | The project's shared data table if it has one; otherwise `DataGrid` / `Table`. `DataGrid` when rows are selectable, sortable or navigable cell by cell; `Table` when columns and rows are purely visual; `List` when there is only one column of information (per the Fluent 2 DataGrid guidance) |
 | Command bar | `Toolbar` with `ToolbarButton`, `ToolbarDivider`, `Menu` for overflow |
-| Side panels | `OverlayDrawer` (temporary) or `InlineDrawer` (persistent) with `DrawerHeader`, `DrawerBody` |
+| Side panels (when the requirement calls for one) | `OverlayDrawer` (temporary) or `InlineDrawer` (persistent) with `DrawerHeader`, `DrawerBody` |
 | Confirmations | `Dialog` |
 | Notifications | `Toast` (via `Toaster`) for transient, `MessageBar` for persistent |
 | Navigation | The project's app shell if it has one; otherwise `NavDrawer`, `NavItem` |
@@ -184,15 +184,34 @@ Fluent 2 rules to follow (from [Fluent 2 layout](https://fluent2.microsoft.desig
 
 - **Responsive techniques**, in the order to try them: reposition, resize, reflow, show/hide metadata, re-architect (for example list plus details side by side on wide screens, list then a full-screen details view on small ones). Build one responsive layout, not separate adaptive ones.
 
+### Choose by requirement
+
+No presentation is the default. Before building a screen, write the requirement in one line (who, what they need to do, how many items) and pick from this table. If two rows fit, prefer what the repo already does, then the simpler one. If the requirement is unclear, ask. The files in `examples/` show how to build each piece correctly; they are not templates to copy onto every page.
+
+| The person needs to… | Use | Notes |
+|---|---|---|
+| Scan, compare, sort or select among many records | `DataGrid` | The project's shared table first, if it has one |
+| Read a few records, no sorting or selecting | `Table` | Purely visual rows and columns |
+| Read a single column of items | `List` | |
+| Browse items visually (images, summaries) | A grid of `Card`s | |
+| Navigate a hierarchy | `Tree` | |
+| See details of one record while keeping their place in a list | `OverlayDrawer`, or `InlineDrawer` if it stays open | |
+| See details when there is a lot of content or it is a destination of its own | A detail page | Linkable, bookmarkable |
+| Edit a few fields of one record quickly | A drawer, or edit inline in the row/cell | |
+| Edit or create something with many fields or sections | A full page | Not a drawer |
+| Do one short, focused task that blocks everything else | `Dialog` | |
+| Confirm a destructive or irreversible action | `Dialog` | Never for a normal edit form |
+| Step through a multi-stage process | A full page with steps | |
+| Pick filters while looking at the results | A side panel (`InlineDrawer`) or a filter bar | |
+
 Page patterns that make a product feel like Microsoft software:
 
 | Pattern | How |
 |---|---|
 | **App shell** | Left navigation (`NavDrawer`) plus a slim top header with the app name, an organisation or environment selector if the app needs one, and the user `Persona`. Collapsible nav: full drawer, 56px icon rail, and a slide-over drawer on narrow screens (see `examples/app-nav.tsx`). |
 | **Page layout** | `PageHeader` (breadcrumb, title, primary action), a command bar (`Toolbar`) under it, then content on `colorNeutralBackground2` with surfaces in `colorNeutralBackground1`. |
-| **Lists** | `DataGrid` with a command bar above (New, Delete, Refresh, filter via `SearchBox`). Row click opens details in a drawer. Sortable columns. Always show empty, loading, and error states. |
-| **Details and edit** | `OverlayDrawer` from the right, with `DrawerHeader` and a footer with Save (primary) and Cancel. Prefer a drawer to a full-page route for quick edits. |
-| **Forms** | Single column of `Field`s. Inline validation messages. Primary action bottom-left of the form or in the drawer footer. |
+| **Records** | Pick the presentation from the requirement (see "Choose by requirement" below). Whatever you pick, add a command bar above if there are actions (New, Delete, Refresh, filter via `SearchBox`), and always show empty, loading and error states. |
+| **Forms** | Single column of `Field`s. Inline validation messages. Primary action bottom-left of the form, or in the footer of whatever surface holds it (drawer, dialog, page). |
 | **Confirmations** | `Dialog`, only for destructive or irreversible actions. Never use a dialog for a normal edit form. |
 | **Status** | `MessageBar` inline at the top of the content for persistent messages. `Toast` for transient confirmation. |
 | **Empty state** | Short message plus one primary action. No illustrations. |
