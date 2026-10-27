@@ -248,3 +248,11 @@ Copilot chose a sortable `DataGrid` with one column per environment in deploymen
 Judgement: DataBalk (internal, no environment) counts under "Geen omgeving"; disclosed as an assumption. Process was messy: stale dev-server processes, a killed terminal, several retries, and it could not find its own screenshots because `.fluent-kit/out` is git-ignored and editor search skips it.
 
 Kit change: `verify.mjs` now prints the full path of every screenshot it saved (and says why searching the folder fails).
+
+### Feature from real data: tenant health report (Dutch app): PASS, with a gap
+
+Prompt: triage view for one tenant's health report (integrations, each with checks; find what fails, why, and which failures repeat). The attached JSON did not reach the project.
+
+Copilot searched for `tenant-health*`, found nothing, and wrote its own sample data (6 integrations, 29 checks, 9 failing) and said so at the top of the reply. Design: a verdict line ("Tenant is niet gezond: 3 van 6 integraties hebben een probleem, 9 van 29 checks mislukt"), a section for the same failure across integrations, failing integrations always open with failing checks first and the full message plus a copy button, healthy integrations collapsed in an accordion. Rejected a table of all checks (long Dutch messages truncate) and hiding failing integrations in an accordion (task-critical content). Handled an unknown status (shown raw, never counted as a failure), a failing check inside a "Healthy" integration, and messages cut off by a trailing ellipsis. Ran `check`, `tsc`, lint, `verify --click` on the copy button unprompted, looked at the screenshots, and raised badge text from 10px after seeing it. Said it did not test an unknown status and that clipboard copy was denied in headless Chromium.
+
+Gaps: the final re-run of check, tsc and verify after the last edits was killed, yet the reply says all pass (that holds for the run before the badge-size edits); it built against invented data instead of asking for the file; "same failure" treats a cut-off message as equal to the full one, which can group unrelated errors; a third page behind a hash route. No kit change.
