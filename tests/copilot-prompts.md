@@ -168,3 +168,11 @@ After prompt 11 `verify` kept reporting a hydration error on the light renders o
 Kit changes: `verify.mjs` prints the hydration diff, saves the raw errors to a file, and downgrades a tabster-only hydration diff to a warning with an explanation; `DESIGN.md` tells agents not to rewrite pages, add client-only mounts or `suppressHydrationWarning` for it. Other hydration differences are still errors. Not confirmed: whether it also happens in a production build.
 
 The landmark warning (4 of 6 renders, i.e. probably the two narrow widths in both colour schemes) is most likely the mobile top bar with the Hamburger sitting outside any landmark; the example now says to put it in a `<header>`.
+
+### Prompt 8 "Add a dark mode toggle.": PARTIAL (works, placed well, but the button was centred)
+
+Copilot put the toggle in the nav footer (`NavDrawerFooter`) with a labelled button when expanded, an icon button with a tooltip in the rail, `useColorMode()` in `theme.tsx` with the choice saved in `localStorage` and the OS setting as the default until the user picks. Design note: rejected a top command bar (no top bar on desktop) and a `Switch` on Settings (too hidden). Ran check, `tsc`, eslint and `verify` (0 errors). Not clicked in a browser; it admitted that and that it looked at only two of six screenshots.
+
+Defect (spotted by Javier from the screenshot): the footer button was centred in the drawer while every nav item is left-aligned. A Fluent `Button` centres its content by default and the kit example had no footer pattern to copy.
+
+Kit change: `app-nav.tsx` gets `footerAction` (left-aligned, regular weight, rail variant with tooltip), measured against the item icons and labels (within 1px); `DESIGN.md` says global actions go in the footer left-aligned. Open: the kit's `theme.tsx` has no colour-mode hook, so each project invents its own.

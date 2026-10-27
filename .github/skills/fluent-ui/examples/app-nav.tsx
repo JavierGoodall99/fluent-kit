@@ -5,6 +5,8 @@
 // - The drawer's own slide-in is off (surfaceMotion={null}); the aside animates width/transform once.
 // - Items with an href are real links: plain click navigates in place, Ctrl/Cmd-click opens a new tab.
 // - Wide screens: the nav is sticky. Narrow: closed means hidden (not focusable), and reduced motion is respected.
+// - footerAction: a global action (theme toggle, help) pinned at the bottom, left-aligned with the nav items
+//   (a Button centres its content by default, so it needs justifyContent: flex-start). Expanded: labelled; rail: icon + Tooltip.
 // - Under 1024px the drawer slides over the page and has a close button.
 // - Router-agnostic: the page passes the selected value and handles navigation. Labels come from props, not hard-coded.
 import {
@@ -14,6 +16,7 @@ import {
   NavCategoryItem,
   NavDrawer,
   NavDrawerBody,
+  NavDrawerFooter,
   NavDrawerHeader,
   NavItem,
   NavSubItem,
@@ -50,6 +53,13 @@ export interface NavEntry {
   children?: { value: string; label: string; href?: string }[];
 }
 
+/** A global action pinned to the bottom of the nav (theme toggle, help, sign out). It is an action, not a page. */
+export interface NavFooterAction {
+  label: string;
+  icon: ReactElement;
+  onClick: () => void;
+}
+
 interface AppNavProps {
   items: NavEntry[];
   selectedValue: string;
@@ -62,6 +72,7 @@ interface AppNavProps {
   mobileOpen: boolean;
   onCloseMobile: () => void;
   labels: { expand: string; collapse: string; close: string };
+  footerAction?: NavFooterAction;
 }
 
 const WIDE = "(min-width: 1024px)";
@@ -117,6 +128,10 @@ const useStyles = makeStyles({
     "&[aria-current=page]": { backgroundColor: tokens.colorSubtleBackgroundSelected },
     "&[aria-current=page]:hover": { backgroundColor: tokens.colorSubtleBackgroundSelected },
   },
+  // Same left edge as the nav items: the icon sits where the item icons sit and the label follows it.
+  footer: { paddingLeft: tokens.spacingHorizontalS, paddingRight: tokens.spacingHorizontalS, paddingBottom: tokens.spacingVerticalS },
+  footerButton: { width: "100%", justifyContent: "flex-start", paddingLeft: tokens.spacingHorizontalM, columnGap: tokens.spacingHorizontalS, fontWeight: tokens.fontWeightRegular },
+  railFooter: { marginTop: "auto" },
   controls: { display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalXS },
   desktopOnly: { display: "none", [`@media ${WIDE}`]: { display: "inline-flex" } },
   mobileOnly: { [`@media ${WIDE}`]: { display: "none" } },
@@ -137,7 +152,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onToggle, mobileOpen, onCloseMobile, labels }: AppNavProps) {
+export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onToggle, mobileOpen, onCloseMobile, labels, footerAction }: AppNavProps) {
   const styles = useStyles();
 
   // Show labels only after the width transition has finished opening; hide them at once when closing.
@@ -217,6 +232,13 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
               ),
             )}
           </NavDrawerBody>
+          {footerAction && (
+            <NavDrawerFooter className={styles.footer}>
+              <Button appearance="subtle" icon={footerAction.icon} onClick={footerAction.onClick} className={styles.footerButton}>
+                {footerAction.label}
+              </Button>
+            </NavDrawerFooter>
+          )}
         </NavDrawer>
       ) : (
         <nav className={styles.rail}>
@@ -237,6 +259,11 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
               </Tooltip>
             );
           })}
+          {footerAction && (
+            <Tooltip content={footerAction.label} relationship="label" positioning="after">
+              <Button appearance="subtle" icon={footerAction.icon} onClick={footerAction.onClick} aria-label={footerAction.label} className={styles.railFooter} />
+            </Tooltip>
+          )}
         </nav>
       )}
     </aside>
