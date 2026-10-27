@@ -152,3 +152,11 @@ Kit changes: the example is now sticky on wide screens, `visibility: hidden` whe
 Copilot made the nav items real links (`href` per route, Ctrl/Cmd-click works, rail uses the first sub-page's href), added `alignSelf: "flex-start"` for the sticky nav, kept its own `aria-label` on the rail, ran `check.mjs` and the editor diagnostics, and wrote a short design note. It skipped `tsc` and `verify.mjs` with no stated reason ("I did not run ... so the UI is unverified"), after editing props and types. Honest, but the kit's rule says skip only on request or a quotable error.
 
 Kit change: `copilot-instructions.md` now says small edits still need `tsc` and `verify`, and that "I did not run them" is not a reason.
+
+### Prompt 11 "Let people quickly edit a customer's name from the list.": PASS with one gap
+
+Stated the requirement, chose inline edit in the cell (rejected a drawer or dialog for one field), always-visible rename button instead of hover-only so it works on touch (it found this itself from the verify run), accessible names ("Rename <company>"), Enter or check saves, Esc or X cancels, empty name blocked, focus returns to the pencil, toast confirms. It tested a real rename in the browser, fixed a column drift it found along the way, ran `tsc`, `check`, `verify` repeatedly, and listed assumptions (name means company name, nothing persists, row re-sorts) and what it did not test (keyboard use inside the grid's arrow navigation).
+
+Gap: `verify` still reported a hydration error and a landmark warning; it called the hydration error pre-existing (seen on invoices too) without proving it and did not read the landmark warning.
+
+Kit change: `copilot-instructions.md` now requires proof (stash, rerun, compare) before calling a verify error pre-existing, and says to read warnings.
