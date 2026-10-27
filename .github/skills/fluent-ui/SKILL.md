@@ -71,6 +71,7 @@ Working, type-checked examples are in `examples/`. These show how to build each 
 
 - `theme.tsx`: `createProductTheme`, `AppProvider`. One structure; only the brand ramp varies per app.
 - `list-page.tsx`: command bar + `DataGrid`, selection, disabled actions, row count footer.
+- `large-list.tsx`: virtualized `DataGrid` for thousands of rows (search, sort, empty state). Use it when the list is large; do not render thousands of rows in a plain `DataGrid`.
 - `edit-drawer.tsx`: `OverlayDrawer` form with `Field` and validation.
 - `confirm-dialog.tsx`: `Dialog` for destructive actions only.
 - `notifications.tsx`: `Toast` and `MessageBar`.

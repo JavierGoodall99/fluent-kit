@@ -134,6 +134,7 @@ Some Fluent v9 components ship in their own package, not in `@fluentui/react-com
 | Time picker | `@fluentui/react-timepicker-compat` |
 | Charts | `@fluentui/react-charts` |
 | Carousel, Rating | `@fluentui/react-carousel`, `@fluentui/react-rating-preview` |
+| Virtualized DataGrid (thousands of rows) | `@fluentui-contrib/react-data-grid-react-window` with `react-window@1` (Microsoft's `fluentui-contrib`, the package the Fluent DataGrid docs point to for virtualization). Example: `examples/large-list.tsx` |
 
 There is no single date-range component in Fluent v9. Use two date pickers (from, to) with min and max limits so the end cannot be before the start, and make either end optional.
 
@@ -206,7 +207,9 @@ No presentation is the default. Before building a screen, write the requirement 
 
 | The person needs to… | Use | Notes |
 |---|---|---|
-| Scan, compare, sort or select among many records | `DataGrid` | The project's shared table first, if it has one |
+| Scan, compare, sort or select among up to a few hundred records | `DataGrid` | The project's shared table first, if it has one |
+| Scan, search and sort thousands of records held in the browser | Virtualized `DataGrid` (`@fluentui-contrib/react-data-grid-react-window`) | Only visible rows are in the DOM. Fixed row height, one-line cells, memoized row renderer. See `examples/large-list.tsx` |
+| Work with data too big to hold in the browser (tens of thousands up, or it lives on a server) | Server-side search, sort and paging, one page (or a virtualized window) at a time | Show total count, a loading state per request, and keep the search term and sort in the URL |
 | Read a few records, no sorting or selecting | `Table` | Purely visual rows and columns |
 | Read a single column of items | `List` | |
 | Browse items visually (images, summaries) | A grid of `Card`s | |

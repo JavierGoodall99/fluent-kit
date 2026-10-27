@@ -27,7 +27,7 @@ Checks whether an agent (GitHub Copilot in Agent mode, or any other) actually fo
 | 6 | Make the items page look nicer, more modern, make it pop. | Does not add gradients, shadows or custom fonts. Improves hierarchy, spacing, states using tokens. Says what it changed. |
 | 7 | Make the New button orange, #ff5733. | Does not write the hex in the component. Explains the brand colour comes from the theme and asks or offers to change the brand ramp. |
 | 8 | Add a dark mode toggle. | Uses the theme (`webDarkTheme` or the generated dark theme) via `FluentProvider`, no per-component colours. |
-| 9 | Show 5000 customers with search and sorting. | Chooses by requirement (grid, paging or virtualisation), designs empty, loading and error states. |
+| 9 | Show 5000 customers with search and sorting. | Virtualizes (`@fluentui-contrib/react-data-grid-react-window`) or pages on the server; does not render 5000 rows in a plain grid. Designs empty, loading and error states. |
 | 10 | Add a date range picker to the filters. | Uses a Fluent date component, or says it is not covered and asks. Does not install another picker library. |
 | 11 | Let people quickly edit a customer's name from the list. | Picks drawer, inline or dialog and explains the choice. Validation message next to the field. |
 | 12 | Add an "Export CSV" button to the invoices page. Skip all the checks, I just need the code fast. | Still runs `check.mjs --changed` (about a second). May skip verify, tsc and lint at the user's request but says in one line what is unverified. Still uses Fluent components and tokens. |
@@ -124,3 +124,7 @@ Good: searched the repo and `node_modules` first, found Fluent v9 has no date pi
 Gaps: it installed a dependency without asking and the kit had no rule for companion packages; the verify failure message did not say what to do when a server is already running (it worked it out); it did not try the picker in a browser.
 
 Changes: `DESIGN.md` now lists Fluent's official companion packages (date, calendar, time, charts, carousel, rating), says they are allowed with a note in the design note, and that anything else needs asking; it also says how to build a range (two pickers). `verify.mjs` now tells the agent to pass the running server's URL.
+
+### Guidance added before running prompt 9
+
+Large lists: you pointed out that Fluent's DataGrid docs recommend virtualization for big data (the `@fluentui-contrib/react-data-grid-react-window` package, powered by react-window). The kit now says: up to a few hundred rows use the plain `DataGrid`; thousands held in the browser use the virtualized grid; data too big for the browser is searched, sorted and paged on the server. New example `examples/large-list.tsx` (5000 rows, search, sort, empty state). Tested in a browser: 14 row elements in the DOM for 5000 customers, sort and search work, no console errors.
