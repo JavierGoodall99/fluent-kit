@@ -42,6 +42,7 @@ Text is interface. Write it as carefully as the layout. Language and tone come f
 - Empty states say what belongs here and offer the one action that fills it.
 - Confirmation dialogs name the thing being affected and the consequence. The destructive button repeats the action ("Delete invoice").
 - Cut words. If a sentence survives deletion of a word, delete it. Do not explain what the UI already shows.
+- Placeholder data has the shape of real data. A status that depends on a date or a count ("expiring soon", "overdue", "low stock") is computed from that date or count, not stored as a label, or it goes stale the day after.
 - Same concept, same word, everywhere. Do not alternate "customer", "client" and "account".
 
 ## 5. Design every state, not only the happy path
