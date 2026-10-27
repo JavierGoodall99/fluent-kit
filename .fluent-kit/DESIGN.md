@@ -249,10 +249,32 @@ Page patterns that make a product feel like Microsoft software:
 | **Status** | `MessageBar` inline at the top of the content for persistent messages. `Toast` for transient confirmation. |
 | **Empty state** | Short message plus one primary action. No illustrations. |
 
+### Measurements from Microsoft's own templates
+
+Read from the Microsoft 365 UI Kit (Figma community file), "Templates" page, Web Large frames. Use these when you build the matching screen; the examples in `examples/` already follow them.
+
+| What | Value (Fluent token) |
+|---|---|
+| Page padding | 20px (`spacingHorizontalXL`) |
+| Gap between cards, or between a section's blocks | 12px (`spacingHorizontalM`) on dashboards; 20px (`spacingVerticalXL`) on forms and boards |
+| Page title | 20px semibold, 28px line (`fontSizeBase500`); subtitle 14px, `colorNeutralForeground3` |
+| Form or settings title | 16px bold, 22px line; description 14px `colorNeutralForeground3` |
+| Section header in a form | 12px bold; its description 14px `colorNeutralForeground3` |
+| Section title above a list | 16px semibold, 22px line, in a 32px-high row with the filter and search at the right |
+| Card | radius 8px, padding 16px, gap 16px, `shadow4`; header 12px between title and tabs |
+| Card title and description | 14px bold, 20px line; 12px `colorNeutralForeground3`, 16px line |
+| Card footer link | 14px, brand link colour, "View details" |
+| Task board | 20px between columns (1px divider), 12px between cards, column header 14px bold, full-width add button under it |
+| List | header row 48px, rows 44px, 8px horizontal padding, 1px `colorNeutralStroke2` divider between rows, first line 14px and second line 12px `colorNeutralForeground3`, overflow "..." at the right |
+| Form column | about 480px wide, centred; fields 12px apart; 8px between a label and its input; labels above inputs |
+| Form and settings footer | Discard (secondary) then Save (primary), right-aligned, 8px apart, thin divider above |
+| Empty state | centred; image 200px; 20px between image, text and actions; title 16px bold; text 14px, up to 600px wide; actions in a 280px column: primary, secondary, then a link |
+| Toolbar search | a "Filter" button and a 200px "Find" input at the right edge of the toolbar |
+
 ## 6. Elevation and shape
 
-- Keep the theme's radii (4px medium). Do not round things further. `borderRadiusLarge` for dialogs only.
-- Shadows: `tokens.shadow2` or `shadow4` for cards, `shadow16` for popovers and menus, `shadow28` for dialogs. Prefer borders to shadows in dense, data-heavy layouts.
+- Keep the theme's radii (4px medium) for controls, inputs and buttons. Do not round things further. `borderRadiusLarge` (8px) is for dialogs and for cards on a dashboard or board: Microsoft's own templates use an 8px radius with `tokens.shadow4` for those cards.
+- Shadows: `tokens.shadow4` for dashboard and board cards, `shadow2` for small cards, `shadow16` for popovers and menus, `shadow28` for dialogs. Prefer borders to shadows inside dense, data-heavy layouts (rows of a table or list).
 - Motion: Fluent's defaults only. Fluent components already animate correctly, so most screens need no custom motion. No parallax or decorative motion. If you must animate something custom:
   - Every animation must have a purpose (orient, respond, give feedback). If removing it does not hurt usability, remove it.
   - Durations from tokens: `durationFaster` (100ms) for small state changes, `durationNormal` (200ms) as the default, `durationSlow` (300ms) for drawers and larger sections. Nothing longer than `durationUltraSlow` (500ms).
