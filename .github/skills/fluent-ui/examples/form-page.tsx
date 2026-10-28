@@ -42,7 +42,7 @@ export function FormPage() {
     <form className={s.page} onSubmit={(e) => { e.preventDefault(); setTouched(true); }} noValidate>
       <div className={s.column}>
         <div className={s.header}>
-          <Text as="h1" size={400} weight="bold" className={s.title}>Project settings</Text>
+          <Text as="h1" size={600} weight="semibold" className={s.title}>Project settings</Text>
           <Text className={s.description}>Changes apply to everyone who works on this project.</Text>
         </div>
 

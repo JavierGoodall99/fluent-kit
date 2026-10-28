@@ -64,9 +64,9 @@ Added tests with real data shapes (Dutch project): tenants list (51 tenants) PAS
 | Prompts not re-run after their fix: 8, 10, 11, 13, 14 and the nav follow-ups | Re-run after the kit is next updated |
 | Prompt 7 miss: warn when a requested colour fails the contrast rule before offering a re-brand | Not built |
 | Framework question in an empty folder (prompts 13 and the prompt 1 re-run): the setup guide told the agent to ask | Changed: default to Vite + React + TypeScript and say so; not yet re-tested |
-| Not tested on a real codebase (DataBalk `api-monitor`) | The largest remaining risk |
+| Not tested on a real codebase (a real internal app (the Portal Admin pilot)) | The largest remaining risk |
 | `npm publish` (`npx fluent-kit` without the GitHub path) | Not done |
-| DataBalk profile in a public repo | Decision needed |
+| Organisation profile in a public repo | Done: the example profile is now generic (`profiles/acme-nl.md`, Dutch, formal "u") |
 | Figma community file terms | Checked: Figma's Community Free Resource licence allows use inside Figma and forbids modified copies or derivative works of the file; no attribution is required. The kit copies no Figma files or assets, only measured numbers (sizes, spacing), and the code is written from the installed Fluent package. Low risk, not legal advice; a lawyer or Microsoft would settle it for certain |
 | Other agents (CLAUDE.md, Cursor) and non-React frameworks | Not built |
 | Reading cost: the agent read about 20 files (about 12,000 words) before writing, and test users found runs slow and costly | Restructured (Oct 2026): short router `SKILL.md`, core block under 700 words, measurements/theme/migration moved to reference files; new page now reads about 3,400 to 4,300 words (`node tests/reading-cost.mjs`). Not yet re-run with Copilot: compare Read steps before the first edit and time on `add a dashboard`, `add a page that shows the health of our tenants`, and a small fix |

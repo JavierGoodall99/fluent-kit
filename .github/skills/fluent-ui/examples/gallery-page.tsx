@@ -29,7 +29,7 @@ export function PageTitle({ title, subtitle }: { title: string; subtitle?: strin
   const s = useStyles();
   return (
     <div className={s.titles}>
-      <Text as="h1" size={500} weight="semibold" className={s.title}>{title}</Text>
+      <Text as="h1" size={600} weight="semibold" className={s.title}>{title}</Text>
       {subtitle && <Text className={s.subtitle}>{subtitle}</Text>}
     </div>
   );

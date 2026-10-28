@@ -1,8 +1,8 @@
-# Fluent kit for GitHub Copilot
+# Fluent kit for GitHub Copilot and Claude Code
 
 Makes GitHub Copilot (and other coding agents) build React UI with the Microsoft look and feel, the same way every time: Fluent UI React v9 components, Fluent icons only, design tokens only, Fluent 2 page patterns. It works in any repo, inside a company or outside. Each app keeps its own brand color; nothing else varies.
 
-It is guidance plus a few scripts. It does not need a build step, a package, or a service.
+It is guidance plus a few scripts. It does not need a build step or a service. The browser check (`verify.mjs`) needs Playwright and axe-core in your project; the installer tells you, or installs them with `--with-deps`.
 
 ## Install
 
@@ -24,14 +24,18 @@ Options:
 
 - `--profile <name>`: also set organisation overrides (language, tone, shared packages) from `.fluent-kit/profiles/<name>.md`. Without it, defaults apply.
 - `--brand stock` or `--brand #rrggbb`: record the brand decision in `.fluent-kit/brand.json` (`stock` keeps the stock Microsoft theme, so the agent never asks for a brand color).
-- `--agents`: also add the rules block to `AGENTS.md`, which Copilot's coding agent, Codex, Cursor and other agents read.
+- `--claude`: also install for Claude Code: the rules block in `CLAUDE.md` and the skill in `.claude/skills/fluent-ui/`. Automatic when the repo already has `CLAUDE.md` or a `.claude/` folder.
+- `--agents`: also add the rules block to `AGENTS.md`, which Copilot's coding agent, Codex, Cursor and other agents read. Automatic (kept in sync) when `AGENTS.md` already exists.
+- `--with-deps`: also install what `verify.mjs` needs: `playwright` and `axe-core` as dev dependencies, then the Chromium browser (about 150 MB). Without it the installer only prints the command.
+- `--hooks`: also install a git pre-commit hook that runs `check.mjs --changed`.
+- `--wire`: also add an npm script `ui:check` to `package.json`.
 - `--dry-run`: show what would change.
 
-Safe to run again to update. It replaces kit files, never touches your `PROFILE.md` or your `.fluent-kit/brands/` files, and only replaces its own marked block inside `.github/copilot-instructions.md` (the rest of that file stays yours).
+Safe to run again to update. It replaces kit files, removes kit files a newer version no longer ships (it keeps a list in `.fluent-kit/manifest.json`), never touches your `PROFILE.md`, `brand.json` or `.fluent-kit/brands/` files, and only replaces its own marked block inside `copilot-instructions.md`, `CLAUDE.md` and `AGENTS.md` (the rest of those files stays yours).
 
-By hand: copy `.fluent-kit/` and `.github/` into the repo root and paste the block between the `fluent-kit` markers from `.github/copilot-instructions.md` into your own file.
+By hand: copy `.fluent-kit/` and `.github/skills/` into the repo root (for Claude Code, also copy `.github/skills/fluent-ui/` to `.claude/skills/fluent-ui/`) and paste the block between the `fluent-kit` markers from `.github/copilot-instructions.md` into your own instruction file.
 
-Then commit `.fluent-kit/` and `.github/`. Copilot reads `.github/` on its own. Check that your Copilot version supports Agent Skills (`.github/skills/`); the instructions files work without it.
+Then commit what it installed. Copilot reads `.github/` and Claude Code reads `CLAUDE.md` and `.claude/` on their own. Check that your Copilot version supports Agent Skills (`.github/skills/`); the instructions files work without it.
 
 ## What it does in an existing repo and in a new one
 
@@ -50,17 +54,17 @@ An existing project's theme is never changed as a side effect of another task.
 
 ## Organisation profile (optional)
 
-Some rules belong to an organisation, not to Fluent: the UI language, formal or informal address, the name of a shared UI package. Put them in `.fluent-kit/PROFILE.md` (start from `.fluent-kit/profiles/_template.md`). Agents read it and it overrides the defaults. `profiles/databalk.md` is an example (Dutch UI text, formal "u").
+Some rules belong to an organisation, not to Fluent: the UI language, formal or informal address, the name of a shared UI package. Put them in `.fluent-kit/PROFILE.md` (start from `.fluent-kit/profiles/_template.md`). Agents read it and it overrides the defaults. `profiles/acme-nl.md` is an example (Dutch UI text, formal "u").
 
 ## What's in the kit
 
 ```
 install.mjs                          the installer
 .github/
-  copilot-instructions.md            short always-on rules (the installer inserts the marked block)
-  instructions/fluent-ui.instructions.md   applies to *.ts, *.tsx, *.css
+  copilot-instructions.md            short always-on rules (the installer inserts the marked block here, and in CLAUDE.md / AGENTS.md)
   skills/fluent-ui/
     SKILL.md                         short router: request type -> one example + one measurement table
+    deviations.md                    where the kit differs from stock Fluent v9 (controls, icons, styling, type, nav)
     checklist.md                     pre-delivery checks
     examples/*.tsx                   type-checked screens: theme, list, drawer, dialog, toast, nav
     references/fluent2-component-guidance.md   when to use each component, from the Fluent 2 Figma kit
@@ -94,7 +98,7 @@ node .fluent-kit/scripts/verify.mjs --start /invoices
 
 - **`check.mjs`** scans your source for hard-coded colours, spacing and fonts, other UI or icon libraries, Fluent v8, native `<button>`/`<input>`/`<a>`/`<table>`, inline styles, icon-only buttons without a name, `<img>` without `alt`, gradients and `tokens.colorPalette*` decoration (errors), and Tailwind colour classes (warning). No dependencies, no ESLint needed. Exit code 1 on errors, so it works in CI, a pre-commit hook or an Azure DevOps step. `--changed` checks only files changed in git. Skip one real exception with `// fluent-kit-ignore -- reason`. Allow the project's own shared UI package with `{"allow": ["@company/ui"]}` in `.fluent-kit/config.json`.
 - **Old code:** in a repo that already has violations, run `node .fluent-kit/scripts/check.mjs --baseline` once and commit `.fluent-kit/baseline.json`. From then on only new violations fail.
-- **`verify.mjs`** starts your dev server (`--start`, using the `dev` script; or give a full URL if one is already running), opens the page in a real browser at three widths in light and dark, saves screenshots to `.fluent-kit/out/`, and checks: Fluent is actually applied (`FluentProvider`), no sideways page scroll, no controls cut off, no console errors, non-Fluent controls in the rendered page, and accessibility with axe. Needs `npm i -D playwright axe-core` (it also uses Edge or Chrome if Playwright's browser is not installed). If it cannot run it says so, and the agent must say verification was not done.
+- **`verify.mjs`** starts your dev server (`--start`, using the `dev` script; or give a full URL if one is already running), opens the page in a real browser at 1440 and 375px in light mode (`--full` adds 768px and dark mode), saves screenshots plus one `contact-sheet.png` of every first screen to `.fluent-kit/out/`, and checks: Fluent is actually applied (`FluentProvider`), no sideways page scroll, no controls cut off, no console errors, non-Fluent controls in the rendered page, and accessibility with axe. Each problem names the screenshot that shows it, so the agent looks at one image instead of a dozen. Needs `npm i -D playwright axe-core` and `npx playwright install chromium` (or `--with-deps` at install; Edge or Chrome on the machine also works). If it cannot run it prints one line starting `NOT RUN`, and the agent must say verification was not done.
 
 `install.mjs --wire` adds `"ui:check"` to your `package.json` scripts.
 
@@ -156,6 +160,6 @@ Limits: the banned-library lists are not exhaustive; add any your team has used.
 - "Feels like a Microsoft application" is enforced only indirectly: Fluent components, Fluent defaults, and the page patterns in `DESIGN.md`. Review screenshots against Microsoft 365 or the Azure portal.
 - React only. Fluent UI React v9 is the target; Angular, Vue and Blazor are not covered.
 - The kit has been tested on small fake projects and with TypeScript and ESLint on its own examples, not yet on a large real repo.
-- Keep `copilot-instructions.md` short. Long always-on files get ignored; detail lives in the path-specific file and the skill.
+- Keep the always-on block short (`tests/reading-cost.mjs` fails above 250 words). Long always-on files get ignored; detail lives in the skill.
 - Component guidance paraphrases Microsoft's Fluent 2 Web Figma community kit, and checked against `@fluentui/react-components` 9.74.x. Fluent UI is MIT-licensed. This kit is not affiliated with or endorsed by Microsoft. Check the terms of the Figma community file before reusing the guidance outside this repo. The kit itself is released under the [MIT License](LICENSE).
 - Organisation-level Copilot instructions exist but only apply to some Copilot surfaces, so keep the repo files as the source of truth.

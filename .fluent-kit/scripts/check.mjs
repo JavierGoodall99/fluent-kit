@@ -196,14 +196,28 @@ if (json) {
 } else {
   for (const f of reported) console.log(`${f.severity === "error" ? "ERROR" : "warn "}  ${f.file}:${f.line}  [${f.rule}]  ${f.message}`);
   console.log(`\nfluent-kit check: ${files.length} files, ${errors.length} error(s), ${warns.length} warning(s)${tolerated ? `, ${tolerated} tolerated by baseline` : ""}.`);
-  if (errors.length) console.log("Fix the errors before presenting the work. Use tokens and Fluent components; see .fluent-kit/DESIGN.md.");
-  // This check passing is not the end of the job. Say what is still missing, at the moment the agent is reading this.
-  const uiFiles = files.filter((f) => /\.(tsx|jsx)$/.test(f));
-  if (flag("--changed") && !flag("--no-next") && uiFiles.length) {
-    const OVERLAY = /\b(OverlayDrawer|InlineDrawer|Dialog|DialogSurface|Popover|MenuPopover|DatePicker|TimePicker|Combobox|Dropdown|Toast|Tooltip)\b/;
-    const withOverlay = uiFiles.filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
-    console.log("\nNot finished yet. Still to do: `tsc`, then `node .fluent-kit/scripts/verify.mjs --start /page` and look at the screenshots. \"I did not run verify\" is not an acceptable ending; the only reasons to skip are an explicit request from the user or an error you can quote.");
-    if (withOverlay.length) console.log(`These changed files contain something that opens on a click (${withOverlay.slice(0, 4).join(", ")}). Open it with: verify.mjs --start /page --click "role=button[name='<the button that opens it>']" and look at the -open.png screenshot.`);
+  if (errors.length) console.log("Fix the errors before presenting the work. Use tokens and Fluent components; details in .github/skills/fluent-ui/deviations.md.");
+  // This check passing is not the end of the job. Say what is still missing, sized to the change.
+  if (flag("--changed") && !flag("--no-next") && files.length) {
+    const visible = files.filter((f) => /\.(tsx|jsx|css|scss|less)$/.test(f) || (/\.[cm]?[jt]s$/.test(f) && (() => { try { return /\bmakeStyles\b|\bmakeResetStyles\b/.test(readFileSync(f, "utf8")); } catch { return false; } })()));
+    if (!visible.length) {
+      console.log("\nNo UI or style files changed: run `tsc` if you changed TypeScript. `verify` is not needed for this change.");
+    } else {
+      const git = (a) => spawnSync("git", a, { cwd: root, encoding: "utf8" }).stdout || "";
+      const top = git(["rev-parse", "--show-toplevel"]).trim();
+      const untracked = new Set(git(["ls-files", "--others", "--exclude-standard"]).split("\n").filter(Boolean).map((l) => resolve(top, l)));
+      let lines = 0;
+      for (const l of git(["diff", "--numstat", "HEAD", "--", ...visible]).split("\n")) { const [a, d] = l.split("\t"); lines += (Number(a) || 0) + (Number(d) || 0); }
+      const newFiles = visible.filter((f) => untracked.has(f)).length;
+      const small = !newFiles && lines <= 20;
+      console.log(small
+        ? `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\` (the default 1440 + 375px pass is enough for a change of ${lines} line(s)).`
+        : `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\`; add \`--full\` (dark mode and 768px) for a new page, shell or overlay.`);
+      console.log("Skip verify only if the user asked you to, or quote the error that stopped it.");
+      const OVERLAY = /\b(OverlayDrawer|InlineDrawer|Dialog|DialogSurface|Popover|MenuPopover|DatePicker|TimePicker|Combobox|Dropdown|Toast|Tooltip)\b/;
+      const withOverlay = visible.filter((f) => /\.(tsx|jsx)$/.test(f)).filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
+      if (withOverlay.length && !small) console.log(`Something here opens on a click (${withOverlay.slice(0, 4).map((f) => relative(root, f)).join(", ")}): add --click "role=button[name='<the button that opens it>']" and check the -open.png it names.`);
+    }
   }
 }
 process.exit(errors.length ? 1 : 0);

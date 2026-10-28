@@ -11,7 +11,7 @@ const root = resolve(process.argv[2] || ".");
 const asJson = process.argv.includes("--json");
 const EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 const STYLE_EXT = new Set([".css", ".scss", ".less"]);
-const SKIP = new Set(["node_modules", "dist", "build", ".git", ".github", ".fluent-kit", ".next", "coverage", "storybook-static"]);
+const SKIP = new Set(["node_modules", "dist", "build", ".git", ".github", ".claude", ".agents", ".fluent-kit", ".next", "coverage", "storybook-static"]);
 
 const files = [];
 const styleFiles = [];
@@ -173,9 +173,12 @@ if (decision && decision.hex && !ramp) brand = { hex: decision.hex, source: ".fl
 const existingGuidance = [];
 for (const f of ["design.md", "DESIGN.md", "STYLEGUIDE.md", "docs/design.md", "docs/DESIGN.md", "AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md", ".cursorrules"]) {
   if (existsSync(join(root, f))) {
-    let note = "";
-    if (f === ".github/copilot-instructions.md") { try { if (readFileSync(join(root, f), "utf8").includes("fluent-kit:start")) continue; } catch {} }
-    existingGuidance.push(f + note);
+    // Agent instruction files count as design guidance only for what they say outside the kit's own block.
+    if (/^(AGENTS\.md|CLAUDE\.md|\.github\/copilot-instructions\.md|\.cursorrules)$/.test(f)) {
+      let rest = ""; try { rest = readFileSync(join(root, f), "utf8").replace(/<!-- fluent-kit:start -->[\s\S]*?<!-- fluent-kit:end -->/, ""); } catch {}
+      if (!/\b(design|ui|ux|styles?|styling|theme|css|tailwind|components?|colou?rs?|fonts?|layout)\b/i.test(rest)) continue;
+    }
+    existingGuidance.push(f);
   }
 }
 for (const d of [".agents/skills", ".github/skills", ".claude/skills", ".cursor/rules"]) {
@@ -206,7 +209,7 @@ if (v9 && ramp) {
   advice = `createLightTheme/createDarkTheme found in ${sig.createTheme[0]} but the ramp could not be read. Open that file and use it as is.`;
 } else if (v9 && (sig.stockTheme.length || sig.providers.length)) {
   kind = "fluent-v9-stock-theme";
-  advice = "Fluent v9 with a stock Microsoft theme (no brand ramp). If a brand color is found below, derive a ramp from it; if not, ask the user for the brand color.";
+  advice = "Fluent v9 with the stock Microsoft theme. Keep it and build with it. Change the theme only when the user asks to brand the app.";
 } else if (v8) {
   kind = "fluent-v8";
   advice = "Fluent v8 in use. Do not mix v8 and v9 in new code. Ask the user whether this task is a migration; if not, build new UI in v9 inside a FluentProvider alongside v8 only if the project already does so.";
@@ -220,6 +223,7 @@ if (v9 && ramp) {
 
 let brandAdvice = null;
 if (decision && decision.mode === "stock" && !ramp) brandAdvice = "Saved decision (.fluent-kit/brand.json): this project uses the stock Microsoft theme. Do not ask for a brand color and do not generate a ramp.";
+else if (kind === "fluent-v9-stock-theme" && !(decision && decision.hex)) brandAdvice = `Stock theme: do not ask for a brand color and do not create brand.json.${brand && brand.confidence !== "ambiguous" ? ` (${brand.hex} looks like a brand color; mention it only if the user asks to brand the app.)` : ""}`;
 else if (ramp) brandAdvice = "Keep the existing ramp. Do not regenerate it.";
 else if (brand) {
   if (brand.confidence === "ambiguous") brandAdvice = `Several possible brand colors (${brand.candidates.map((c) => c.hex).join(", ")}). Ask the user which one is the product brand, then run: node .fluent-kit/scripts/generate-ramp.mjs <hex> --ts`;
@@ -249,7 +253,7 @@ const out = {
   localeAdvice,
   brand,
   brandAdvice,
-  generatedRamp: brand && !ramp && brand.confidence !== "ambiguous" ? generateRamp(brand.hex) : null,
+  generatedRamp: brand && !ramp && brand.confidence !== "ambiguous" && kind !== "fluent-v9-stock-theme" ? generateRamp(brand.hex) : null,
   possibleSharedPackages: sharedPackages,
 };
 
@@ -270,8 +274,9 @@ else {
   if (out.existingGuidance.length) console.log(`Existing guidance: ${out.existingGuidance.join(", ")}\n                   The repo already has its own rules. Follow them first where they conflict with the kit; use the kit to fill gaps.`);
   if (out.framework === "next") console.log("Next.js:         files that use makeStyles or Fluent hooks need \"use client\". Do not pass icon components from Server to Client Components.");
   if (out.tailwind) console.log("Tailwind:        in use. Keep the project's existing Tailwind usage for page layout; in new code take colors, type, radii and shadows from Fluent tokens, not Tailwind color utilities, unless the project's own guidance says otherwise.");
-  if (!out.setup.hasPackageJson) console.log("Setup:           no package.json here. Create the app first (ask which framework; default is Vite + React + TypeScript), then follow .github/skills/fluent-ui/references/new-project-setup.md.");
-  else if (out.setup.installCmd) console.log(`Setup:           Fluent packages missing. Install: ${out.setup.installCmd}   (then follow .github/skills/fluent-ui/references/new-project-setup.md)${out.freshScaffold ? "\n                 Looks like a fresh scaffold." : ""}`);
+  if (!out.setup.hasPackageJson) console.log("Setup:           no package.json here. Create a Vite + React + TypeScript app (say so in your first message; use Next.js only if the request asks for it), then follow .github/skills/fluent-ui/references/new-project-setup.md.");
+  else if (out.setup.installCmd && (out.kind === "new-project" || out.freshScaffold)) console.log(`Setup:           Fluent packages missing. Install: ${out.setup.installCmd}   (then follow .github/skills/fluent-ui/references/new-project-setup.md)${out.freshScaffold ? "\n                 Looks like a fresh scaffold." : ""}`);
+  else if (out.setup.installCmd) console.log(`Setup:           missing ${out.setup.missingDeps.join(", ")}. Install: ${out.setup.installCmd}   (existing app: change nothing else for this)`);
   console.log(`UI language:     ${out.locale.uiLanguage || (out.locale.localeCodes.length ? "several: " + out.locale.localeCodes.join(", ") : "unknown")}${out.locale.i18nLibrary.length ? "   i18n: " + out.locale.i18nLibrary.join(", ") : ""}`);
   console.log(`Language advice: ${out.localeAdvice}`);
   if (out.possibleSharedPackages.length) console.log(`Possible shared UI packages (verify): ${out.possibleSharedPackages.join(", ")}`);

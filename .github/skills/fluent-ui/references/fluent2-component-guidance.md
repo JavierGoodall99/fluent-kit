@@ -124,7 +124,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 ## Menu
 
 - A hidden list of options shown when someone interacts with a trigger such as a button, an avatar or an icon. Usually options start an immediate action or navigate somewhere new.
-- **Not for collecting information:** use a `Select`, `Dropdown` or `Combobox`.
+- **Not for collecting information:** use a `Dropdown`, `Combobox` or `RadioGroup` (never Fluent's `Select`: its open list is the operating system's).
 - **Parts:** menu item (optional icon, shortcut text, submenu chevron, check mark for selection), split item, section header, divider.
 - **States:** rest, hover, pressed, selected, focus, disabled.
 - **Spec (Fluent 2 Web Figma):** surface 260px wide, 4px padding, 2px between items, 4px radius, `shadow16`. Item 32px high: 20px icon, 14px text in `colorNeutralForeground2`, 6px left padding; shortcut text 14px `colorNeutralForeground3` at the right; section header 12px bold; divider 1px `colorNeutralStroke2`.

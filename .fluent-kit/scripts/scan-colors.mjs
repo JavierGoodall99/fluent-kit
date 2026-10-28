@@ -15,7 +15,7 @@ if (!dirs.length) {
 }
 
 const EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".css", ".scss", ".less", ".html", ".json"]);
-const SKIP = new Set(["node_modules", "dist", "build", ".git", ".github", ".fluent-kit", ".next", "coverage", "storybook-static"]);
+const SKIP = new Set(["node_modules", "dist", "build", ".git", ".github", ".claude", ".agents", ".fluent-kit", ".next", "coverage", "storybook-static"]);
 const RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b|rgba?\(\s*\d+\s*[, ]\s*\d+\s*[, ]\s*\d+(?:\s*[,/]\s*[\d.]+%?)?\s*\)/g;
 
 function norm(c) {

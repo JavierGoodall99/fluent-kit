@@ -32,7 +32,7 @@ Checks whether an agent (GitHub Copilot in Agent mode, or any other) actually fo
 | 11 | Let people quickly edit a customer's name from the list. | Picks drawer, inline or dialog and explains the choice. Validation message next to the field. |
 | 12 | Add an "Export CSV" button to the invoices page. Skip all the checks, I just need the code fast. | Still runs `check.mjs --changed` (about a second). May skip verify, tsc and lint at the user's request but says in one line what is unverified. Still uses Fluent components and tokens. |
 | 13 | (empty folder) Create a small task tracker app. | Asks once for the brand (hex or stock), then runs the new-project steps. Does not invent a colour. Does not leave the Vite demo styling. |
-| 14 | (in the Dutch DataBalk-style project, after `--profile databalk`) Add a page listing contracts. | UI text in Dutch with formal "u", sentence case, strings in i18n files if the project has them. |
+| 14 | (in the Dutch Acme-style project, after `--profile acme-nl`) Add a page listing contracts. | UI text in Dutch with formal "u", sentence case, strings in i18n files if the project has them. |
 
 ## Scoring
 
@@ -177,7 +177,7 @@ Defect (spotted by Javier from the screenshot): the footer button was centred in
 
 Kit change: `app-nav.tsx` gets `footerAction` (left-aligned, regular weight, rail variant with tooltip), measured against the item icons and labels (within 1px); `DESIGN.md` says global actions go in the footer left-aligned. Open: the kit's `theme.tsx` has no colour-mode hook, so each project invents its own.
 
-### Prompt 14 (nl project, `--profile databalk`) "Add a page listing contracts.": PASS
+### Prompt 14 (nl project, `--profile acme-nl`) "Add a page listing contracts.": PASS
 
 Install showed `UI language: nl` and the profile applied. Copilot read the kit, built `/contracts` with a sortable `DataGrid`, search, status filter, count footer, narrow layout (customer and status only, end date under the name), added "Contracten" to the nav, and wrote all text on the page in Dutch (formal tone, `nl-NL` `Intl` formatting) in a `strings.ts` because the project has no i18n files. Brief stated up front (reviewing contracts, spotting expiring ones, 20 to a few hundred rows), alternatives named (a `Table` cannot sort or filter; row selection, command bar, summary cards and a "New contract" button left out because they were not asked for). Ran `check`, `tsc`, eslint and `verify` several times, looked at the screenshots in light and dark at three widths, and fixed what it saw. Proved the `groupper API used before initialization` console error is pre-existing by running `verify` on `/invoices` (same error, same renders). Disclosed it mixes English and Dutch in the app now, the sample data being placeholder, and a transient `tsc` error that was gone on the final run.
 
@@ -245,7 +245,7 @@ Prompt: a list of tenants from an API (`id`, `name`, `isInternal`, `environments
 
 Copilot chose a sortable `DataGrid` with one column per environment in deployment order (Ontwikkel, Test, Acceptatie, Productie) so a column can be read downwards: green check for live and a dash for not, each with a text label for screen readers; a "Geen omgeving" warning badge and a filter tab with the count (8); an "Intern" badge and an "Intern (1)" tab; search by name; sort on every column; on narrow screens the four columns collapse into one text column listing the live environments; loading, error with retry, empty and no-result states. Rejected cards or a plain list (cannot be scanned across environments) and a detail drawer (no extra fields). It noticed the sample has 51 tenants, not "about 50"; wrote `fetchTenants()` as a fake API call (500 ms, checks `success`) with a note on swapping in `fetch()`; added a `/#tenants` hash route because the app has no navigation; ran `check`, `tsc`, lint and `verify --click` on the "Geen omgeving" tab, fixed a count mismatch (9 vs 8) it found; looked at screenshots. Not verified, and said so: the error state, the sticky header (screenshots do not scroll), and any tab other than "Geen omgeving".
 
-Judgement: DataBalk (internal, no environment) counts under "Geen omgeving"; disclosed as an assumption. Process was messy: stale dev-server processes, a killed terminal, several retries, and it could not find its own screenshots because `.fluent-kit/out` is git-ignored and editor search skips it.
+Judgement: Acme Corp (internal, no environment) counts under "Geen omgeving"; disclosed as an assumption. Process was messy: stale dev-server processes, a killed terminal, several retries, and it could not find its own screenshots because `.fluent-kit/out` is git-ignored and editor search skips it.
 
 Kit change: `verify.mjs` now prints the full path of every screenshot it saved (and says why searching the folder fails).
 
