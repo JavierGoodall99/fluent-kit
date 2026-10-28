@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 // Fluent kit checker. No dependencies, no ESLint needed.
 // Usage: node .fluent-kit/scripts/check.mjs [dir] [--changed] [--json] [--baseline] [--allow pkg,pkg] [--no-next]
+//        node .fluent-kit/scripts/check.mjs --finish --page /path [--full] [--click "role=button[name='...']"] [--no-verify]
+//   --finish    the one command to end a task: the rules on changed files, then tsc, then verify only if something
+//               visible changed (and Playwright is installed). Stops at the first step that fails.
+//               --page is the page you changed; --full and --click are passed to verify; --no-verify when the person
+//               asked to skip checks (the rules and tsc still run).
 //   --changed   only files changed in git (staged, unstaged, untracked). Use this while working.
 //   --baseline  record today's findings in .fluent-kit/baseline.json; later runs fail only on NEW findings.
 //               Use it once when adopting the kit in a repo that already has old violations.
@@ -10,14 +15,15 @@
 // Exit code 1 if there are errors, 0 otherwise. Warnings never fail the run.
 // Silence one line with a comment: // fluent-kit-ignore -- reason   (on the same line or the line above)
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
-import { join, relative, resolve, sep, extname, basename } from "node:path";
+import { join, relative, resolve, sep, extname, basename, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
-const root = resolve(args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--allow") || ".");
+const root = resolve(args.find((a, i) => !a.startsWith("--") && !["--allow", "--page", "--click"].includes(args[i - 1])) || ".");
 const json = flag("--json");
 
 let config = {};
@@ -71,7 +77,7 @@ function changedFiles() {
 }
 
 let files = [];
-if (flag("--changed")) {
+if (flag("--changed") || flag("--finish")) {
   const c = changedFiles();
   if (c === null) { console.error("--changed needs a git repository. Checking all files."); walk(root, files); }
   else files = c.filter((f) => !/\.(test|spec|stories)\.[jt]sx?$/.test(f) && !/\.d\.ts$/.test(f));
@@ -199,18 +205,14 @@ if (json) {
   console.log(`\nfluent-kit check: ${files.length} files, ${errors.length} error(s), ${warns.length} warning(s)${tolerated ? `, ${tolerated} tolerated by baseline` : ""}.`);
   if (errors.length) console.log("Fix the errors before presenting the work. Use tokens and Fluent components; details in .github/skills/fluent-ui/deviations.md.");
   // This check passing is not the end of the job. Say what is still missing, sized to the change.
-  if (flag("--changed") && !flag("--no-next") && files.length) {
+  if (flag("--changed") && !flag("--finish") && !flag("--no-next") && files.length) {
     const c = assessChange(files);
-    if (!c.visible.length) console.log("\nNothing visible changed (only comments, types, formatting or non-UI files): `verify` is not needed. Run `tsc` if you changed TypeScript.");
-    else {
-      console.log(c.small
-        ? `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\` (the default 1440 + 375px pass is enough for a change of ${c.lines} line(s)).`
-        : `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\`; add \`--full\` (dark mode and 768px) for a new page, shell or overlay.`);
-      console.log("If verify cannot run, quote its error and say the UI was not verified.");
-      if (c.overlays.length && !c.small) console.log(`Something here opens on a click (${c.overlays.slice(0, 4).map((f) => relative(root, f)).join(", ")}): add --click "role=button[name='<the button that opens it>']" and check the -open.png it names.`);
-    }
+    console.log(c.visible.length
+      ? "\nNot finished yet. End with: node .fluent-kit/scripts/check.mjs --finish --page /page   (runs tsc, then verify)"
+      : "\nNothing visible changed (only comments, types, formatting or non-UI files). End with: node .fluent-kit/scripts/check.mjs --finish   (runs tsc; no verify needed)");
   }
 }
+if (flag("--finish")) process.exit(finish(errors.length));
 
 // Which changed files change what a person sees. A file counts only if its code differs once comments, types,
 // imports that are only types, and formatting are removed: TypeScript's own transpiler does that when the project
@@ -240,3 +242,60 @@ function assessChange(changed) {
   return { visible, lines, newFiles, small: !newFiles && lines <= 20, overlays };
 }
 process.exit(errors.length ? 1 : 0);
+
+// --finish: rules (already reported above), then tsc, then verify sized to the change. One command, one summary line.
+function finish(ruleErrors) {
+  const done = (steps, code) => { console.log(`\nfluent-kit finish: ${steps.join(", ").replace(/\.+$/, "")}.`); return code; };
+  if (ruleErrors) return done([`stopped at the rules (${ruleErrors} error(s) above): fix them, then run --finish again`], 1);
+  const steps = ["rules ok"];
+  const change = assessChange(files);
+
+  const tc = typecheck();
+  if (tc.ran && tc.code !== 0) { console.log(`\n$ ${tc.cmd}\n${tc.output}`); return done([...steps, "stopped at tsc (errors above): fix them, then run --finish again"], 1); }
+  steps.push(tc.ran ? "tsc ok" : `tsc skipped (${tc.why})`);
+
+  if (flag("--no-verify")) return done([...steps, "verify skipped at the person's request: say in your reply that the UI was not verified"], 0);
+  if (!change.visible.length) return done([...steps, "verify not needed (nothing visible changed)"], 0);
+  const req = createRequire(join(root, "package.json"));
+  const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some((n) => { try { req.resolve(n); return true; } catch { return false; } });
+  if (!hasPlaywright) return done([...steps, "verify not available (Playwright is not installed): say in your reply that the UI was not verified. To enable it once: npm i -D playwright axe-core && npx playwright install chromium"], 0);
+  const page = opt("--page") || inferPage(change.visible);
+  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => relative(root, f)).join(", ")} changed visibly): run again with --page /path-of-that-page`], 2);
+
+  const vArgs = ["--start", page, ...(flag("--full") ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
+  console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
+  const v = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), ...vArgs], { cwd: root, stdio: "inherit" });
+  const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => relative(root, f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
+  if (v.status === 0) return done([...steps, `verify ok${hint ? "." + hint : ""}`], 0);
+  if (v.status === 1) return done([...steps, `verify found problems (above): fix them, then run --finish again${hint ? "." + hint : ""}`], 1);
+  return done([...steps, "verify could not run (see above): fix that, or say in your reply that the UI was not verified"], 2);
+}
+
+// tsc the way the project does it: its "typecheck" script, else tsc -b for project references (Vite), else tsc --noEmit.
+function typecheck() {
+  if (!files.some((f) => /\.(tsx?|mts|cts)$/.test(f))) return { ran: false, why: "no TypeScript changed" };
+  let pkg = {}; try { pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")); } catch { /* none */ }
+  const run = (cmd, argv, shown) => { const r = spawnSync(cmd, argv, { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, shell: process.platform === "win32" && cmd !== process.execPath }); return { ran: true, code: r.status ?? 1, cmd: shown, output: `${r.stdout || ""}${r.stderr || ""}`.trim().split("\n").slice(0, 40).join("\n") }; };
+  if (pkg.scripts?.typecheck) {
+    const pm = existsSync(join(root, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(root, "yarn.lock")) ? "yarn" : (existsSync(join(root, "bun.lockb")) || existsSync(join(root, "bun.lock"))) ? "bun" : "npm";
+    return run(pm, ["run", "typecheck"], `${pm} run typecheck`);
+  }
+  if (!existsSync(join(root, "tsconfig.json"))) return { ran: false, why: "no tsconfig.json" };
+  let tsc; try { tsc = createRequire(join(root, "package.json")).resolve("typescript/bin/tsc"); } catch { return { ran: false, why: "TypeScript is not installed" }; }
+  const refs = /"references"\s*:/.test(readFileSync(join(root, "tsconfig.json"), "utf8"));
+  return refs ? run(process.execPath, [tsc, "-b"], "tsc -b") : run(process.execPath, [tsc, "--noEmit", "-p", "tsconfig.json"], "tsc --noEmit");
+}
+
+// Next.js routes can be read from the file path; anything else needs --page.
+function inferPage(changedFiles) {
+  const routes = new Set();
+  for (const f of changedFiles) {
+    const r = relative(root, f).split(sep).join("/");
+    let m = r.match(/(?:^|\/)app\/(.*?)\/?page\.[jt]sx?$/) || (/(?:^|\/)app\/page\.[jt]sx?$/.test(r) ? ["", ""] : null);
+    if (m) { const segs = m[1].split("/").filter((s) => s && !/^\(.*\)$/.test(s)); if (segs.some((s) => s.startsWith("["))) return null; routes.add("/" + segs.join("/")); continue; }
+    m = r.match(/(?:^|\/)pages\/(.*)\.[jt]sx?$/);
+    if (m && !m[1].startsWith("_") && !m[1].startsWith("api/")) { const p = m[1].replace(/(^|\/)index$/, ""); if (p.includes("[")) return null; routes.add("/" + p); continue; }
+    return null; // a component file: the page that uses it is unknown
+  }
+  return routes.size === 1 ? [...routes][0] : null;
+}

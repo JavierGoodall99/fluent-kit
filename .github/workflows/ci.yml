@@ -39,6 +39,9 @@ jobs:
       - name: Benchmark recorder tests
         run: node tests/record-run.test.mjs
 
+      - name: check --finish tests
+        run: node tests/check-finish.test.mjs
+
       - name: Shipped scripts pass ESLint recommended
         run: npx eslint -c tests/eslint.shipped.config.mjs .fluent-kit install.mjs
 

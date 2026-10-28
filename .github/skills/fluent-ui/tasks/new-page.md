@@ -13,6 +13,6 @@
 - Status comes from real data: look at one real record of each kind (API sample, fixture, type, or ask) and name your basis. Placeholders (`null`, `""`, "Empty") mean "not set up". The same badge on every item: show it once. Numbers shown together agree.
 - Buttons say what they do ("Delete invoice"); errors say what happened and what to do. Strings go in the project's i18n files, if any.
 
-**Check**: `check --changed`, `tsc`, `node .fluent-kit/scripts/verify.mjs --start /page --full`, with `--click "role=button[name='...']"` for anything behind a click. On the contact sheet: is the main thing obvious, can anything go, would a stranger understand every label, does it match the nearest page?
+**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page --full`, plus `--click "role=button[name='...']"` for anything behind a click. Answer the critique `verify` prints.
 
 **Reply**: the brief first; last, a design note: the requirement, the pattern and the rejected alternative, anything built differently from what was asked, assumptions (language, currency, sample data), what you could not verify.
