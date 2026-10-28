@@ -1,6 +1,7 @@
 // Reading budget: the words an agent reads for each kind of task before it writes code, following every file the
 // always-on block, the router and the cards tell it to read. Counts whitespace-separated words (code counts too).
 // Run: node tests/reading-cost.mjs   Exits 1 if any budget is exceeded, so a growing file is noticed in CI.
+// Budgets: small fix 1,000; restyle 1,500; new page 2,200; new app 2,600; always-on block 250.
 import { readFileSync, readdirSync } from "node:fs";
 
 const K = ".github/skills/fluent-ui/";
@@ -22,16 +23,17 @@ const cards = readdirSync(K + "patterns").filter((f) => f.endsWith(".md")).map((
 });
 const examples = readdirSync(K + "examples").filter((f) => f.endsWith(".tsx"));
 
-const BUDGET = 2500;
+// Per-route budgets. New app reads two task cards, so it gets more room than a single page.
+const BUDGET = { smallFix: 1000, restyle: 1500, newPage: 2200, newApp: 2600 };
 const rows = [];
-const add = (name, cost, budget = BUDGET) => rows.push({ name, cost, budget });
+const add = (name, cost, budget) => rows.push({ name, cost, budget });
 
 add("always-on block", block, 250);
-add("small fix: block + tasks/small-fix + deviations (if unsure)", block + task("small-fix") + deviations);
-for (const c of cards) add(`restyle, ${c.name}: block + router + tasks/restyle + card`, block + router + task("restyle") + c.words);
-for (const c of cards) add(`new page, ${c.name}: block + router + tasks/new-page + card + example`, block + router + task("new-page") + c.words + c.example);
+add("small fix: block + tasks/small-fix + deviations (if unsure)", block + task("small-fix") + deviations, BUDGET.smallFix);
+for (const c of cards) add(`restyle, ${c.name}: block + router + tasks/restyle + card`, block + router + task("restyle") + c.words, BUDGET.restyle);
+for (const c of cards) add(`new page, ${c.name}: block + router + tasks/new-page + card + example`, block + router + task("new-page") + c.words + c.example, BUDGET.newPage);
 const worst = cards.reduce((a, c) => (c.words + c.example > a.words + a.example ? c : a));
-add(`new app (first page: ${worst.name}): block + router + tasks/new-app + tasks/new-page + card + example`, block + router + task("new-app") + task("new-page") + worst.words + worst.example);
+add(`new app (first page: ${worst.name}): block + router + tasks/new-app + tasks/new-page + card + example`, block + router + task("new-app") + task("new-page") + worst.words + worst.example, BUDGET.newApp);
 
 // File limits that keep each card small.
 const limits = [

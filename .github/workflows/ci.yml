@@ -30,7 +30,7 @@ jobs:
           node .fluent-kit/eslint/no-hardcoded-styles.test.js
           node .fluent-kit/eslint/fluent-only.test.js
 
-      - name: Reading-cost budgets (2,500 words per task)
+      - name: Reading-cost budgets (per route)
         run: node tests/reading-cost.mjs
 
       - name: Links in shipped files
