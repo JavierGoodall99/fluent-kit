@@ -1,7 +1,7 @@
 // Task board: a column per stage, a card per item. Use when the requirement is "move items through stages".
 // Measurements follow Microsoft's "Taskboard Template (Web Large)" in the Microsoft 365 UI Kit:
 //   page padding 20px, 20px between columns with a 1px divider, 12px between cards, column header 14px bold,
-//   a full-width "add" button under the header, cards radius 8px, padding 16px, shadow04 (tokens.shadow4).
+//   a full-width "add" button under the header, cards radius 8px (tokens.borderRadiusXLarge; borderRadiusLarge is only 6px), padding 16px, shadow04 (tokens.shadow4).
 // Rules: a card shows a title, one owner and one status line; details open in a drawer or page, not in the card.
 // There is no drag and drop here on purpose: every card has a "Move to" menu, so the board works with a keyboard and on a phone.
 // Narrow screens stack the columns. UI text is English. Use the project's language and wording.
@@ -43,7 +43,7 @@ const useStyles = makeStyles({
   column: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalM, minWidth: 0 },
   columnHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: tokens.spacingVerticalS },
   add: { width: "100%" },
-  card: { padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusLarge, boxShadow: tokens.shadow4 },
+  card: { padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
   meta: { display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalS, flexWrap: "wrap" },
   muted: { color: tokens.colorNeutralForeground3 },
   empty: { color: tokens.colorNeutralForeground3, paddingTop: tokens.spacingVerticalS },

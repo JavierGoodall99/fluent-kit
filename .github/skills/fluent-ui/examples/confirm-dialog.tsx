@@ -28,13 +28,14 @@ export function ConfirmDeleteDialog({ open, count, onOpenChange, onConfirm }: Pr
               ? "Are you sure you want to delete this item? This cannot be undone."
               : `Are you sure you want to delete ${count} items? This cannot be undone.`}
           </DialogContent>
+          {/* Fluent 2 Web: the primary action comes first, then the different action (Cancel). Stacked on narrow screens, the primary is on top. */}
           <DialogActions>
-            <DialogTrigger disableButtonEnhancement>
-              <Button appearance="secondary">Cancel</Button>
-            </DialogTrigger>
             <Button appearance="primary" onClick={onConfirm}>
               Delete
             </Button>
+            <DialogTrigger disableButtonEnhancement>
+              <Button appearance="secondary">Cancel</Button>
+            </DialogTrigger>
           </DialogActions>
         </DialogBody>
       </DialogSurface>

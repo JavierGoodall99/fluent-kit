@@ -79,6 +79,7 @@ Working, type-checked examples are in `examples/`. These show how to build each 
 - `dashboard.tsx`: canvas of cards (gauge, bar, line charts from `@fluentui/react-charts`), per-card time-range tabs, "View details" link. Use `LineChart`, not `AreaChart`.
 - `task-board.tsx`: a column per stage, a card per item, "Move to" menu instead of drag and drop, stacks on a phone.
 - `form-page.tsx`: centred form or settings page: sections, labels above inputs, validation, Discard and Save at the bottom right.
+- `gallery-page.tsx`: home or gallery page: page title, then sections with a 32px title row ("See more" at the right) and a grid of equal cards.
 - `empty-state.tsx`: first-run and empty state with a primary, secondary and tertiary action.
 - `app-nav.tsx`: collapsible sidebar. Expanded `NavDrawer` (Hamburger, `bundleIcon`, `NavCategory` for sub-pages), collapsed 56px icon rail (subtle Buttons with Tooltips, primary when selected), slide-over under 1024px.
 
