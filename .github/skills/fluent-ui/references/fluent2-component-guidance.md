@@ -79,6 +79,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - Gives access to frequently used actions related to someone's current view or task, like text formatting in an editor.
 - **Sizes:** small, medium (default), large. **Types:** static (inline in the page) and floating (raised, with shadow).
 - **Contents:** buttons, toggle buttons, dividers between groups, dropdowns, and an optional search input at the end. Group related actions between `ToolbarDivider`s.
+- **Narrow screens:** wrap the items in `Overflow` and each in `OverflowItem`; the ones that do not fit go into a "..." `Menu` (`useOverflowMenu`). Never leave clipped items at the edge.
 
 ## Input
 
@@ -100,6 +101,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Not for:** navigation beyond closely related categories (use a `Link`); initiating an action (use a `Button`).
 - **Layout:** horizontal or vertical. **Appearance:** transparent (default), subtle, subtle circular, filled circular. **Sizes:** small, medium (default).
 - **Content:** text only, icon before text, icon only. Overflow goes into a `...` menu.
+- **Narrow screens:** wrap the items in `Overflow` and each in `OverflowItem`; the ones that do not fit go into a "..." `Menu` (`useOverflowMenu`). Never leave clipped items at the edge.
 
 ## Breadcrumb
 

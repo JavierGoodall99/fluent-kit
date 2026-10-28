@@ -353,6 +353,7 @@ Rules that follow from this:
 - Keyboard operable everywhere. Visible focus. Do not remove it.
 - Text contrast at least 4.5:1, large text and UI components at least 3:1.
 - Respect `prefers-reduced-motion`.
+- **A row of tabs or toolbar buttons never gets cut off.** If it can be wider than the screen (it can at 375px), wrap it in `Overflow` and each tab or button in `OverflowItem` (both from `@fluentui/react-components`), and put the items that do not fit in a "..." `Menu` driven by `useOverflowMenu`. Give the most important items a higher `priority`. Do not let a container scroll sideways to hide the problem, and do not leave a clipped item such as "Betaa" or a lone divider at the edge. Check this at 375px, because `verify` reports it as a warning.
 
 ## 9. Agent prompt guide
 
