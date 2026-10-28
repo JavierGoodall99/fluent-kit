@@ -38,10 +38,11 @@
     "test:lint": "node .fluent-kit/eslint/no-hardcoded-styles.test.js && node .fluent-kit/eslint/fluent-only.test.js",
     "test:budget": "node tests/reading-cost.mjs",
     "test:links": "node tests/links.mjs",
-    "test": "npm run typecheck && npm run check:examples && npm run test:lint && npm run test:budget && npm run test:links && npm run test:record && npm run test:finish && npm run test:shipped-lint",
+    "test": "npm run typecheck && npm run check:examples && npm run test:lint && npm run test:budget && npm run test:links && npm run test:record && npm run test:finish && npm run test:context && npm run test:shipped-lint",
     "test:record": "node tests/record-run.test.mjs",
     "test:shipped-lint": "eslint -c tests/eslint.shipped.config.mjs .fluent-kit install.mjs",
-    "test:finish": "node tests/check-finish.test.mjs"
+    "test:finish": "node tests/check-finish.test.mjs",
+    "test:context": "node tests/context.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -77,7 +77,7 @@ const agents = flag("--agents") || existsSync(join(dest, "AGENTS.md"));
 
 // 1. .fluent-kit/ (docs, scripts, lint rules). Profiles and the user's own brand files are handled separately.
 // Never ship files a run of the kit's own scripts may have left in this checkout.
-const LOCAL_ONLY = new Set(["out", "manifest.json", "brand.json", "baseline.json", "config.json", "verify-ignore.json", "PROFILE.md"]);
+const LOCAL_ONLY = new Set(["out", "context.json", "manifest.json", "brand.json", "baseline.json", "config.json", "verify-ignore.json", "PROFILE.md"]);
 copyDir(join(here, ".fluent-kit"), join(dest, ".fluent-kit"), (a, n) =>
   (dirname(a) === join(here, ".fluent-kit") && LOCAL_ONLY.has(n)) ||
   a.includes(join(".fluent-kit", "profiles")) ||
@@ -158,7 +158,7 @@ if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by flu
 
 // 6. look at the project
 console.log("\nWhat the kit found in this project:\n");
-spawnSync(process.execPath, [join(dry ? here : dest, ".fluent-kit", "scripts", "detect-theme.mjs"), dest], { stdio: "inherit" });
+spawnSync(process.execPath, [join(dry ? here : dest, ".fluent-kit", "scripts", dry ? "detect-theme.mjs" : "context.mjs"), ...(dry ? [dest] : [])], { cwd: dest, stdio: "inherit" }); // context.mjs also primes its cache
 
 // 7. how much old code already breaks the rules
 const checkScript = join(dry ? here : dest, ".fluent-kit", "scripts", "check.mjs");
