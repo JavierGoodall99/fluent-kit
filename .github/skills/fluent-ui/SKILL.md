@@ -14,7 +14,7 @@ Pick one route and read only what it names. Paths are relative to this folder.
 | New page | a new page, section, shell or overlay in an app on Fluent v9 | `tasks/new-page.md` + one pattern card and its example |
 | New app | empty folder, fresh scaffold, Fluent v8 or another UI library | `tasks/new-app.md`, then the new-page route |
 
-Every route ends with one command: `node .fluent-kit/scripts/check.mjs --finish --page /path` (new page or app: add `--full`). It runs the rules, `tsc`, and `verify` only when something visible changed, and stops at the first failure.
+Every route ends with one command: `node .fluent-kit/scripts/check.mjs --finish --page /path` (new page or app: add `--full`). `/path` is the URL that shows the page, with its `#hash` if the app routes by hash. It runs the rules, `tsc`, and `verify` only when something visible changed, and stops at the first failure.
 
 ## Pattern cards
 

@@ -253,7 +253,7 @@ function finish(ruleErrors) {
   const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some((n) => { try { req.resolve(n); return true; } catch { return false; } });
   if (!hasPlaywright) return done([...steps, "verify not available (Playwright is not installed): say in your reply that the UI was not verified. To enable it once: npm i -D playwright axe-core && npx playwright install chromium"], 0);
   const page = opt("--page") || inferPage(change.visible);
-  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => relative(root, f)).join(", ")} changed visibly): run again with --page /path-of-that-page`], 2);
+  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => relative(root, f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
 
   const vArgs = ["--start", page, ...(flag("--full") ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
   console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
