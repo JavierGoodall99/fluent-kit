@@ -233,6 +233,12 @@ for (const url of urls) {
       await runAxe(page, where);
 
       const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
+      // Apps with their own scrolling area (a fixed shell with a scrolling <main>) make a "full page" screenshot show only the first screen.
+      // Grow the window to the height of the biggest scrolling area so the whole page is in the picture.
+      try {
+        const extra = await page.evaluate(() => { let best = 0; for (const el of document.querySelectorAll("div, main, section")) { const o = getComputedStyle(el).overflowY; if (/(auto|scroll)/.test(o) && el.scrollHeight > el.clientHeight + 40) best = Math.max(best, el.scrollHeight - el.clientHeight); } return best; });
+        if (extra > 0) { await page.setViewportSize({ width, height: Math.min(900 + extra, 7000) }); await page.waitForTimeout(400); }
+      } catch { /* screenshot as is */ }
       await page.screenshot({ path: file, fullPage: true });
       shots.push(file);
       // --click: open what is behind a button (drawer, dialog, menu, picker) and check that state too.
