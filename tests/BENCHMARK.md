@@ -53,6 +53,7 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 | Log monitor, whole-page "easier to understand" | 10m 18s | 87.1 | FAIL: scope (rebuilt, removed features), cards blend, squashed table |
 | Log monitor KPI cards match home | 2m 12s | 29.3 | pass, labels left in English |
 | Groepsberichten, whole-page "update the ui/ux" (#4 type, untouched page) | 8m 17s | 61.3 | pass with notes: changed a shared component used by two other pages (disclosed), about 6 wasted verify calls |
+| Learn page, whole-page "update the ui/ux" (#4 type, untouched page) | 6m 11s | 56.2 | pass with notes: reused shared header, search and panel; lesson counts and percentages disagree (6 of 9 shows 68%); doubled code from batched edits (about 5 steps); no consistency scan; note had no five-second line |
 
 Pattern: targeted prompts are fast, cheap and right. The failures and the cost spikes are all open-ended whole-page requests. Every kit change after those failures targeted that case.
 
