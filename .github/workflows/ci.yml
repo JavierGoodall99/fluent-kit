@@ -39,6 +39,9 @@ jobs:
       - name: Benchmark recorder tests
         run: node tests/record-run.test.mjs
 
+      - name: Shipped scripts pass ESLint recommended
+        run: npx eslint -c tests/eslint.shipped.config.mjs .fluent-kit install.mjs
+
       - name: Script syntax
         run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done
 
@@ -47,8 +50,11 @@ jobs:
           target="$RUNNER_TEMP/target"
           mkdir -p "$target"
           node install.mjs "$target" --claude --agents
-          test -f "$target/.github/skills/fluent-ui/SKILL.md"
           test -f "$target/.claude/skills/fluent-ui/tasks/new-page.md"
+          test ! -e "$target/.github/skills/fluent-ui"
+          grep -q ".claude/skills/fluent-ui/SKILL.md" "$target/CLAUDE.md"
+          plain="$RUNNER_TEMP/plain" && mkdir -p "$plain" && node install.mjs "$plain"
+          test -f "$plain/.github/skills/fluent-ui/SKILL.md" && test ! -e "$plain/.claude"
           test -f "$target/CLAUDE.md" && test -f "$target/AGENTS.md"
           test ! -e "$target/docs" && test ! -e "$target/.fluent-kit/DESIGN.md"
           node install.mjs "$target" --dry-run | grep -q "updated the Fluent kit block"

@@ -43,7 +43,7 @@ export function FormPage() {
 
         <section className={s.section} aria-labelledby="general">
           <div className={s.sectionHeader}>
-            <Text id="general" size={200} weight="bold">General</Text>
+            <Text id="general" size={200} weight="semibold">General</Text>
             <Text className={s.description}>Name and ownership.</Text>
           </div>
           <div className={s.row}>
@@ -61,7 +61,7 @@ export function FormPage() {
 
         <section className={s.section} aria-labelledby="notify">
           <div className={s.sectionHeader}>
-            <Text id="notify" size={200} weight="bold">Notifications</Text>
+            <Text id="notify" size={200} weight="semibold">Notifications</Text>
             <Text className={s.description}>Choose how people hear about changes.</Text>
           </div>
           <Switch label="Send email notifications" defaultChecked />

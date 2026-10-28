@@ -37,12 +37,15 @@ Fluent's own defaults apply everywhere else. Read the section you need.
 
 | Role | Token |
 |---|---|
-| Page title (`h1`) | `fontSizeBase600`, semibold |
-| Section title (`h2`) | `fontSizeBase400`, semibold |
-| Body | `fontSizeBase300` |
-| Caption | `fontSizeBase200` |
+| Page title (`h1`) | `fontSizeBase600` (24px), semibold |
+| Section title (`h2`), empty-state title | `fontSizeBase400` (16px), semibold |
+| Card title, board column header | `fontSizeBase300` (14px), semibold |
+| Group label (form section, choice group) | `fontSizeBase200` (12px), semibold |
+| Body | `fontSizeBase300`, regular |
+| Caption, description | `fontSizeBase200`, regular, `colorNeutralForeground3` |
+| Dialog and drawer titles | Fluent's own (`DialogTitle`, `DrawerHeaderTitle`); never set by hand |
 
-Do not use `fontWeightMedium`.
+Semibold for every emphasis; never `bold` or `fontWeightMedium`.
 
 ## Surfaces
 

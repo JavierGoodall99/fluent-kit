@@ -12,6 +12,7 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, relative, resolve, sep, extname, basename } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -199,25 +200,43 @@ if (json) {
   if (errors.length) console.log("Fix the errors before presenting the work. Use tokens and Fluent components; details in .github/skills/fluent-ui/deviations.md.");
   // This check passing is not the end of the job. Say what is still missing, sized to the change.
   if (flag("--changed") && !flag("--no-next") && files.length) {
-    const visible = files.filter((f) => /\.(tsx|jsx|css|scss|less)$/.test(f) || (/\.[cm]?[jt]s$/.test(f) && (() => { try { return /\bmakeStyles\b|\bmakeResetStyles\b/.test(readFileSync(f, "utf8")); } catch { return false; } })()));
-    if (!visible.length) {
-      console.log("\nNo UI or style files changed: run `tsc` if you changed TypeScript. `verify` is not needed for this change.");
-    } else {
-      const git = (a) => spawnSync("git", a, { cwd: root, encoding: "utf8" }).stdout || "";
-      const top = git(["rev-parse", "--show-toplevel"]).trim();
-      const untracked = new Set(git(["ls-files", "--others", "--exclude-standard"]).split("\n").filter(Boolean).map((l) => resolve(top, l)));
-      let lines = 0;
-      for (const l of git(["diff", "--numstat", "HEAD", "--", ...visible]).split("\n")) { const [a, d] = l.split("\t"); lines += (Number(a) || 0) + (Number(d) || 0); }
-      const newFiles = visible.filter((f) => untracked.has(f)).length;
-      const small = !newFiles && lines <= 20;
-      console.log(small
-        ? `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\` (the default 1440 + 375px pass is enough for a change of ${lines} line(s)).`
+    const c = assessChange(files);
+    if (!c.visible.length) console.log("\nNothing visible changed (only comments, types, formatting or non-UI files): `verify` is not needed. Run `tsc` if you changed TypeScript.");
+    else {
+      console.log(c.small
+        ? `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\` (the default 1440 + 375px pass is enough for a change of ${c.lines} line(s)).`
         : `\nNot finished yet: \`tsc\`, then \`node .fluent-kit/scripts/verify.mjs --start /page\`; add \`--full\` (dark mode and 768px) for a new page, shell or overlay.`);
-      console.log("Skip verify only if the user asked you to, or quote the error that stopped it.");
-      const OVERLAY = /\b(OverlayDrawer|InlineDrawer|Dialog|DialogSurface|Popover|MenuPopover|DatePicker|TimePicker|Combobox|Dropdown|Toast|Tooltip)\b/;
-      const withOverlay = visible.filter((f) => /\.(tsx|jsx)$/.test(f)).filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
-      if (withOverlay.length && !small) console.log(`Something here opens on a click (${withOverlay.slice(0, 4).map((f) => relative(root, f)).join(", ")}): add --click "role=button[name='<the button that opens it>']" and check the -open.png it names.`);
+      console.log("If verify cannot run, quote its error and say the UI was not verified.");
+      if (c.overlays.length && !c.small) console.log(`Something here opens on a click (${c.overlays.slice(0, 4).map((f) => relative(root, f)).join(", ")}): add --click "role=button[name='<the button that opens it>']" and check the -open.png it names.`);
     }
   }
+}
+
+// Which changed files change what a person sees. A file counts only if its code differs once comments, types,
+// imports that are only types, and formatting are removed: TypeScript's own transpiler does that when the project
+// has TypeScript; otherwise comments and whitespace are stripped. New and deleted UI files always count.
+function assessChange(changed) {
+  const git = (a) => spawnSync("git", a, { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const top = git(["rev-parse", "--show-toplevel"]).stdout.trim();
+  const ui = changed.filter((f) => /\.(tsx|jsx|css|scss|less)$/.test(f) || (/\.[cm]?[jt]s$/.test(f) && (() => { try { return /\bmakeStyles\b|\bmakeResetStyles\b/.test(readFileSync(f, "utf8")); } catch { return false; } })()));
+  let ts = null; try { ts = createRequire(join(root, "package.json"))("typescript"); } catch { /* fallback below */ }
+  const shape = (code, file) => {
+    if (/\.(css|scss|less)$/.test(file)) return code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, "");
+    if (ts) { try { return ts.transpileModule(code, { fileName: basename(file), compilerOptions: { jsx: ts.JsxEmit.Preserve, removeComments: true, target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext } }).outputText.replace(/\s+/g, ""); } catch { /* fallback */ } }
+    return code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1").replace(/\s+/g, "");
+  };
+  const visible = ui.filter((f) => {
+    const before = git(["show", `HEAD:${relative(top, f).split(sep).join("/")}`]);
+    if (before.status !== 0) return true; // new file
+    let after; try { after = readFileSync(f, "utf8"); } catch { return true; } // deleted
+    return shape(before.stdout, f) !== shape(after, f);
+  });
+  const untracked = new Set(git(["ls-files", "--others", "--exclude-standard"]).stdout.split("\n").filter(Boolean).map((l) => resolve(top, l)));
+  let lines = 0;
+  if (visible.length) for (const l of git(["diff", "--numstat", "HEAD", "--", ...visible]).stdout.split("\n")) { const [a, d] = l.split("\t"); lines += (Number(a) || 0) + (Number(d) || 0); }
+  const newFiles = visible.filter((f) => untracked.has(f)).length;
+  const OVERLAY = /\b(OverlayDrawer|InlineDrawer|Dialog|DialogSurface|Popover|MenuPopover|DatePicker|TimePicker|Combobox|Dropdown|Toast|Tooltip)\b/;
+  const overlays = visible.filter((f) => /\.(tsx|jsx)$/.test(f)).filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
+  return { visible, lines, newFiles, small: !newFiles && lines <= 20, overlays };
 }
 process.exit(errors.length ? 1 : 0);

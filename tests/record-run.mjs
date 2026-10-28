@@ -78,7 +78,8 @@ function kitInfo(app) {
   let manifest = null; try { manifest = JSON.parse(readFileSync(join(app, ".fluent-kit", "manifest.json"), "utf8")); } catch { /* none */ }
   const kit = manifest?.kit || {};
   const h = createHash("sha256");
-  for (const f of (manifest?.files || []).filter((x) => x.startsWith(".github/skills/fluent-ui/")).sort()) { h.update(f); try { h.update(readFileSync(join(app, f))); } catch { h.update("missing"); } }
+  const skill = manifest?.skill || ".github/skills/fluent-ui";
+  for (const f of (manifest?.files || []).filter((x) => x.startsWith(`${skill}/`)).sort()) { h.update(f.slice(skill.length + 1)); try { h.update(readFileSync(join(app, f))); } catch { h.update("missing"); } }
   const now = manifest ? h.digest("hex").slice(0, 12) : null;
   return { version: kit.version ?? null, commit: kit.commit ?? null, fingerprint: kit.fingerprint ?? null, fingerprintNow: now, changed: !!(kit.fingerprint && now && kit.fingerprint !== now) };
 }

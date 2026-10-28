@@ -15,7 +15,7 @@ const useStyles = makeStyles({
   page: {
     display: "flex", flexDirection: "column", alignItems: "center", minHeight: "100vh", boxSizing: "border-box",
     backgroundColor: tokens.colorNeutralBackground2, padding: `${tokens.spacingVerticalL} ${tokens.spacingHorizontalL} 0`,
-    "@media (min-width: 640px)": { padding: `${tokens.spacingVerticalXXL} ${tokens.spacingHorizontalXXL} 0` },
+    "@media (min-width: 640px)": { padding: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXL} 0` },
   },
   column: { display: "flex", flexDirection: "column", flexGrow: 1, width: "100%", maxWidth: "480px", rowGap: tokens.spacingVerticalXL },
   stack: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalXS },
@@ -49,7 +49,7 @@ function Section({ title, description, children }: { title: string; description:
   return (
     <section className={s.section} aria-labelledby={id}>
       <div className={s.stack}>
-        <Text as="h2" id={id} size={300} weight="semibold" className={s.title}>{title}</Text>
+        <Text as="h2" id={id} size={400} weight="semibold" className={s.title}>{title}</Text>
         <Text className={s.muted}>{description}</Text>
       </div>
       <div role="group" aria-labelledby={id} className={s.group}>{children}</div>

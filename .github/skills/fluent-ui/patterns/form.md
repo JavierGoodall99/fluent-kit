@@ -5,7 +5,7 @@ Create or edit something with many fields or sections, on its own page (a few fi
 **Layout** (1440px)
 - Page `colorNeutralBackground2`, padding 20px. One centred column, about 480px wide.
 - Header: `h1` `fontSizeBase600` semibold, description 14px `colorNeutralForeground3`, 4px apart.
-- Blocks 20px apart (`spacingVerticalXL`). Section header 12px bold with a 14px `colorNeutralForeground3` description, 4px apart.
+- Blocks 20px apart (`spacingVerticalXL`). Section header 12px semibold (the group label) with a 14px `colorNeutralForeground3` description, 4px apart.
 - Fields 12px apart (`spacingVerticalM`); label above the input, 8px between. Two short fields may share a row (12px gap).
 - Inputs on the tinted page use `appearance="filled-lighter"`; on a white surface the default outline.
 - Footer: thin `colorNeutralStroke2` divider above; Discard (secondary) then Save (primary), right-aligned, 8px apart; sticky at the bottom.

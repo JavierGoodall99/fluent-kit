@@ -39,4 +39,4 @@ No card fits: `tasks/new-page.md`, "No card fits".
 
 ## Off-standard requests
 
-Gradients, hero banners, illustrations, another library, custom colours or fonts: never build them, not even "restrained". Build the nearest on-standard version (a page header, a `MessageBar`, the brand token) and say in two lines what was asked and what you built. Only an "Approved exceptions" entry in `.fluent-kit/PROFILE.md` allows it.
+Gradients, hero banners, illustrations, another library, custom colours or fonts: never build them, not even "restrained". Build the nearest on-standard version (a page header, a `MessageBar`, the brand token) and say in two lines what was asked and what you built. Only the repo's own design guidance or an "Approved exceptions" entry in `.fluent-kit/PROFILE.md` allows it.
