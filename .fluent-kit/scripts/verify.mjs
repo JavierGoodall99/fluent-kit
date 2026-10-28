@@ -222,7 +222,9 @@ for (const url of urls) {
             if (!c || best < 40) return null;
             const top = c === se ? -c.scrollTop : c.getBoundingClientRect().top - c.scrollTop;
             let bottom = 0;
-            for (const el of c.querySelectorAll("*")) { const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; const cs = getComputedStyle(el); if (cs.position === "fixed" || cs.visibility === "hidden") continue; bottom = Math.max(bottom, r.bottom - top); }
+            for (const el of c.querySelectorAll("*")) { const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; const cs = getComputedStyle(el); if (cs.position === "fixed" || cs.visibility === "hidden") continue;
+              if (r.height >= 0.9 * c.scrollHeight) continue; // a wrapper around the whole page: its bottom padding is the gap being measured
+              bottom = Math.max(bottom, r.bottom - top); }
             return Math.round(c.scrollHeight - bottom);
           })(),
           // Cards that blend in: three or more panels in one row/group that are only a thin outline on the same colour as the page behind them.
