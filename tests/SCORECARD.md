@@ -31,8 +31,8 @@ Extra tests added along the way: the navigation sidebar (behaviour passed, look 
 | 13 | Task tracker, empty folder | FAIL on controls | Process was good, but used `Input type="date"` and `Select` (OS menu); skipped `verify` three times | `native-picker` and `native-select` rules, `DatePicker`/`TimePicker` guidance, `verify --click`, "Not finished yet" note | Follow-ups PASS; verify of drawer seen by Javier |
 | 14 | Contracts page, Dutch project | PASS | "Expiring soon" stored, not computed | Date-based statuses must be computed | n/a |
 | nav | "Add navigation" | PASS behaviour, FAIL look | Items black (Fluent default), opened with a double slide | Subtle item colours, `surfaceMotion={null}`, sticky, hidden when closed, reduced motion, real `href` links | Follow-ups PASS / PARTIAL |
-
 | Settings page (new, Oct 2026) | PASS | Built from scratch (no settings page, no example): grouped 48px rows, routed detail views, sticky footer (full width, Save on top, on a phone), MessageBar on error; used check, tsc, oxlint and `verify --click` unprompted; disclosed assumptions. Gaps: page title 24px and section header 16px where the kit table says 20 and 12-14; breadcrumb 7px out of line; disabled-button state not confirmed in its screenshot; 390px screenshots not seen by me; 19 minutes | `settings-page.tsx` example added | Not re-run |
+
 
 Added test: a feature with no table and no drawer (overdue-invoice chase page): PASS. The kit steered it to a one-at-a-time full page, with the rejected alternatives named.
 
