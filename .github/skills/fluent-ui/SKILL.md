@@ -10,7 +10,7 @@ Read this file, then open only what the table below sends you to. Do not read th
 ## 1. Start (every UI task)
 
 1. Run `node .fluent-kit/scripts/detect-theme.mjs .`. If it says `fluent-v9-custom-brand`, keep the project's theme and brand, and write new text in the language it reports. For any other result (no theme yet, v8, another UI library, new project), read `references/theme-and-brand.md` (and `references/new-project-setup.md` for an empty folder). If `.fluent-kit/PROFILE.md` exists, read it: it holds the organisation's overrides. The repo's own design guidance, if the script lists any, wins over the kit.
-2. Look for an existing component or page in the project that already does the job. Reuse it and follow its conventions.
+2. Look for an existing component or page in the project that already does the job. Reuse it and follow its conventions. For anything card-like (KPI tiles, summary cards, panels) also run `node .fluent-kit/scripts/consistency.mjs` (a second): it names the app's standard card style and the pages that differ. Same job, same component, same look, across the whole app.
 3. Write the brief in your first message, three to five lines: who uses it, what they need to do, how much data, what can go wrong, and what they should understand in the first five seconds (what this is, what matters, what to do next). If you cannot answer who, job or how much, ask once.
 
 ## 2. Pick the pattern and open one file
