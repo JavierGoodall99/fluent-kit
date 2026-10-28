@@ -30,7 +30,7 @@ try {
   assert.match(r.out, /Language: +nl: write UI text in it/);
   assert.match(r.out, /Profile: +\.fluent-kit\/PROFILE\.md[\s\S]*Address the user formally/);
   assert.doesNotMatch(r.out, /Copy this file/, "template boilerplate is left out");
-  assert.match(r.out, /Cards: +standard style radius=borderRadiusXLarge.*\(2x\)[\s\S]*also radius=borderRadiusMedium.*Log\.tsx/);
+  assert.match(r.out, /Cards: +standard style radius=borderRadiusXLarge.*\(2x\)[\s\S]*also radius=borderRadiusMedium.*Log\.tsx[\s\S]*leave them(?![\s\S]*shared component)/);
   assert.match(r.out, /Next: +read \.github\/skills\/fluent-ui\/tasks\/restyle\.md/);
   assert.ok(existsSync(join(dir, ".fluent-kit/context.json")));
   assert.match(readFileSync(join(dir, ".fluent-kit/.gitignore"), "utf8"), /context\.json/);

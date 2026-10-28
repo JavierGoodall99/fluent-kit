@@ -80,7 +80,7 @@ if (cards) {
   const s = cards.styles;
   if (!s.length) lines.push("Cards:     no card-like styles in the app yet.");
   else if (s.length === 1) lines.push(`Cards:     one style everywhere (${s[0].style}): use it.`);
-  else lines.push(`Cards:     standard style ${s[0].style} (${s[0].count}x): use it.`, ...s.slice(1, 4).map((x) => `           also ${x.style} in ${x.where.slice(0, 3).join(", ")}: different pages, do not restyle them unasked; offer one shared component.`));
+  else lines.push(`Cards:     standard style ${s[0].style} (${s[0].count}x): use it.`, ...s.slice(1, 4).map((x) => `           also ${x.style} in ${x.where.slice(0, 3).join(", ")}: other pages: leave them. Surfaces differ on purpose (dashboard cards 8px, others 4px); mention a difference only if it looks like a mistake.`));
 }
 
 const next = {
