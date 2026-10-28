@@ -36,6 +36,9 @@ jobs:
       - name: Links in shipped files
         run: node tests/links.mjs
 
+      - name: Benchmark recorder tests
+        run: node tests/record-run.test.mjs
+
       - name: Script syntax
         run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done
 
