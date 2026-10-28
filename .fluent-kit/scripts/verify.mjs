@@ -198,6 +198,7 @@ for (const url of urls) {
           clipped: [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Input, h1, h2, h3, .fui-Text")].filter((el) => {
             const r = el.getBoundingClientRect();
             if (!r.width || !r.height) return false;
+            if (r.right <= 0 || r.left >= window.innerWidth) return false; // fully off screen on purpose (a closed drawer), not cut off
             const own = getComputedStyle(el);
             if (el.scrollWidth > el.clientWidth + 1 && /(hidden|clip)/.test(own.overflowX) && own.textOverflow !== "ellipsis") return true;
             for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
