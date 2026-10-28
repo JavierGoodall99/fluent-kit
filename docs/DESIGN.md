@@ -6,7 +6,7 @@ Read by AI agents and developers. Fluent UI React v9 is the foundation, so every
 
 Some projects have their own shared UI or theme package. Use it only if the project already depends on one; `.fluent-kit/scripts/detect-theme.mjs` lists likely candidates. If there is none, use Fluent v9 directly. Never import or create a package that is not in `package.json`. Checked against `@fluentui/react-components` 9.74.x.
 
-Agents: do not read this file top to bottom. The `fluent-ui` skill (`SKILL.md`) says which section a task needs.
+Human reference, not installed into projects. Agents work from the `fluent-ui` skill: its task and pattern cards carry the rules they need.
 
 ## Framework and styling notes
 
@@ -152,7 +152,7 @@ There is no single date-range component in Fluent v9. Use two date pickers (from
 
 ### Which component when
 
-Details per component are in `.github/skills/fluent-ui/references/fluent2-component-guidance.md` (from the Fluent 2 Figma kit).
+Details per component are in `fluent2-component-guidance.md` (in this folder) (from the Fluent 2 Figma kit).
 
 | Need | Use | Not |
 |---|---|---|
@@ -253,7 +253,7 @@ Page patterns that make a product feel like Microsoft software:
 
 ### Measurements
 
-The numbers (padding, gaps, row heights, radii, control sizes) for each page pattern and each component, and the narrow-screen layouts, are in `.github/skills/fluent-ui/references/measurements.md`. Open it, go to the table for the pattern you are building, and read only that table. The examples in `examples/` already follow it.
+The numbers (padding, gaps, row heights, radii, control sizes) for each page pattern and each component, and the narrow-screen layouts, are in `measurements.md` (in this folder). Open it, go to the table for the pattern you are building, and read only that table. The examples in `examples/` already follow it.
 
 ## 6. Elevation and shape
 

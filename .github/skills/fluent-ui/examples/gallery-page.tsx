@@ -1,12 +1,5 @@
-// Gallery / home page: a page title, then sections. Each section has a title row ("See more" at the right) and a row of cards.
-// Use when the requirement is "browse several groups of things at a glance" (recent files, templates, projects, media).
-// Measurements follow Microsoft's "Media Gallery" and "Default" templates (Web Large) in the Microsoft 365 UI Kit:
-//   page padding 20px, 20px between sections; page title 20px semibold, subtitle 14px;
-//   section title row 32px high, title 16px semibold, "See more" link 14px at the right; 8px between the row and the cards;
-//   cards in a row 12px apart and of equal width; card radius 8px (tokens.borderRadiusXLarge), padding 16px, gap 16px, shadow4.
-// Rules: every card in a row has the same shape and height; the card title is the click target (a link), not the whole card with nested buttons;
-// the section is a labelled group; cards share the row equally (auto-fit, no empty strip at the right) and wrap to fewer columns on narrow screens, never below about 220px.
-// UI text is English. Use the project's language and wording.
+// Gallery / home skeleton: page title, then sections of equal cards with a "See more" link. Rules and measurements: patterns/dashboard.md.
+// UI text: use the project's language.
 import { Card, CardHeader, Link, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { DocumentRegular } from "@fluentui/react-icons";
 import type { ReactNode } from "react";

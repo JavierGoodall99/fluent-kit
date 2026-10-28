@@ -1,0 +1,16 @@
+{
+  "//": "Type-checks the skill's examples the way a Vite + React + TypeScript scaffold would. Used by CI only.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": [".github/skills/fluent-ui/examples/*.tsx"]
+}

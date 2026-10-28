@@ -5,10 +5,53 @@
   "license": "MIT",
   "author": "Javier Goodall",
   "type": "module",
-  "bin": { "fluent-kit": "install.mjs" },
-  "files": ["install.mjs", ".fluent-kit", ".github", "README.md", "LICENSE"],
-  "engines": { "node": ">=18" },
-  "repository": { "type": "git", "url": "git+https://github.com/JavierGoodall99/fluent-kit.git" },
+  "bin": {
+    "fluent-kit": "install.mjs"
+  },
+  "files": [
+    "install.mjs",
+    ".fluent-kit",
+    ".github",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JavierGoodall99/fluent-kit.git"
+  },
   "homepage": "https://github.com/JavierGoodall99/fluent-kit#readme",
-  "keywords": ["fluent-ui", "fluentui", "github-copilot", "copilot", "agent-skills", "design-system", "microsoft"]
+  "keywords": [
+    "fluent-ui",
+    "fluentui",
+    "github-copilot",
+    "copilot",
+    "agent-skills",
+    "design-system",
+    "microsoft"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "check:examples": "node .fluent-kit/scripts/check.mjs .github/skills/fluent-ui/examples",
+    "test:lint": "node .fluent-kit/eslint/no-hardcoded-styles.test.js && node .fluent-kit/eslint/fluent-only.test.js",
+    "test:budget": "node tests/reading-cost.mjs",
+    "test:links": "node tests/links.mjs",
+    "test": "npm run typecheck && npm run check:examples && npm run test:lint && npm run test:budget && npm run test:links"
+  },
+  "devDependencies": {
+    "@fluentui-contrib/react-data-grid-react-window": "^1.4.2",
+    "@fluentui/react-charts": "^9.3.29",
+    "@fluentui/react-components": "^9.75.0",
+    "@fluentui/react-icons": "^2.0.344",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/react-window": "^1.8.8",
+    "eslint": "^10.13.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-window": "^1.8.11",
+    "typescript": "^6.0.3"
+  }
 }

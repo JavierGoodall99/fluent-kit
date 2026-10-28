@@ -1,10 +1,5 @@
-// Task board: a column per stage, a card per item. Use when the requirement is "move items through stages".
-// Measurements follow Microsoft's "Taskboard Template (Web Large)" in the Microsoft 365 UI Kit:
-//   page padding 20px, 20px between columns with a 1px divider, 12px between cards, column header 14px bold,
-//   a full-width "add" button under the header, cards radius 8px (tokens.borderRadiusXLarge; borderRadiusLarge is only 6px), padding 16px, shadow04 (tokens.shadow4).
-// Rules: a card shows a title, one owner and one status line; details open in a drawer or page, not in the card.
-// There is no drag and drop here on purpose: every card has a "Move to" menu, so the board works with a keyboard and on a phone.
-// Narrow screens stack the columns. UI text is English. Use the project's language and wording.
+// Task board skeleton: a column per stage, a card per item, a "Move to" menu instead of drag and drop. Rules and measurements: patterns/dashboard.md.
+// UI text: use the project's language.
 import {
   Avatar,
   Badge,

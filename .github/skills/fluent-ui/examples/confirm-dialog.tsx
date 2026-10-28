@@ -1,4 +1,4 @@
-// Confirmation dialog: only for destructive or irreversible actions, never for a normal edit.
+// Confirmation dialog skeleton, only for destructive or irreversible actions. Rules and measurements: patterns/drawer.md.
 import {
   Button,
   Dialog,

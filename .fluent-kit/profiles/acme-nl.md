@@ -1,6 +1,6 @@
 # Organisation profile: Acme Corp (example, Dutch)
 
-Copy this file to `.fluent-kit/PROFILE.md` (the installer does this with `--profile acme-nl`). It overrides the defaults in `DESIGN.md`.
+Copy this file to `.fluent-kit/PROFILE.md` (the installer does this with `--profile acme-nl`). It overrides the kit's defaults.
 
 ## Language and tone
 

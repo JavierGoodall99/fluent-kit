@@ -1,9 +1,6 @@
-// Large list: a virtualized DataGrid for thousands of rows, with search and sorting.
-// Use this when the requirement is "scan, search and sort hundreds or thousands of rows in the browser". Under about 200 rows use the plain DataGrid (list-page.tsx).
-// If the data lives on a server and is bigger than the browser should hold, search, sort and page on the server instead and show one page at a time.
-// Package: npm i @fluentui-contrib/react-data-grid-react-window react-window@1 (Fluent's own virtualized DataGrid; pin the version).
-// Next.js: mount the grid on the client only (see DESIGN.md, framework notes), or the server and browser markup differ and hydration fails.
-// Only the visible rows exist in the DOM. Row height is fixed, so keep cells to one line (truncate). The row renderer must be memoized.
+// Virtualized list skeleton for thousands of rows held in the browser. Rules and measurements: patterns/list.md.
+// Package: @fluentui-contrib/react-data-grid-react-window with react-window@1 (pin it). Fixed row height, one-line cells, memoized row renderer.
+// Next.js: mount it on the client only. Under about 200 rows use list-page.tsx.
 import {
   DataGrid,
   DataGridBody,
@@ -36,7 +33,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: tokens.spacingVerticalM,
-    padding: tokens.spacingHorizontalXXL,
+    padding: tokens.spacingHorizontalXL,
     backgroundColor: tokens.colorNeutralBackground2,
     minHeight: "100vh",
     boxSizing: "border-box",

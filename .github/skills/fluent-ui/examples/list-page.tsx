@@ -1,5 +1,5 @@
-// List page: command bar above a DataGrid. Actions that need a selection stay visible but disabled.
-// Use this when the requirement is "scan, compare, sort or select many records". For other needs see "Choose by requirement" in .fluent-kit/DESIGN.md.
+// List page skeleton: command bar above a sortable, selectable DataGrid. Rules and measurements: patterns/list.md.
+// Actions that need a selection stay visible but disabled. UI text: use the project's language.
 import {
   Badge,
   DataGrid,
@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     gap: tokens.spacingVerticalM,
-    padding: tokens.spacingHorizontalXXL,
+    padding: tokens.spacingHorizontalXL,
     backgroundColor: tokens.colorNeutralBackground2,
     minHeight: "100vh",
   },

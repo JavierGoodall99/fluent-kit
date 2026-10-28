@@ -1,0 +1,4 @@
+node_modules/
+.fluent-kit/out/
+.fluent-kit/manifest.json
+.verify-profile/

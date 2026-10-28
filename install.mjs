@@ -44,7 +44,18 @@ const rel = (p) => relative(dest, p).split(sep).join("/");
 const START = "<!-- fluent-kit:start -->", END = "<!-- fluent-kit:end -->";
 const MANIFEST = join(dest, ".fluent-kit", "manifest.json");
 // Files older kit versions installed and this one no longer ships. Removed only if they still hold kit content.
-const LEGACY = [{ path: ".github/instructions/fluent-ui.instructions.md", marker: "# UI code rules (Fluent UI v9)" }];
+const SK = ".github/skills/fluent-ui/";
+const LEGACY = [
+  { path: ".github/instructions/fluent-ui.instructions.md", marker: "# UI code rules (Fluent UI v9)" },
+  { path: ".fluent-kit/DESIGN.md", marker: "# Fluent design kit: Microsoft look and feel" },
+  { path: ".fluent-kit/DESIGNER.md", marker: "# Designer mindset" },
+  { path: SK + "checklist.md", marker: "# Pre-delivery checklist" },
+  { path: SK + "references/measurements.md", marker: "# Measurements" },
+  { path: SK + "references/fluent2-component-guidance.md", marker: "# Fluent 2 component guidance" },
+  { path: SK + "references/new-project-setup.md", marker: "# New project setup" },
+  { path: SK + "references/theme-and-brand.md", marker: "# Theme, brand and language" },
+  { path: SK + "references/migrating.md", marker: "# Migrating an existing screen" },
+];
 
 const installed = []; // relative paths of every kit file this run writes
 function copyDir(from, to, skip = () => false) {
@@ -62,12 +73,15 @@ const claude = flag("--claude") || existsSync(join(dest, "CLAUDE.md")) || exists
 const agents = flag("--agents") || existsSync(join(dest, "AGENTS.md"));
 
 // 1. .fluent-kit/ (docs, scripts, lint rules). Profiles and the user's own brand files are handled separately.
+// Never ship files a run of the kit's own scripts may have left in this checkout.
+const LOCAL_ONLY = new Set(["out", "manifest.json", "brand.json", "baseline.json", "config.json", "verify-ignore.json", "PROFILE.md"]);
 copyDir(join(here, ".fluent-kit"), join(dest, ".fluent-kit"), (a, n) =>
+  (dirname(a) === join(here, ".fluent-kit") && LOCAL_ONLY.has(n)) ||
   a.includes(join(".fluent-kit", "profiles")) ||
   (a.includes(join(".fluent-kit", "brands")) && n !== "_template.md" && existsSync(join(dest, ".fluent-kit", "brands", n))));
 installed.push(".fluent-kit/profiles/_template.md");
 if (!dry) { mkdirSync(join(dest, ".fluent-kit", "profiles"), { recursive: true }); cpSync(join(here, ".fluent-kit", "profiles", "_template.md"), join(dest, ".fluent-kit", "profiles", "_template.md")); }
-log("copied .fluent-kit/ (DESIGN.md, scripts, eslint)");
+log("copied .fluent-kit/ (scripts, eslint, templates)");
 
 // 2. profile
 if (profile) {

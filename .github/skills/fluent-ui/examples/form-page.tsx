@@ -1,10 +1,5 @@
-// Form or settings page: one centred column, sections with a short header, inputs with labels above, actions at the bottom right.
-// Measurements follow Microsoft's "Form Template" and "Settings Template" (Web Large) in the Microsoft 365 UI Kit:
-//   column about 480px wide, 20px between blocks, 12px between fields in a section, title 16px bold, description 14px grey,
-//   section header 12px bold, inputs with the filled look (filled-lighter on a tinted page, so the field is visible; filled-darker only on a white page), Discard (secondary) then Save (primary) at the bottom right.
-// Rules: Fluent controls only (Dropdown, not a native select; DatePicker, not type="date"); validation next to the field;
-// a settings page saves on change or has one Save; say what a switch does in its label, not "On/Off".
-// UI text is English. Use the project's language and wording.
+// Form page skeleton: one 480px column, sections, labels above inputs, Discard then Save. Rules and measurements: patterns/form.md.
+// UI text: use the project's language.
 import {
   Button,
   Checkbox,
@@ -30,7 +25,7 @@ const useStyles = makeStyles({
   section: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalM },
   sectionHeader: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalXS },
   row: { display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: tokens.spacingHorizontalM, "@media (max-width: 640px)": { gridTemplateColumns: "1fr", rowGap: tokens.spacingVerticalM } },
-  footer: { position: "sticky", bottom: 0, display: "flex", justifyContent: "flex-end", columnGap: tokens.spacingHorizontalS, padding: `${tokens.spacingVerticalM} 0 ${tokens.spacingVerticalXL}`, borderTop: `1px solid ${tokens.colorNeutralStroke2}`, backgroundColor: tokens.colorNeutralBackground2 },
+  footer: { position: "sticky", bottom: 0, display: "flex", justifyContent: "flex-end", columnGap: tokens.spacingHorizontalS, padding: `${tokens.spacingVerticalM} 0 ${tokens.spacingVerticalXL}`, borderTop: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, backgroundColor: tokens.colorNeutralBackground2 },
 });
 
 export function FormPage() {
