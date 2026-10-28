@@ -6,6 +6,7 @@
 //          [--start] [--cmd "npm run dev"]   --start runs the project's dev script (or --cmd) and waits for its URL; paths like /invoices are
 //                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
 //          [--storage auth.json]   a Playwright storage state (saved with: npx playwright codegen --save-storage=auth.json <url>) so pages behind a login can be checked.
+//          [--profile .verify-profile]   use the real Microsoft Edge with this profile folder (kept between runs). For apps whose login needs Edge, a work device policy or an SSO extension: sign in once in that Edge profile (see below) and it stays signed in. Add --headed to watch it.
 //          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
 //                                            Use it for drawers, dialogs, menus and pickers: the page alone never shows them.
 // Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
@@ -18,7 +19,7 @@ import { join, resolve } from "node:path";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage"]);
+const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage", "--profile"]);
 const startServer = args.includes("--start") || args.includes("--cmd");
 let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
 if (startServer && !urls.length) urls = ["/"];
@@ -61,6 +62,7 @@ const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
 const useAxe = !args.includes("--no-axe");
 const storagePath = opt("--storage", null);
+const profileDir = opt("--profile", null) ? resolve(opt("--profile")) : null;
 
 const req = createRequire(join(process.cwd(), "package.json"));
 let pw = null;
@@ -125,7 +127,8 @@ const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").r
 // Try the bundled Chromium, then Edge, then Chrome already installed on the machine.
 let browser = null;
 const launchErrors = [];
-for (const o of [{}, { channel: "msedge" }, { channel: "chrome" }]) {
+if (profileDir) browser = { newContext: (o) => pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ...o }), close: async () => {} };
+for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome" }]) {
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
 if (!browser) {
