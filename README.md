@@ -71,6 +71,7 @@ install.mjs                          the installer
 .fluent-kit/
   DESIGN.md                          the design system, agent-readable
   scripts/check.mjs, verify.mjs      the rules checker and the browser check
+  scripts/login.mjs                  one-time sign-in for pages behind a login
   DESIGNER.md                        how to think like a senior Microsoft designer (brief, hierarchy, content, states, self-critique)
   PROFILE.md                         optional organisation overrides
   profiles/                          profile template and examples
@@ -98,6 +99,25 @@ node .fluent-kit/scripts/verify.mjs --start /invoices
 `install.mjs --wire` adds `"ui:check"` to your `package.json` scripts.
 
 These catch what the agent ignores, not what nobody wrote a rule for. They do not judge taste: look at the screenshots.
+
+## Pages behind a login (Microsoft sign-in, company policy, SSO)
+
+`verify` needs to see the page. If your app asks you to sign in, or your company only allows sign-in from Edge or a managed device, do this once per project:
+
+1. Start your app in one terminal (`npm run dev`).
+2. In a second terminal, in the project folder: `node .fluent-kit/scripts/login.mjs`
+   (another address? `node .fluent-kit/scripts/login.mjs http://localhost:3001`).
+3. Edge opens. Sign in until your app shows, then close that Edge window.
+4. Stop the dev server. Done.
+
+From then on `node .fluent-kit/scripts/verify.mjs --start /` and Copilot's own checks use that signed-in Edge by themselves. Nothing to install, no extension, no flags.
+
+- The sign-in lives in `.verify-profile/` in your project. It is your session, so the script adds it to `.gitignore`. Never commit or share it.
+- When the session expires and the title `verify` prints says "Sign in", run `login.mjs` again.
+- `verify` prints the page title for each screenshot. If it is not your app, the check looked at the wrong page.
+- If Edge says it cannot open the profile, a window is still open on it: close all Edge windows opened by `login.mjs` and retry.
+- Other ways: `--profile <folder>` to use another folder, `--storage auth.json` for a Playwright login file, `--headed` to watch the check run.
+- Needs Microsoft Edge. Not tested on every company policy; if your policy rejects this profile too, the check cannot see the page and Copilot must say the UI was not verified.
 
 ## Lint setup (optional, needs ESLint v9)
 

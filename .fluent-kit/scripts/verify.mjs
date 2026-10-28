@@ -168,7 +168,9 @@ for (const url of urls) {
       catch { note("warn", where, "Still showing a loading state (skeleton, spinner or aria-busy) after 8 seconds, so the screenshots show loading, not content. Use --wait \"<selector of the loaded content>\" or check that the data loads."); }
       loaded++;
 
-      console.log(`  ${where}: title "${(await page.title()).slice(0, 60)}"`);
+      const pageTitle = await page.title();
+      console.log(`  ${where}: title "${pageTitle.slice(0, 60)}"`);
+      if (/sign in|log ?in|inloggen|aanmelden/i.test(pageTitle) || /login\.microsoftonline|login\.live/.test(page.url())) note("error", where, "This is a sign-in page, not your app, so nothing here was really checked. Run once: node .fluent-kit/scripts/login.mjs (README: Pages behind a login), then run verify again.");
       const info = await page.evaluate(() => {
         const prov = document.querySelector(".fui-FluentProvider");
         const cs = prov ? getComputedStyle(prov) : null;
