@@ -127,7 +127,7 @@ const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").r
 // Try the bundled Chromium, then Edge, then Chrome already installed on the machine.
 let browser = null;
 const launchErrors = [];
-if (profileDir) browser = { newContext: (o) => pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ...o }), close: async () => {} };
+if (profileDir) browser = { newContext: async (o) => { try { return await pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ...o }); } catch (e) { console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (PowerShell: Get-CimInstance Win32_Process -Filter \"name='msedge.exe'\" | Where-Object CommandLine -match 'verify-profile' | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }) and run again.\nIf it still fails, try --headed.\n" + String(e).split("\n")[0]); process.exit(2); } }, close: async () => {} };
 for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome" }]) {
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
