@@ -3,8 +3,7 @@
 A few preferences, changed now and then, saved once for the whole page. Not for a record someone edits (`patterns/drawer.md`). Example: `examples/settings-page.tsx`.
 
 **Layout** (1440px)
-- Page `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`); one centred column, max 480px; blocks 20px apart.
-- Header: `h1` `fontSizeBase600` semibold, one-line description 14px `colorNeutralForeground3`.
+- One centred column, max 480px; blocks 20px apart.
 - Section: `h2` title (16px semibold) with a 14px `colorNeutralForeground3` description, 4px apart, 12px above its group.
 - Group: one surface, `colorNeutralBackground1`, `borderRadiusXLarge`, `shadow4`, thin `colorNeutralStroke2` border; rows separated by a `colorNeutralStroke2` divider, no shadow per row.
 
@@ -26,6 +25,6 @@ A few preferences, changed now and then, saved once for the whole page. Not for 
 - Coming back from a detail view: focus returns to the row that opened it.
 
 **Narrow (under 640px)**
-- Page padding 16px; same groups of 48px rows.
+- The same groups of 48px rows.
 - Footer buttons full width, stacked with Save on top, 12px apart.
 - A detail view keeps a breadcrumb back to Settings.

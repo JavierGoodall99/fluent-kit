@@ -33,8 +33,11 @@ if (existsSync(pkgPath)) {
   try { const j = JSON.parse(readFileSync(pkgPath, "utf8")); Object.assign(deps, j.dependencies, j.devDependencies, j.peerDependencies); } catch { /* not readable: skip */ }
 }
 const has = (n) => deps[n];
-const OTHER_UI = ["@mui/material", "antd", "@chakra-ui/react", "react-bootstrap", "@mantine/core", "primereact", "@blueprintjs/core", "semantic-ui-react"];
-const OTHER_ICONS = ["react-icons", "lucide-react", "@heroicons/react", "@fortawesome/react-fontawesome", "@mui/icons-material"];
+// The same lists check.mjs uses (.fluent-kit/rules.json), applied to the project's dependencies.
+const RULES = JSON.parse(readFileSync(new URL("../rules.json", import.meta.url), "utf8"));
+const matches = (patterns) => (n) => patterns.some((p) => (p.endsWith("*") ? n.startsWith(p.slice(0, -1)) : n === p));
+const OTHER_ICONS = Object.keys(deps).filter(matches(RULES.iconLibraries));
+const OTHER_UI = Object.keys(deps).filter((n) => !OTHER_ICONS.includes(n) && matches(RULES.uiLibraries)(n));
 
 // 2. source signals
 const sig = { providers: [], createTheme: [], stockTheme: [], v8: [], tokenOverrides: [] };

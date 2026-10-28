@@ -17,18 +17,14 @@
  * `// eslint-disable-next-line no-restricted-syntax -- reason` comment.
  */
 
-const NATIVE = [
-  ["button", "Use Fluent Button, ToolbarButton or MenuItem instead of a native <button>."],
-  ["input", "Use Fluent Input, Checkbox, Radio, Switch or SearchBox instead of a native <input>."],
-  ["select", "Use Fluent Dropdown (with Option) or Combobox instead of a native <select>; RadioGroup for 2 to 5 visible choices. Not Fluent Select: it opens the operating system list."],
-  ["textarea", "Use Fluent Textarea instead of a native <textarea>."],
-  ["a", "Use Fluent Link, NavItem or BreadcrumbItem instead of a native <a>."],
-  ["dialog", "Use Fluent Dialog instead of a native <dialog>."],
-  ["progress", "Use Fluent ProgressBar or Spinner instead of a native <progress>."],
-  ["table|thead|tbody|tfoot|tr|td|th", "Use Fluent Table or DataGrid instead of native table elements."],
-].map(([names, message]) => ({
-  selector: `JSXOpeningElement[name.name=/^(${names})$/]`,
-  message,
+// Banned packages and native elements come from .fluent-kit/rules.json, the list check.mjs and detect-theme use too.
+const RULES = require("../rules.json");
+// ESLint import patterns are gitignore-style: an unscoped name is anchored with "/" so "antd" does not match "x/antd".
+const toPattern = (p) => (p.startsWith("@") ? p : "/" + p);
+
+const NATIVE = Object.entries(RULES.native).map(([name, use]) => ({
+  selector: `JSXOpeningElement[name.name=/^(${name})$/]`,
+  message: `Use Fluent ${use} instead of a native <${name}>.`,
 }));
 
 module.exports = [
@@ -40,34 +36,15 @@ module.exports = [
         {
           patterns: [
             {
-              group: [
-                "@mui/*", "@emotion/styled",
-                "/antd", "/antd/*", "@ant-design/*",
-                "@chakra-ui/*",
-                "/react-bootstrap", "/react-bootstrap/*", "/bootstrap",
-                "@radix-ui/*", "@headlessui/*",
-                "@mantine/*", "/semantic-ui-react", "/primereact", "/primereact/*",
-                "@blueprintjs/*", "@nextui-org/*", "@heroui/*",
-              ],
+              group: RULES.uiLibraries.map(toPattern),
               message: "Use Fluent UI v9 (@fluentui/react-components). No other UI library.",
             },
             {
-              group: [
-                "/react-icons", "/react-icons/*",
-                "/lucide-react", "/lucide-react/*",
-                "@heroicons/*", "@fortawesome/*",
-                "@tabler/icons-react", "@phosphor-icons/*",
-                "@mui/icons-material", "@mui/icons-material/*",
-                "@ant-design/icons",
-              ],
+              group: RULES.iconLibraries.map(toPattern),
               message: "Icons come from @fluentui/react-icons only.",
             },
             {
-              group: [
-                "@fluentui/react", "@fluentui/react/*",
-                "@fluentui/react-northstar", "@fluentui/react-northstar/*",
-                "/office-ui-fabric-react", "/office-ui-fabric-react/*",
-              ],
+              group: RULES.fluentV8.map(toPattern),
               message: "Fluent v8 / Northstar are not allowed. Use @fluentui/react-components (v9).",
             },
           ],

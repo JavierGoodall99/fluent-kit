@@ -1,0 +1,29 @@
+{
+  "note": "One list for check.mjs, detect-theme.mjs and eslint/fluent-only.cjs. Patterns: an exact package name, \"name/*\" for anything under it, or \"name*\" for a prefix.",
+  "uiLibraries": [
+    "@mui/*", "@material-ui/*", "antd", "antd/*", "@ant-design/*", "@chakra-ui/*", "react-bootstrap", "react-bootstrap/*", "bootstrap",
+    "@radix-ui/*", "@headlessui/*", "@blueprintjs/*", "semantic-ui-react", "primereact", "primereact/*", "@mantine/*", "@nextui-org/*", "@heroui/*"
+  ],
+  "fluentV8": [
+    "@fluentui/react", "@fluentui/react/*", "@fluentui/react-northstar", "@fluentui/react-northstar/*", "@fluentui/react-compose",
+    "office-ui-fabric-react", "office-ui-fabric-react/*"
+  ],
+  "iconLibraries": [
+    "lucide-react", "lucide-react/*", "react-icons", "react-icons/*", "@heroicons/*", "@fortawesome/*", "@mui/icons-material", "@mui/icons-material/*",
+    "@tabler/icons*", "phosphor-react", "@phosphor-icons/*", "bootstrap-icons*", "react-feather", "feather-icons*", "@ant-design/icons", "@ant-design/icons/*",
+    "@iconify/*", "@radix-ui/react-icons", "material-icons*", "@material-ui/icons", "@material-ui/icons/*"
+  ],
+  "styleLibrariesWarn": ["styled-components", "@emotion/*", "tailwind-merge"],
+  "native": {
+    "button": "Button, ToolbarButton or MenuItem",
+    "input": "Input, Checkbox, Radio, Switch or SearchBox",
+    "select": "Dropdown (with Option) or Combobox; RadioGroup for 2 to 5 visible choices. Not Fluent Select: it opens the operating system list",
+    "option": "Option inside a Dropdown",
+    "optgroup": "OptionGroup inside a Dropdown",
+    "textarea": "Textarea",
+    "a": "Link, NavItem or BreadcrumbItem",
+    "table": "Table or DataGrid", "thead": "Table or DataGrid", "tbody": "Table or DataGrid", "tfoot": "Table or DataGrid", "tr": "Table or DataGrid", "td": "Table or DataGrid", "th": "Table or DataGrid",
+    "dialog": "Dialog",
+    "progress": "ProgressBar or Spinner"
+  }
+}

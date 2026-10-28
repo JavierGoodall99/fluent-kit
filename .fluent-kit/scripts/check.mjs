@@ -34,17 +34,11 @@ const SKIP_DIRS = new Set(["node_modules", ".git", ".next", ".nuxt", "dist", "bu
 const CODE = new Set([".tsx", ".jsx", ".ts", ".js", ".mjs", ".css", ".scss", ".less"]);
 const JSX_EXT = new Set([".tsx", ".jsx"]);
 
-const BANNED_UI = [
-  /^@mui\//, /^@material-ui\//, /^antd$/, /^antd\//, /^@ant-design\/(?!icons)/, /^@chakra-ui\//, /^react-bootstrap$/, /^react-bootstrap\//, /^bootstrap$/,
-  /^@radix-ui\//, /^@headlessui\//, /^@blueprintjs\//, /^semantic-ui-react$/, /^primereact/, /^@mantine\//, /^@nextui-org\//, /^@heroui\//,
-  /^@fluentui\/react$/, /^@fluentui\/react\//, /^@fluentui\/react-northstar$/, /^@fluentui\/react-northstar\//, /^@fluentui\/react-compose$/,
-];
-const BANNED_ICONS = [
-  /^lucide-react$/, /^react-icons(\/|$)/, /^@heroicons\//, /^@fortawesome\//, /^@mui\/icons-material/, /^@tabler\/icons/, /^phosphor-react$/, /^@phosphor-icons\//,
-  /^bootstrap-icons/, /^react-feather$/, /^feather-icons/, /^@ant-design\/icons/, /^@iconify\//, /^@radix-ui\/react-icons$/, /^material-icons/, /^@material-ui\/icons/,
-];
-const STYLE_LIBS_WARN = [/^styled-components$/, /^@emotion\//, /^tailwind-merge$/];
-const NATIVE = /<(button|input|select|option|optgroup|textarea|a|table|dialog)(?=[\s>/])/g;
+// Banned packages and native elements come from .fluent-kit/rules.json, shared with detect-theme and the ESLint config.
+const RULES = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "rules.json"), "utf8"));
+const matcher = (patterns) => (pkg) => patterns.some((p) => (p.endsWith("*") ? pkg.startsWith(p.slice(0, -1)) : pkg === p));
+const isIcon = matcher(RULES.iconLibraries), isUi = matcher([...RULES.uiLibraries, ...RULES.fluentV8]), isStyleLib = matcher(RULES.styleLibrariesWarn);
+const NATIVE = new RegExp(`<(${Object.keys(RULES.native).join("|")})(?=[\\s>/])`, "g");
 const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\s*\(/i;
 const HEX = /(?<![\w&])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![0-9a-z_-])/gi;
 const SPACING = "padding|paddingTop|paddingRight|paddingBottom|paddingLeft|paddingBlock|paddingInline|margin|marginTop|marginRight|marginBottom|marginLeft|marginBlock|marginInline|gap|rowGap|columnGap|borderRadius|borderTopLeftRadius|borderTopRightRadius|borderBottomLeftRadius|borderBottomRightRadius";
@@ -111,9 +105,9 @@ for (const file of files) {
     if (imp && !(ext === ".css")) {
       const pkg = imp[1];
       if (!pkg.startsWith(".") && !allow.has(pkg) && ![...allow].some((a) => pkg.startsWith(a + "/"))) {
-        if (BANNED_ICONS.some((r) => r.test(pkg))) add(file, n, "icon-library", "error", `Icon library '${pkg}'. Use @fluentui/react-icons only.`);
-        else if (BANNED_UI.some((r) => r.test(pkg))) add(file, n, "ui-library", "error", `'${pkg}' is not allowed. Use Fluent UI React v9 (@fluentui/react-components). @fluentui/react is v8.`);
-        else if (STYLE_LIBS_WARN.some((r) => r.test(pkg))) add(file, n, "style-library", "warn", `'${pkg}': style with makeStyles and tokens instead, unless the project already standardises on it.`);
+        if (isIcon(pkg)) add(file, n, "icon-library", "error", `Icon library '${pkg}'. Use @fluentui/react-icons only.`);
+        else if (isUi(pkg)) add(file, n, "ui-library", "error", `'${pkg}' is not allowed. Use Fluent UI React v9 (@fluentui/react-components). @fluentui/react is v8.`);
+        else if (isStyleLib(pkg)) add(file, n, "style-library", "warn", `'${pkg}': style with makeStyles and tokens instead, unless the project already standardises on it.`);
       }
       return;
     }
@@ -135,8 +129,7 @@ for (const file of files) {
       NATIVE.lastIndex = 0;
       let m;
       while ((m = NATIVE.exec(code))) {
-        const map = { button: "Button", input: "Input / Checkbox / Switch / Radio", select: "Dropdown / Combobox / RadioGroup", option: "Dropdown with Fluent Option", optgroup: "OptionGroup in a Dropdown", textarea: "Textarea", a: "Link", table: "Table / DataGrid", dialog: "Dialog" };
-        add(file, n, "native-control", "error", `Native <${m[1]}>. Use Fluent ${map[m[1]]}. (Real exception: add '// fluent-kit-ignore -- reason'.)`);
+        add(file, n, "native-control", "error", `Native <${m[1]}>. Use Fluent ${RULES.native[m[1]]}. (Real exception: add '// fluent-kit-ignore -- reason'.)`);
       }
       if (INLINE_STYLE_PROP.test(code)) add(file, n, "inline-style", "error", "Inline style sets colour, type or spacing. Use makeStyles with tokens.");
       if (TW_COLOR.test(code)) add(file, n, "tailwind-color", "warn", "Tailwind colour utility. Colours come from Fluent tokens (makeStyles), unless the repo's own guidance says otherwise.");

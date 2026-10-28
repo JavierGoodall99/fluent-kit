@@ -1,15 +1,15 @@
 // App shell navigation skeleton: NavDrawer (260px) that collapses to a 56px icon rail, and slides over the page under 1024px.
 // Rules and measurements: patterns/nav.md. Router-agnostic: the page passes the selected value and handles navigation.
-// Sub-pages: wrap items in NavCategory / NavSubItem (one level only). UI text: use the project's language.
+// Sub-pages: NavCategory / NavSubItem (one level). A global action (theme, help) goes in NavDrawerFooter as a
+// left-aligned subtle Button (justifyContent: flex-start). UI text: use the project's language.
 import {
-  Button, Hamburger, NavDrawer, NavDrawerBody, NavDrawerFooter, NavDrawerHeader, NavItem, Text, Tooltip,
+  Button, Hamburger, NavDrawer, NavDrawerBody, NavDrawerHeader, NavItem, Text, Tooltip,
   makeStyles, mergeClasses, tokens,
 } from "@fluentui/react-components";
 import { Dismiss20Regular, Home20Filled, Home20Regular, Settings20Filled, Settings20Regular, bundleIcon } from "@fluentui/react-icons";
 import { useState, type MouseEvent, type ReactElement } from "react";
 
 export interface NavEntry { value: string; label: string; icon: ReactElement; href?: string }
-export interface NavFooterAction { label: string; icon: ReactElement; onClick: () => void }
 
 const WIDE = "@media (min-width: 1024px)";
 
@@ -34,17 +34,14 @@ const useStyles = makeStyles({
     ":hover": { backgroundColor: tokens.colorSubtleBackgroundHover },
     "&[aria-current=page]": { backgroundColor: tokens.colorSubtleBackgroundSelected },
   },
-  // A Button centres its content: left-align it with the nav items.
-  footerButton: { width: "100%", justifyContent: "flex-start", paddingLeft: tokens.spacingHorizontalM, fontWeight: tokens.fontWeightRegular },
   wideOnly: { display: "none", [WIDE]: { display: "inline-flex" } },
   narrowOnly: { [WIDE]: { display: "none" } },
   rail: { display: "flex", flexDirection: "column", alignItems: "center", rowGap: tokens.spacingVerticalXS, paddingTop: tokens.spacingVerticalM, paddingBottom: tokens.spacingVerticalM },
-  railFooter: { marginTop: "auto" },
 });
 
-export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onToggle, mobileOpen, onCloseMobile, footerAction }: {
+export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onToggle, mobileOpen, onCloseMobile }: {
   items: NavEntry[]; selectedValue: string; onNavigate: (value: string) => void; title: string;
-  collapsed: boolean; onToggle: () => void; mobileOpen: boolean; onCloseMobile: () => void; footerAction?: NavFooterAction;
+  collapsed: boolean; onToggle: () => void; mobileOpen: boolean; onCloseMobile: () => void;
 }) {
   const s = useStyles();
   const expanded = mobileOpen || !collapsed;
@@ -74,11 +71,6 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
               </NavItem>
             ))}
           </NavDrawerBody>
-          {footerAction && (
-            <NavDrawerFooter>
-              <Button appearance="subtle" icon={footerAction.icon} onClick={footerAction.onClick} className={s.footerButton}>{footerAction.label}</Button>
-            </NavDrawerFooter>
-          )}
         </NavDrawer>
       ) : (
         <nav className={mergeClasses(s.surface, s.rail)}>
@@ -95,11 +87,6 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
               />
             </Tooltip>
           ))}
-          {footerAction && (
-            <Tooltip content={footerAction.label} relationship="label" positioning="after">
-              <Button appearance="subtle" icon={footerAction.icon} onClick={footerAction.onClick} aria-label={footerAction.label} className={s.railFooter} />
-            </Tooltip>
-          )}
         </nav>
       )}
     </aside>

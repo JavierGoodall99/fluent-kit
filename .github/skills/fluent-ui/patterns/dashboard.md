@@ -7,8 +7,7 @@
 | move items through stages | board: a column per stage, a card per item | `examples/task-board.tsx` |
 
 **Shared measurements**
-- Canvas `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`).
-- Card on `colorNeutralBackground1`: radius 8px (`borderRadiusXLarge`, not the 6px `borderRadiusLarge`), padding 16px (`spacingHorizontalL`), 16px gap inside, `shadow4`.
+- Card: padding 16px (`spacingHorizontalL`), 16px gap inside (8px radius, not the 6px `borderRadiusLarge`).
 - Card title 14px semibold, description 12px `colorNeutralForeground3`, optional "..." `Menu`.
 - Cards in one row share one height; extra content scrolls inside the card or opens a drawer.
 
