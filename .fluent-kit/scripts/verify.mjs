@@ -224,7 +224,7 @@ for (const url of urls) {
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
       if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
-      if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. Group repeats and show the text once (with the names it applies to), with the detail on demand.`);
+      if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
       if (info.tiny.length) note("warn", where, `${info.tiny.length} Fluent control(s) smaller than 24px: ${info.tiny.slice(0, 4).join("; ")}. Make them at least 24px (32px on touch) or use a larger size.`);
       if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("warn", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
