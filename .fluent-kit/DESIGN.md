@@ -295,6 +295,24 @@ Read from the Microsoft Fluent 2 Web Figma community file (component pages: Butt
 | DataGrid / Table | Header row 33px, rows 24 (smaller), 33 (small), 45 (medium, default), 59 (large, two lines of text) including the 1px `colorNeutralStroke2` divider. Header text 14px; primary cell text 14px, secondary text 12px `colorNeutralForeground2`. Cell padding 8px left, 16px right. A 32px avatar or icon fits a medium row. Selection column 40px, with the checkbox 16px. Use `size="small"` for dense admin grids, medium for everything else. |
 | Input | Four appearances: outline (default), filled darker, filled lighter, underline. Radius 4px, 10px inner padding (6px small), placeholder in `colorNeutralForeground4`. One line only; use `Textarea` for more. Put it in a `Field` for a label, hint and validation. |
 
+### Narrow screens (from Microsoft's mobile templates)
+
+Read from the Microsoft 365 UI Kit "Mobile" frames (390px wide: dashboard, list, form, settings). Those frames are native iOS (SF Pro type, 17px body, 52px buttons), so copy the structure, not the sizes. On the web keep the Fluent web tokens and sizes.
+
+| Screen | What Microsoft does at 390px |
+|---|---|
+| All | One column. 16px side gutters. Page title above the content, then sections 20px apart. The toolbar stays at the top with one primary action and icon-only buttons at the end. |
+| Dashboard | Cards stack full width, 12px apart, same radius 8px, padding 16px and shadow as on desktop. Each card keeps its title, description, "..." button and "View details" link. No side-by-side cards. |
+| List | Rows run edge to edge with no card around them. Selection control or avatar at the start, title and description in one line each (ellipsis), "..." at the end, a hairline divider between rows. A section title row sits above (32px high). |
+| Form | Label above the field (12px, brand colour while focused, danger colour on error), error text under the field in the danger colour. Groups of choices have a small group label above and rows about 48px high. Switch rows live in a rounded group (radius 12px) on the tinted canvas. Save is full width and primary, Discard full width and outline under it, 12px apart, pinned at the bottom of the screen. An error message bar goes at the very top. |
+| Settings | Sections with a bold header and a short description; each section is a rounded group of rows about 48px high. A row is the label at the left and the current value plus a chevron at the right (opens a detail view), or a switch at the right. |
+
+Rules that follow from this:
+- Below 640px: stack cards, drop columns that are not the name, status or main action, turn table rows into two-line list rows, and make dialogs and drawers full width.
+- Primary actions of a form go in a full-width bar at the bottom, in the order primary then secondary (stacked), not right-aligned side by side.
+- Keep a visible label on every field; never replace labels with placeholders to save space.
+- Targets stay at least 24px with spacing; use `size="large"` (40px) on touch layouts.
+
 ## 6. Elevation and shape
 
 - Keep the theme's radii (4px medium) for controls, inputs and buttons. Do not round things further. `borderRadiusXLarge` (8px) is for dialogs (Fluent's own `DialogSurface` already uses it) and for cards on a dashboard or board: Microsoft's own templates use an 8px radius with `tokens.shadow4` for those cards. Mind the names: `borderRadiusLarge` is 6px, not 8px; `borderRadiusMedium` is 4px.

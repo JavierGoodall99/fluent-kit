@@ -106,6 +106,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - Helps people quickly understand where they are within the hierarchy of a large, complex site or app. Also works as compact secondary navigation: one-click access to higher levels and back to the home page.
 - **Items:** text with icon, text only, overflow (`...` menu for collapsed levels). The current (last) item is bold and not a link.
 - **Sizes:** small, medium (default), large.
+- **Spec (Fluent 2 Web Figma):** sizes 24 / 32 / 40 high. Items are subtle buttons (6px padding, 4px radius, 14px text), 16px chevron dividers, the current item semibold. Overflow collapses into a "..." item.
 
 ## Badge (and PresenceBadge, CounterBadge)
 
@@ -136,6 +137,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Columns that relate to each other:** `DataGrid` or `Table`. **Nested hierarchy:** `Tree`.
 - **Sizes:** small, medium (default). **Items:** single line or two line (primary and secondary text), optional icon or avatar, trailing time, action icons.
 - **Selection:** none, check mark, checkbox, radio.
+- **Spec (Fluent 2 Web Figma):** medium item 32 high (56 with two lines), small 24 (48), 4px radius, no gap between rows. Optional 24px selection control at the start, then a 32px avatar or 20px icon. Primary text 14px `colorNeutralForeground2`, secondary 12px `colorNeutralForeground2`, tertiary 12px `colorNeutralForeground3` aligned right. At most two 20px icon buttons at the end.
 
 ## Avatar and AvatarGroup
 
@@ -151,6 +153,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - Lets people choose one or more options from a list. Use it in forms where options need custom styling, or as a component to filter or sort information. Put it in a `Field` when you need a label, info button and validation.
 - **Appearance:** outline, transparent, fill lighter, fill darker. **Sizes:** small, medium (default), large.
 - Options can carry icons and check marks (multi-select) and be grouped under a section header.
+- **Spec (Fluent 2 Web Figma):** control heights 24 / 32 / 40, radius 4px, 20px chevron. Focus is a 2px `colorCompoundBrandStroke` bar under the control. The listbox is as wide as the trigger, radius 4px, `shadow16`, 4px padding, items 32 high with 14px text; group headers 12px semibold `colorNeutralForeground3`; a 16px check mark marks multi-select options.
 
 ## Persona
 
@@ -170,6 +173,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - Displays a hierarchical view of nested data such as a menu structure, folder hierarchy or nested categories. A parent node with one or more levels of child nodes that expand and collapse.
 - **To show or hide information regardless of hierarchy:** use `Accordion`. **Simpler structure:** `List` or `Table`.
 - **Appearance:** subtle (default), subtle alpha, transparent. **Sizes:** small, medium (default).
+- **Spec (Fluent 2 Web Figma):** item 32 high (24 small). 12px chevron with 6px padding either side, optional checkbox, 20px icon before the text, 14px text `colorNeutralForeground2`, optional count badge after. Leaf nodes have no chevron. States: rest, hover, pressed, selected, disabled, focus.
 
 ## Checkbox
 
@@ -200,12 +204,14 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - Communicates system information, such as how much cloud storage is used, or task information such as how long until a download completes. Use only for tasks that take longer than a second.
 - **Loading new content with a known structure that does not block the UI:** use a `Skeleton`.
 - **Types:** static (determinate) and indeterminate. **Status:** default, success, warning, error. **Sizes:** medium (default), large.
+- **Spec (Fluent 2 Web Figma):** 2px (medium) or 4px (large) high, fully rounded, brand fill on `colorNeutralBackground6`. Success, warning and error change the fill colour. Pair it with a text label when the task has a name.
 
 ## Spinner
 
 - Visually communicates that something is processing. For loading states that take more than a second. It does not show how much time is left.
 - **For a more specific status:** use a determinate `ProgressBar`.
 - **Sizes:** extra tiny, tiny, extra small, small, medium (default), large, extra large, huge. **Appearance:** primary (default), subtle (on brand or dark surfaces). Add a short label such as "Saving...".
+- **Spec (Fluent 2 Web Figma):** sizes 16, 20, 24, 28, 32 (default), 36, 40, 44px. The label sits after, before, above or below the spinner, 8px away (16px / 22px, semibold at the medium size).
 
 ## Tag and InteractionTag
 
@@ -213,6 +219,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **System-generated data people cannot change:** use a `Badge`, not a tag.
 - **InteractionTag:** adds a second action on the tag itself, for example opening a `Popover` with a contact card.
 - **Appearance:** filled (default), outline, brand. **Sizes:** extra small, small, medium (default). Can be dismissible and can include an avatar or icon and secondary text.
+- **Spec (Fluent 2 Web Figma):** heights 20 (extra small), 24 (small), 32 (medium); 6px padding, 2px gap, 4px radius, 12px text, 12px dismiss icon.
 
 ## Textarea
 
@@ -225,12 +232,14 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Robust, formatted information:** use a `Popover`.
 - **Max width 240px** (text wraps). **Appearance:** default, inverted, brand. Arrow on any edge.
 - Icon-only buttons get a tooltip with their name.
+- **Spec (Fluent 2 Web Figma):** max width 240px, 4px radius, 12px by 6px padding, 12px text on a 16px line, `shadow8`.
 
 ## Skeleton
 
 - Tells people a section of content is loading without blocking other parts of the page. Good for hinting at the structure of information in a layout. Use to load content gradually when it takes longer than a second.
 - **Unknown structure:** use a `ProgressBar` or `Spinner`. Skeletons do not say how long it will take, so avoid them for long processes.
 - **Shapes:** square (default), circle. **Animated or static.**
+- **Spec (Fluent 2 Web Figma):** shapes use `colorNeutralStencil1` and `colorNeutralStencil2`, 4px radius (or a circle for avatars). Match the real layout so nothing jumps when the content arrives.
 
 ## Accordion
 
