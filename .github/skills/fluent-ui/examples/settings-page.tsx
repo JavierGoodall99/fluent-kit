@@ -7,7 +7,7 @@ import {
 import { ChevronRight20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { useState, type ReactNode } from "react";
 
-interface Settings { language: string; email: boolean; desktop: boolean; autoStart: boolean }
+interface Settings { language: string; email: boolean; autoStart: boolean }
 const LANGUAGES: Record<string, string> = { en: "English", nl: "Nederlands" };
 const saveSettings = (_: Settings) => new Promise<void>((resolve) => setTimeout(resolve, 600));
 
@@ -101,7 +101,6 @@ export function SettingsPage({ initial }: { initial: Settings }) {
 
         <Section title="Notifications" description="Where you receive notifications.">
           <Switch className={s.row} labelPosition="before" label={{ children: "Email notifications", className: s.rowLabel }} checked={draft.email} onChange={(_, d) => set("email", d.checked)} />
-          <Switch className={s.row} labelPosition="before" label={{ children: "Desktop notifications", className: s.rowLabel }} checked={draft.desktop} onChange={(_, d) => set("desktop", d.checked)} />
         </Section>
 
         <Section title="Startup" description="How the app starts.">

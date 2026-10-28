@@ -3,8 +3,7 @@
 Create or edit something with many fields or sections, on its own page (a few fields of one record: `patterns/drawer.md`). Example: `examples/form-page.tsx`.
 
 **Layout** (1440px)
-- Page `colorNeutralBackground2`, padding 20px. One centred column, about 480px wide.
-- Header: `h1` `fontSizeBase600` semibold, description 14px `colorNeutralForeground3`, 4px apart.
+- One centred column, about 480px wide.
 - Blocks 20px apart (`spacingVerticalXL`). Section header 12px semibold (the group label) with a 14px `colorNeutralForeground3` description, 4px apart.
 - Fields 12px apart (`spacingVerticalM`); label above the input, 8px between. Two short fields may share a row (12px gap).
 - Inputs on the tinted page use `appearance="filled-lighter"`; on a white surface the default outline.

@@ -15,4 +15,4 @@
 
 **Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page --full`, plus `--click "role=button[name='...']"` for anything behind a click. Answer the critique `verify` prints.
 
-**Reply**: the brief first; last, a design note: the requirement, the pattern and the rejected alternative, anything built differently from what was asked, assumptions (language, currency, sample data), what you could not verify.
+**Reply**: the brief first; last, a design note of at most four bullets: the requirement and the pattern (and the one you rejected), anything built differently from what was asked, assumptions (language, currency, sample data), what you could not verify.

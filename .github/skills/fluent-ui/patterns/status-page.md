@@ -16,6 +16,6 @@ Find what is failing among many checks or jobs grouped under a parent (integrati
 - The same message on several rows of one table: show it once with the affected names. Separate cards keep their own message.
 - Placeholder values (`null`, "Empty") mean "not set up": show that state in words, and group them ("9 not set up").
 
-**Measurements**: page padding 20px; table on a `colorNeutralBackground1` surface; cells 8px top and bottom (`spacingVerticalS`); columns: name about 22%, status 132px, action 96px, message takes the rest. Problem rows may use `colorNeutralBackground1Hover`.
+**Measurements**: table on a `colorNeutralBackground1` surface; cells 8px top and bottom (`spacingVerticalS`); columns: name about 22%, status 132px, action 96px, message takes the rest. Problem rows may use `colorNeutralBackground1Hover`.
 
 **Narrow (under 640px)**: each row becomes a stacked block: name and status on one line, the message under it, then the action. Hide secondary columns (type, time). The verdict stays the first line on the screen.

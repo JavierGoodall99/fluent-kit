@@ -55,6 +55,7 @@
     "@types/react-window": "^1.8.8",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",
+    "js-tiktoken": "^1.0.21",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-window": "^1.8.11",

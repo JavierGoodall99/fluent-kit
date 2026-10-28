@@ -12,8 +12,7 @@ Scan, compare, sort or select same-shaped records.
 | one column of information | `List` | |
 
 **Layout** (1440px)
-- Page: `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`), 12px (`spacingVerticalM`) between blocks.
-- Title: `h1`, `fontSizeBase600` semibold. Optional one-line description, 14px `colorNeutralForeground3`.
+- 12px (`spacingVerticalM`) between blocks.
 - Command bar: one full-width `Toolbar` on its own `colorNeutralBackground1` surface. Order: New (the one primary), Delete, then view actions (Refresh); filter and a ~200px `SearchBox` at the right. Actions that need a selection stay visible but disabled.
 - Grid on a `colorNeutralBackground1` surface, `borderRadiusMedium`, `colorNeutralStroke2` border. Footer: row count, 12px `colorNeutralForeground2`.
 

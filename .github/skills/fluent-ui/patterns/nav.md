@@ -23,4 +23,4 @@ Move between the main sections of the app. Example: `examples/app-nav.tsx`.
 **Narrow (under 1024px)**
 - The nav is hidden (`visibility: hidden`, out of the tab order) until opened; it slides over the page with `shadow64` and a close button.
 - A top bar inside `<header>` holds a `Hamburger` that opens it and the page title.
-- Choosing an item closes the drawer. Tabs and toolbars that could clip go into `Overflow` with a "..." menu.
+- Choosing an item closes the drawer.

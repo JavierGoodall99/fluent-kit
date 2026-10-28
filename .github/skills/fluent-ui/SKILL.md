@@ -33,10 +33,23 @@ Each card holds the layout, the measurements and the narrow-screen rules, and na
 
 No card fits: `tasks/new-page.md`, "No card fits".
 
+## Every page
+
+- Page `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`; 16px under 640px). Sections and cards on `colorNeutralBackground1`.
+- Header: the `h1` page title, an optional one-line description 4px under it.
+- Controls keep the 4px theme radius. Dashboard, board and gallery cards: `borderRadiusXLarge` (8px) and `shadow4`.
+- One `primary` button per view.
+
+| Role | Type (semibold for emphasis, never bold) |
+|---|---|
+| Page title `h1` | `fontSizeBase600`, semibold |
+| Section title `h2`, empty-state title | `fontSizeBase400`, semibold |
+| Card title, board column header | `fontSizeBase300`, semibold |
+| Group label (form section, choice group) | `fontSizeBase200`, semibold |
+| Body | `fontSizeBase300` |
+| Caption, description | `fontSizeBase200`, `colorNeutralForeground3` |
+| Dialog and drawer titles | Fluent's own; never set by hand |
+
 ## Only when needed
 
-`deviations.md`: a control, icon, style or Next.js detail that the card and example do not show.
-
-## Off-standard requests
-
-Gradients, hero banners, illustrations, another library, custom colours or fonts: never build them, not even "restrained". Build the nearest on-standard version (a page header, a `MessageBar`, the brand token) and say in two lines what was asked and what you built. Only the repo's own design guidance or an "Approved exceptions" entry in `.fluent-kit/PROFILE.md` allows it.
+`deviations.md`: icons, styling rules, overflowing tabs and toolbars, companion package names.
