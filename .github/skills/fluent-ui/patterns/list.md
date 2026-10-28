@@ -19,6 +19,7 @@ Scan, compare, sort or select same-shaped records.
 **Measurements**
 - DataGrid rows: 45px (medium, default), 33px (`size="small"` for dense admin grids), 59px for two lines. Header row 33px.
 - Cells: 8px left, 16px right padding; primary text 14px, secondary 12px `colorNeutralForeground2`. Selection column 40px.
+- Centred column (check marks, status icons): a class with `justifyContent: "center"` on the `DataGridCell`, and on the header through its slot: `<DataGridHeaderCell button={{ className: s.centred }}>`. A class on the header cell itself does nothing (the text stays left).
 - `List`: header 48px, rows 44px, 1px `colorNeutralStroke2` dividers.
 - Virtualized: fixed row height (44px), one-line cells (`TableCellLayout truncate`), memoized row renderer; Next.js mounts it on the client only.
 
