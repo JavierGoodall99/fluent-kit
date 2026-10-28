@@ -205,6 +205,21 @@ for (const url of urls) {
             for (const el of c.querySelectorAll("*")) { const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; const cs = getComputedStyle(el); if (cs.position === "fixed" || cs.visibility === "hidden") continue; bottom = Math.max(bottom, r.bottom - top); }
             return Math.round(c.scrollHeight - bottom);
           })(),
+          // Cards that blend in: three or more panels in one row/group that are only a thin outline on the same colour as the page behind them.
+          flatCards: (() => {
+            const bgOf = (el) => { for (let a = el; a; a = a.parentElement) { const c = getComputedStyle(a).backgroundColor; if (c && c !== "rgba(0, 0, 0, 0)" && c !== "transparent") return c; } return "rgb(255, 255, 255)"; };
+            const groups = new Map();
+            for (const el of document.querySelectorAll("div, section, article")) {
+              const r = el.getBoundingClientRect(); if (r.width < 140 || r.height < 60 || r.height > 420 || r.width > window.innerWidth * 0.6) continue;
+              const cs = getComputedStyle(el);
+              if (cs.boxShadow !== "none" || !(parseFloat(cs.borderTopWidth) > 0) || cs.borderTopStyle === "none") continue;
+              if (el.querySelector("input, select, textarea, table, [role=grid], [role=combobox]")) continue;
+              const parent = el.parentElement; if (!parent || !parent.parentElement) continue;
+              if (bgOf(el) !== bgOf(parent)) continue; // different fill from the page behind it: it stands out
+              groups.set(parent, (groups.get(parent) || 0) + 1);
+            }
+            return [...groups.values()].filter((n) => n >= 3).length ? Math.max(...groups.values()) : 0;
+          })(),
           // First glance: how much reading the first screen asks for, and text blocks that repeat.
           firstWords: (() => { let n = 0; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let t = w.nextNode(); t; t = w.nextNode()) { const el = t.parentElement; if (!el || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(el.tagName)) continue; const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); if (!r.width || !r.height || cs.visibility === "hidden" || cs.display === "none" || r.top >= window.innerHeight || r.bottom <= 0) continue; n += (t.textContent.trim().match(/\S+/g) || []).length; } return n; })(),
           repeated: (() => { const m = new Map(); for (const el of document.querySelectorAll("p, span, div, td, li, pre, code")) { if (el.children.length) continue; const t = (el.textContent || "").replace(/\s+/g, " ").trim(); if (t.length < 70) continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; m.set(t, (m.get(t) || 0) + 1); } return [...m].filter(([, c]) => c >= 3).slice(0, 2).map(([t, c]) => `"${t.slice(0, 50)}..." x${c}`); })(),
@@ -240,6 +255,7 @@ for (const url of urls) {
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
       if (info.bottomGap !== null && info.bottomGap < 8) note("warn", where, `The last content ends ${Math.max(info.bottomGap, 0)}px from the bottom of the scrolling area, so cards look cut off at the end. Add space below the page content (padding-bottom: tokens.spacingVerticalXL, or the page wrapper's bottom padding).`);
+      if (info.flatCards) note("warn", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and borderRadiusLarge (8px), as in DESIGN.md "Raised sections".`);
       if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
       if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
