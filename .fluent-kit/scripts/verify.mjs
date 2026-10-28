@@ -2,7 +2,7 @@
 // Fluent kit visual verification. Opens a page in a real browser and checks it.
 // Usage: node .fluent-kit/scripts/verify.mjs --start /invoices          (starts the dev server itself, checks, stops it)
 //        node .fluent-kit/scripts/verify.mjs http://localhost:3000/invoices   (dev server already running)
-// Options: [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
+// Options: [--quick] (1440 and 375, light only: for small changes) [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
 //          [--start] [--cmd "npm run dev"]   --start runs the project's dev script (or --cmd) and waits for its URL; paths like /invoices are
 //                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
 //          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
@@ -52,8 +52,9 @@ function shortError(text) {
   return text.replace(/\s+/g, " ").slice(0, 600);
 }
 if (!startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
-const widths = opt("--widths", "1440,768,375").split(",").map(Number);
-const schemes = opt("--schemes", "light,dark").split(",");
+const quick = args.includes("--quick"); // fast pass: desktop and phone, light only
+const widths = opt("--widths", quick ? "1440,375" : "1440,768,375").split(",").map(Number);
+const schemes = opt("--schemes", quick ? "light" : "light,dark").split(",");
 const outDir = resolve(opt("--out", ".fluent-kit/out"));
 const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
