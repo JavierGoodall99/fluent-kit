@@ -5,6 +5,7 @@
 // Options: [--quick] (1440 and 375, light only: for small changes) [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
 //          [--start] [--cmd "npm run dev"]   --start runs the project's dev script (or --cmd) and waits for its URL; paths like /invoices are
 //                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
+//          [--storage auth.json]   a Playwright storage state (saved with: npx playwright codegen --save-storage=auth.json <url>) so pages behind a login can be checked.
 //          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
 //                                            Use it for drawers, dialogs, menus and pickers: the page alone never shows them.
 // Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
@@ -17,7 +18,7 @@ import { join, resolve } from "node:path";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click"]);
+const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage"]);
 const startServer = args.includes("--start") || args.includes("--cmd");
 let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
 if (startServer && !urls.length) urls = ["/"];
@@ -59,6 +60,7 @@ const outDir = resolve(opt("--out", ".fluent-kit/out"));
 const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
 const useAxe = !args.includes("--no-axe");
+const storagePath = opt("--storage", null);
 
 const req = createRequire(join(process.cwd(), "package.json"));
 let pw = null;
@@ -88,7 +90,17 @@ if (startServer) {
   let log = "";
   server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
   const ready = new Promise((resolveUrl) => {
-    const onData = (d) => { log = (log + d.toString()).slice(-4000); const m = log.replace(/\x1b\[[0-9;]*m/g, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/); if (m) resolveUrl(m[0]); };
+    let timer = null;
+    const onData = (d) => {
+      log = (log + d.toString()).slice(-4000);
+      const clean = log.replace(/\x1b\[[0-9;]*m/g, "");
+      const all = clean.match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
+      if (!all) return;
+      // If the port was busy the server says so and then prints the port it really uses: wait a moment and take the last URL.
+      const busy = /in use|already|trying|instead/i.test(clean);
+      clearTimeout(timer); timer = setTimeout(() => resolveUrl(all[all.length - 1]), busy ? 2500 : 0);
+      if (busy) console.log("Note: the dev server reported a busy port. Using " + all[all.length - 1] + " (another project may be running on the default port).");
+    };
     server.stdout.on("data", onData); server.stderr.on("data", onData);
     server.on("exit", (code) => resolveUrl(null, code));
     setTimeout(() => resolveUrl(null), 90000);
@@ -134,7 +146,7 @@ for (const url of urls) {
   for (const scheme of schemes) {
     for (const width of widths) {
       const where = `${url} [${scheme}, ${width}px]`;
-      const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme });
+      const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme, ...(storagePath ? { storageState: storagePath } : {}) });
       const page = await ctx.newPage();
       const errors = [];
       page.on("pageerror", (e) => errors.push(shortError(String(e))));
@@ -152,6 +164,7 @@ for (const url of urls) {
       catch { note("warn", where, "Still showing a loading state (skeleton, spinner or aria-busy) after 8 seconds, so the screenshots show loading, not content. Use --wait \"<selector of the loaded content>\" or check that the data loads."); }
       loaded++;
 
+      console.log(`  ${where}: title "${(await page.title()).slice(0, 60)}"`);
       const info = await page.evaluate(() => {
         const prov = document.querySelector(".fui-FluentProvider");
         const cs = prov ? getComputedStyle(prov) : null;
