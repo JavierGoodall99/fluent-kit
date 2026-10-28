@@ -62,7 +62,8 @@ const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
 const useAxe = !args.includes("--no-axe");
 const storagePath = opt("--storage", null);
-const profileDir = opt("--profile", null) ? resolve(opt("--profile")) : null;
+const profileDir = opt("--profile", null) ? resolve(opt("--profile")) : (!storagePath && existsSync(resolve(".verify-profile"))) ? resolve(".verify-profile") : null; // a .verify-profile folder in the project is used automatically
+if (profileDir && !opt("--profile", null)) console.log("Using the signed-in Edge profile .verify-profile");
 
 const req = createRequire(join(process.cwd(), "package.json"));
 let pw = null;
