@@ -1,10 +1,5 @@
-// Empty state and first-run welcome. Use it the first time someone opens an app with no data, for an empty list or search,
-// for an error page and for a success message. Never show a blank page.
-// Measurements follow Microsoft's "Empty State Template (Web Large)" in the Microsoft 365 UI Kit:
-//   centred in the available space, 20px between the image, text and actions, title 16px bold, text 14px (max about 600px),
-//   actions in a column about 280px wide: primary, secondary, then a link as the tertiary action; 8px between actions.
-// The kit uses one large Fluent icon instead of an illustration. One primary action is enough; secondary and tertiary are optional.
-// UI text is English. Use the project's language and wording.
+// Empty state and first-run skeleton: icon, title, text, a 280px column of actions. Rules and measurements: patterns/feedback.md.
+// UI text: use the project's language.
 import { Button, Link, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { DocumentAdd48Regular } from "@fluentui/react-icons";
 import type { ReactNode } from "react";

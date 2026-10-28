@@ -295,7 +295,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
   - Success: Success, Synced
   - Warning: Warning
 - **v9 mapping:** the Figma kit ships this as a design component (`.StatusIndicator`, a subcomponent), but `@fluentui/react-components` 9.74.11 has no `StatusIndicator` export. Build it from a Fluent icon plus `Text`, or from `Badge` with an icon and text, and keep one shared component in the project so all screens use the same icon and color per status. Verify against the installed version before assuming this changed.
-- Labels are UI text, so they follow the project's language (see `.fluent-kit/DESIGN.md` section 10).
+- Labels are UI text, so they follow the project's language (see `DESIGN.md` section 10).
 - **Spec (Fluent 2 Web Figma):** a 16px icon in a 20px-high holder, then a 14px label in `colorNeutralForeground1`, 6px apart (small 16px, medium 20px default, large 24px high). The text is not coloured; the icon carries the status colour. One fixed icon per status: success = checkmark circle (Success, Synced), error = diamond dismiss (Failed, Cancelled), warning = warning triangle, active = circle (New), arrow sync (Syncing), neutral = arrow circle (Archived), question circle (Unknown), plus Scheduled, Pending, Not started, Pause, Draft, Generic information. The same status must use the same icon on every screen.
 
 ## TeachingPopover
@@ -322,7 +322,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 
 - Used in graphic and text editors to choose a color, image or pattern. Can sit in a `Popover` or stand alone.
 - **Sizes:** extra small, small, medium, large. **Layouts:** a row or a grid. **Swatch types:** color, icon, image. **States:** rest, hover, pressed, focus, disabled, selected, plus empty and transparent swatches.
-- Not for choosing the product brand colour. That comes from the BrandVariants ramp (.fluent-kit/DESIGN.md section 2).
+- Not for choosing the product brand colour. That comes from the BrandVariants ramp (`DESIGN.md` section 2).
 
 ## Material acrylic
 

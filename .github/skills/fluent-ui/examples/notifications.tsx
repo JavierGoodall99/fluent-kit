@@ -1,4 +1,4 @@
-// Feedback: Toast for transient confirmation, MessageBar for persistent messages.
+// Feedback skeleton: Toast for transient confirmation, MessageBar for persistent messages. Rules: patterns/feedback.md.
 import {
   MessageBar,
   MessageBarBody,

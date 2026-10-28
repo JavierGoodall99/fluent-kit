@@ -203,7 +203,7 @@ const v9 = has("@fluentui/react-components");
 const v8 = has("@fluentui/react") || sig.v8.length;
 if (v9 && ramp) {
   kind = "fluent-v9-custom-brand";
-  advice = `Fluent v9 with its own brand ramp (${rampFile}). Keep it. Treat the ramp as this product's brand file; do not change it. Check its contrast against .fluent-kit/DESIGN.md.`;
+  advice = `Fluent v9 with its own brand ramp (${rampFile}). Keep it. Treat the ramp as this product's brand file; do not change it.`;
 } else if (v9 && sig.createTheme.length) {
   kind = "fluent-v9-custom-brand-unparsed";
   advice = `createLightTheme/createDarkTheme found in ${sig.createTheme[0]} but the ramp could not be read. Open that file and use it as is.`;
@@ -218,7 +218,7 @@ if (v9 && ramp) {
   advice = "Another UI library is in use. Ask the user: migrate to Fluent v9, or keep that library for this task. A brand color, if found below, still applies.";
 } else if (!files.length || (!v9 && !v8)) {
   kind = "new-project";
-  advice = "New project (nothing Fluent yet). Follow .github/skills/fluent-ui/references/new-project-setup.md: ask once for the brand hex or \"stock\", install Fluent, run .fluent-kit/scripts/make-theme.mjs, wrap the app.";
+  advice = "New project (nothing Fluent yet). Follow the fluent-ui skill's tasks/new-app.md: ask once for the brand hex or \"stock\", install Fluent, run .fluent-kit/scripts/make-theme.mjs, wrap the app.";
 }
 
 let brandAdvice = null;
@@ -274,8 +274,8 @@ else {
   if (out.existingGuidance.length) console.log(`Existing guidance: ${out.existingGuidance.join(", ")}\n                   The repo already has its own rules. Follow them first where they conflict with the kit; use the kit to fill gaps.`);
   if (out.framework === "next") console.log("Next.js:         files that use makeStyles or Fluent hooks need \"use client\". Do not pass icon components from Server to Client Components.");
   if (out.tailwind) console.log("Tailwind:        in use. Keep the project's existing Tailwind usage for page layout; in new code take colors, type, radii and shadows from Fluent tokens, not Tailwind color utilities, unless the project's own guidance says otherwise.");
-  if (!out.setup.hasPackageJson) console.log("Setup:           no package.json here. Create a Vite + React + TypeScript app (say so in your first message; use Next.js only if the request asks for it), then follow .github/skills/fluent-ui/references/new-project-setup.md.");
-  else if (out.setup.installCmd && (out.kind === "new-project" || out.freshScaffold)) console.log(`Setup:           Fluent packages missing. Install: ${out.setup.installCmd}   (then follow .github/skills/fluent-ui/references/new-project-setup.md)${out.freshScaffold ? "\n                 Looks like a fresh scaffold." : ""}`);
+  if (!out.setup.hasPackageJson) console.log("Setup:           no package.json here. Create a Vite + React + TypeScript app (say so in your first message; use Next.js only if the request asks for it), then follow the fluent-ui skill's tasks/new-app.md.");
+  else if (out.setup.installCmd && (out.kind === "new-project" || out.freshScaffold)) console.log(`Setup:           Fluent packages missing. Install: ${out.setup.installCmd}   (then follow the fluent-ui skill's tasks/new-app.md)${out.freshScaffold ? "\n                 Looks like a fresh scaffold." : ""}`);
   else if (out.setup.installCmd) console.log(`Setup:           missing ${out.setup.missingDeps.join(", ")}. Install: ${out.setup.installCmd}   (existing app: change nothing else for this)`);
   console.log(`UI language:     ${out.locale.uiLanguage || (out.locale.localeCodes.length ? "several: " + out.locale.localeCodes.join(", ") : "unknown")}${out.locale.i18nLibrary.length ? "   i18n: " + out.locale.i18nLibrary.join(", ") : ""}`);
   console.log(`Language advice: ${out.localeAdvice}`);

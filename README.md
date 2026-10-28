@@ -48,7 +48,7 @@ When Copilot starts UI work, the `fluent-ui` skill tells it to run `.fluent-kit/
 
 An existing project's theme is never changed as a side effect of another task.
 
-**New project** (an empty folder or a fresh scaffold): `.github/skills/fluent-ui/references/new-project-setup.md` walks the agent through it. Ask once for the brand hex or "stock"; install Fluent; `make-theme.mjs` writes a ready theme and provider (Vite, or Next.js App Router with server-rendering support); wrap the app; remove the scaffold's styling; build the first screen from an example. Tested from clean Vite and Next.js scaffolds: both type-check, build and render in the brand color.
+**New project** (an empty folder or a fresh scaffold): the skill's `tasks/new-app.md` walks the agent through it. Ask once for the brand hex or "stock"; install Fluent; `make-theme.mjs` writes a ready theme and provider (Vite, or Next.js App Router with server-rendering support); wrap the app; remove the scaffold's styling; build the first screen from an example. Tested from clean Vite and Next.js scaffolds: both type-check, build and render in the brand color.
 
 `generate-ramp.mjs` puts your color at step 80 and follows Microsoft's ramp curve for the other steps. For Microsoft's own blue it reproduces Microsoft's default ramp exactly; for other colors it approximates Microsoft's Theme Designer. It checks contrast and flags ramps that fail. An official ramp from a designer always wins.
 
@@ -58,33 +58,37 @@ Some rules belong to an organisation, not to Fluent: the UI language, formal or 
 
 ## What's in the kit
 
+Installed into your repo:
+
 ```
-install.mjs                          the installer
 .github/
-  copilot-instructions.md            short always-on rules (the installer inserts the marked block here, and in CLAUDE.md / AGENTS.md)
-  skills/fluent-ui/
-    SKILL.md                         short router: request type -> one example + one measurement table
+  copilot-instructions.md            always-on rules, under 250 words (the installer inserts the marked block here, and in CLAUDE.md / AGENTS.md)
+  skills/fluent-ui/                  (copied to .claude/skills/fluent-ui/ for Claude Code)
+    SKILL.md                         the router: small fix, restyle, new page, new app -> one task card + one pattern card
+    tasks/                           one card per kind of task: small-fix, restyle, new-page, new-app
+    patterns/                        one card per page pattern, with its measurements and narrow-screen rules:
+                                     list, status-page, dashboard, form, settings, drawer, nav, feedback
     deviations.md                    where the kit differs from stock Fluent v9 (controls, icons, styling, type, nav)
-    checklist.md                     pre-delivery checks
-    examples/*.tsx                   type-checked screens: theme, list, drawer, dialog, toast, nav
-    references/fluent2-component-guidance.md   when to use each component, from the Fluent 2 Figma kit
-    references/new-project-setup.md  step-by-step setup for a brand-new project
-    references/measurements.md       page-pattern, component and narrow-screen numbers from Microsoft's Figma files
-    references/theme-and-brand.md    theme, brand and language detection (read when not a custom-brand project)
-    references/migrating.md          migrating a screen to Fluent v9
+    examples/*.tsx                   type-checked skeletons, 150 lines at most, each pointing to its pattern card
 .fluent-kit/
-  DESIGN.md                          the design system, agent-readable
   scripts/check.mjs, verify.mjs      the rules checker and the browser check
   scripts/login.mjs                  one-time sign-in for pages behind a login
-  DESIGNER.md                        how to think like a senior Microsoft designer (brief, hierarchy, content, states, self-critique)
-  PROFILE.md                         optional organisation overrides
-  profiles/                          profile template and examples
-  brands/_template.md                optional place to save brand ramps
   scripts/detect-theme.mjs           theme, brand and language detection
+  scripts/consistency.mjs            the app's standard card style and the pages that differ
   scripts/generate-ramp.mjs          16-step brand ramp from one color, with contrast checks
   scripts/make-theme.mjs             writes a ready theme + provider file (brand hex or stock; --next for Next.js)
   scripts/scan-colors.mjs            lists every color a repo uses
   eslint/                            lint rules and tests
+  profiles/, brands/_template.md     organisation profile template, optional brand ramp file
+```
+
+Kept in this repo only, not installed:
+
+```
+docs/                                the long-form reference for people: DESIGN.md, DESIGNER.md, measurements.md,
+                                     fluent2-component-guidance.md. Agents never read it.
+tests/                               reading-cost and link checks, and the Copilot test logs
+install.mjs, package.json            the installer, and dev dependencies for CI
 ```
 
 ## Checks that run (no setup)
@@ -124,7 +128,7 @@ From then on `node .fluent-kit/scripts/verify.mjs --start /` and Copilot's own c
 - Other ways: `--profile <folder>` to use another folder, `--storage auth.json` for a Playwright login file, `--headed` to watch the check run.
 - Needs Microsoft Edge. Not tested on every company policy; if your policy rejects this profile too, the check cannot see the page and Copilot must say the UI was not verified.
 
-## Lint setup (optional, needs ESLint v9)
+## Lint setup (optional, ESLint v9 or v10)
 
 ```js
 // eslint.config.js (combine with your typescript-eslint config)
@@ -156,8 +160,8 @@ Limits: the banned-library lists are not exhaustive; add any your team has used.
 
 ## Known limits
 
-- Instructions are guidance. The lint rules, `tsc` and the checklist are what enforce it.
-- "Feels like a Microsoft application" is enforced only indirectly: Fluent components, Fluent defaults, and the page patterns in `DESIGN.md`. Review screenshots against Microsoft 365 or the Azure portal.
+- Instructions are guidance. `check.mjs`, the lint rules, `tsc` and `verify` are what enforce it.
+- "Feels like a Microsoft application" is enforced only indirectly: Fluent components, Fluent defaults, and the pattern cards. Review screenshots against Microsoft 365 or the Azure portal.
 - React only. Fluent UI React v9 is the target; Angular, Vue and Blazor are not covered.
 - The kit has been tested on small fake projects and with TypeScript and ESLint on its own examples, not yet on a large real repo.
 - Keep the always-on block short (`tests/reading-cost.mjs` fails above 250 words). Long always-on files get ignored; detail lives in the skill.

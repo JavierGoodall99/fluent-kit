@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Type-check examples
+        run: npx tsc -p tsconfig.json
+
+      - name: Kit rules on examples
+        run: node .fluent-kit/scripts/check.mjs .github/skills/fluent-ui/examples
+
+      - name: Lint rule tests
+        run: |
+          node .fluent-kit/eslint/no-hardcoded-styles.test.js
+          node .fluent-kit/eslint/fluent-only.test.js
+
+      - name: Reading-cost budgets (2,500 words per task)
+        run: node tests/reading-cost.mjs
+
+      - name: Links in shipped files
+        run: node tests/links.mjs
+
+      - name: Script syntax
+        run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done
+
+      - name: Installer smoke test
+        run: |
+          target="$RUNNER_TEMP/target"
+          mkdir -p "$target"
+          node install.mjs "$target" --claude --agents
+          test -f "$target/.github/skills/fluent-ui/SKILL.md"
+          test -f "$target/.claude/skills/fluent-ui/tasks/new-page.md"
+          test -f "$target/CLAUDE.md" && test -f "$target/AGENTS.md"
+          test ! -e "$target/docs" && test ! -e "$target/.fluent-kit/DESIGN.md"
+          node install.mjs "$target" --dry-run | grep -q "updated the Fluent kit block"

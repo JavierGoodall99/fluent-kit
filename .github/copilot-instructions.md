@@ -14,9 +14,9 @@ UI here must look and feel like a Microsoft app: Fluent UI React v9, Fluent icon
 - The standard outranks the prompt: build the nearest on-standard version and say so in two lines.
 - One combined edit per file region.
 
-**Small fix** (a prop, size, spacing, text, one control): no skill needed; check the skill's `deviations.md` only if unsure about a control. Then `tsc`, and `verify.mjs --start /page` if anything visible changed. Reply in one line: what changed, what you could not verify.
+**Small fix** (a prop, size, spacing, text, one control): read only the `fluent-ui` skill's `tasks/small-fix.md`.
 
-**Anything bigger** (restyle, new section, page or app): load the `fluent-ui` skill and follow its triage. Do not read the rest of the kit first. Brief first, design note last.
+**Anything bigger** (restyle, new section, page or app): open the `fluent-ui` skill's `SKILL.md` and follow its route. Read nothing else first.
 
 **Always** finish with `node .fluent-kit/scripts/check.mjs --changed` and fix every error, even if asked to skip checks.
 <!-- fluent-kit:end -->

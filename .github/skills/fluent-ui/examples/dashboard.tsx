@@ -1,14 +1,5 @@
-// Dashboard: a canvas of cards, each with ONE message (a gauge, a chart or a number), a title, a short description,
-// an optional time-range switch that changes only that card, and a "View details" link.
-// Pattern from the Microsoft 365 UI Kit ("Dashboard" template). Use when the requirement is "get an overview of several measures at once".
-// Charts come from the official Fluent charts package: npm i @fluentui/react-charts (say so in the design note).
-// Use LineChart, not AreaChart: AreaChart 9.3.x logs negative <rect> size errors on first render, which verify reports as errors.
-// Rules: white cards on the tinted canvas; no more than about 6 cards; every chart has a text alternative (the card title and a summary line);
-// do not colour by hand, the charts follow the FluentProvider theme; never put an editor or a builder inside a card.
-// Measurements follow Microsoft's own "Dashboard Template (Web Large)" in the Microsoft 365 UI Kit:
-//   canvas padding 20px, gap 12px between cards; card radius 8px (tokens.borderRadiusXLarge; borderRadiusLarge is only 6px), padding 16px, gap 16px, shadow04 (tokens.shadow4);
-//   title 14px bold, description 12px in colorNeutralForeground3; footer link 14px in the brand link colour.
-// UI text is English. Use the project's language and wording.
+// Dashboard skeleton: a canvas of cards, one message each, with an optional per-card time range. Rules and measurements: patterns/dashboard.md.
+// Charts: @fluentui/react-charts (name it in the design note). UI text: use the project's language.
 import {
   Button,
   Card,

@@ -1,6 +1,6 @@
 # Organisation profile
 
-Copy this file to `.fluent-kit/PROFILE.md` and fill in what applies. Anything written here overrides the defaults in `DESIGN.md`. Delete lines you do not need. Agents read `PROFILE.md` if it exists.
+Copy this file to `.fluent-kit/PROFILE.md` and fill in what applies. Anything written here overrides the kit's defaults. Delete lines you do not need. Agents read `PROFILE.md` if it exists.
 
 ## Language and tone
 
