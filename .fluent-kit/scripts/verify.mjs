@@ -189,6 +189,9 @@ for (const url of urls) {
           emptyBody: document.body.innerText.trim().length === 0,
           // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
           hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).length : 0,
+          // First glance: how much reading the first screen asks for, and text blocks that repeat.
+          firstWords: (() => { let n = 0; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let t = w.nextNode(); t; t = w.nextNode()) { const el = t.parentElement; if (!el || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(el.tagName)) continue; const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); if (!r.width || !r.height || cs.visibility === "hidden" || cs.display === "none" || r.top >= window.innerHeight || r.bottom <= 0) continue; n += (t.textContent.trim().match(/\S+/g) || []).length; } return n; })(),
+          repeated: (() => { const m = new Map(); for (const el of document.querySelectorAll("p, span, div, td, li, pre, code")) { if (el.children.length) continue; const t = (el.textContent || "").replace(/\s+/g, " ").trim(); if (t.length < 70) continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; m.set(t, (m.get(t) || 0) + 1); } return [...m].filter(([, c]) => c >= 3).slice(0, 2).map(([t, c]) => `"${t.slice(0, 50)}..." x${c}`); })(),
           // Reading text that runs far across a wide window: lines over about 100 characters are hard to read.
           longlines: window.innerWidth >= 768 ? [...document.querySelectorAll("p, span, div, code, pre, li, td")].filter((el) => {
             const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
@@ -220,6 +223,8 @@ for (const url of urls) {
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
+      if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
+      if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. Group repeats and show the text once (with the names it applies to), with the detail on demand.`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
       if (info.tiny.length) note("warn", where, `${info.tiny.length} Fluent control(s) smaller than 24px: ${info.tiny.slice(0, 4).join("; ")}. Make them at least 24px (32px on touch) or use a larger size.`);
       if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("warn", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
@@ -235,6 +240,8 @@ for (const url of urls) {
       await runAxe(page, where);
 
       const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
+      const firstFile = file.replace(/\.png$/, "-first.png");
+      await page.screenshot({ path: firstFile });
       // Apps with their own scrolling area (a fixed shell with a scrolling <main>) make a "full page" screenshot show only the first screen.
       // Grow the window to the height of the biggest scrolling area so the whole page is in the picture.
       try {
@@ -242,7 +249,7 @@ for (const url of urls) {
         if (extra > 0) { await page.setViewportSize({ width, height: Math.min(900 + extra, 7000) }); await page.waitForTimeout(400); }
       } catch { /* screenshot as is */ }
       await page.screenshot({ path: file, fullPage: true });
-      shots.push(file);
+      shots.push(file, firstFile);
       // --click: open what is behind a button (drawer, dialog, menu, picker) and check that state too.
       if (clickSteps.length) {
         let opened = true;
@@ -277,7 +284,7 @@ for (const g of uniq) {
 }
 const errs = uniq.filter((p) => p.level === "error").length;
 console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s). Screenshots: ${outDir}`);
-console.log("Open the screenshots and review them against .fluent-kit/DESIGNER.md section 8 before reporting.");
+console.log("Open the screenshots and review them against .fluent-kit/DESIGNER.md section 8 before reporting.\nFirst-glance test: open the *-first.png files (just the first screen) and answer in one line each: what is this page, is anything wrong or important, what can I do next. If you cannot, change the page, not the answer.");
 if (shots.length) console.log(`Screenshot files (open these; editor search skips this folder because it is git-ignored):\n${shots.slice(0, 16).map((f) => "  " + f).join("\n")}${shots.length > 16 ? `\n  ... and ${shots.length - 16} more in ${outDir}` : ""}`);
 if (rawErrors.length) {
   mkdirSync(outDir, { recursive: true });

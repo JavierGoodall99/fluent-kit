@@ -11,6 +11,7 @@ UI in this repo must look and feel like a Microsoft application: Fluent UI React
 - Never hard-code colours, font sizes, spacing, radii or shadows: `tokens` inside `makeStyles`. The brand comes from the theme; status colours are `tokens.colorStatus*`.
 - UI text in the project's language. Reuse what the project already has; never import a package that is not in `package.json` (an official Fluent companion package is fine if you say so).
 - Never revert, restore or delete files the person changed or removed in their working tree (`git checkout`, `git restore`, `git stash`) without asking first. Work on what is there and say what you see.
+- First glance: a person must understand the page in five seconds: what it is, whether anything is wrong or important, and what to do next, all on the first screen. Overview first (verdict and key numbers on top, one row or card per item), detail on demand. Do not print long text or repeat the same message inline. `verify` saves `*-first.png` for this test: look at it.
 - Microsoft feel: left nav, command bar above content, `Dialog` only for confirmations, Fluent's defaults for font, radii, density and motion. No gradients, illustrations, heavy shadows or hero banners.
 - The standard outranks a prompt. If a request asks for something off-standard, build the nearest on-standard version and say in two lines what was asked and what you built instead. A warning is not permission either.
 
@@ -25,5 +26,5 @@ A `verify` error or warning is never "not mine" by assertion. To call one pre-ex
 
 If the user asks you to skip checks: `check --changed` still runs. You may skip the rest at their explicit request, but say in one line what is unverified. Never relax Fluent-only, tokens-only or accessibility rules for speed.
 
-**End every UI reply with a short design note** (not a list of checks): the requirement; the pattern you chose and the main alternative you rejected; anything built differently from what was asked; every assumption (language, currency, sample data); what you could not verify. When unsure which pattern to follow, ask; do not invent one.
+**End every UI reply with a short design note** (not a list of checks): the requirement; the pattern you chose and the main alternative you rejected; anything built differently from what was asked; every assumption (language, currency, sample data); what a person understands in the first five seconds, and what you could not verify. When unsure which pattern to follow, ask; do not invent one.
 <!-- fluent-kit:end -->

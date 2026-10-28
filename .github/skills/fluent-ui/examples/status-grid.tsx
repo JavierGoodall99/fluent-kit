@@ -5,7 +5,9 @@
 //  - The same columns on every row, in the same order, at the same widths.
 //  - Message text wraps and is capped at about 75ch, on a neutral surface. It never runs across the screen.
 //  - Status is icon + text + colour, never colour alone. Unknown statuses are shown, not hidden.
-//  - Problems come first and stay open. A group with no problems is collapsed.
+//  - Overview first: a summary strip on top (verdict + counts that filter), then groups collapsed. Each group row shows its worst status and the first line of the cause.
+//  - Detail on demand: a long message is clamped to 3 lines with "Show more". Never print every full message inline.
+//  - Problems come first. A group with no problems stays collapsed.
 // UI text here is English. Use the project's language and wording.
 import {
   Button,
@@ -16,6 +18,7 @@ import {
   TableHeaderCell,
   TableRow,
   Text,
+  ToggleButton,
   Tooltip,
   makeStyles,
   mergeClasses,
@@ -103,6 +106,11 @@ const useStyles = makeStyles({
   danger: { color: tokens.colorStatusDangerForeground1 },
   neutral: { color: tokens.colorNeutralForeground3 },
   muted: { color: tokens.colorNeutralForeground3 },
+  summary: { display: "flex", alignItems: "center", flexWrap: "wrap", columnGap: tokens.spacingHorizontalL, rowGap: tokens.spacingVerticalS, paddingBottom: tokens.spacingVerticalM },
+  verdict: { display: "inline-flex", alignItems: "center", columnGap: tokens.spacingHorizontalS },
+  filters: { display: "flex", flexWrap: "wrap", columnGap: tokens.spacingHorizontalS, rowGap: tokens.spacingVerticalXS },
+  groupCause: { flex: "1 1 0", minWidth: 0, maxWidth: "75ch", color: tokens.colorNeutralForeground2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  clamp: { display: "-webkit-box", WebkitLineClamp: "3", WebkitBoxOrient: "vertical", overflow: "hidden" },
   visuallyHidden: { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" },
 });
 
@@ -110,6 +118,8 @@ const useStyles = makeStyles({
 function CheckRow({ check }: { check: Check }) {
   const s = useStyles();
   const st = STATUS[check.status];
+  const [more, setMore] = useState(false);
+  const long = (check.message?.length ?? 0) > 160;
   return (
     <TableRow className={mergeClasses(s.row, st.problem && s.problemRow)}>
       <TableCell className={mergeClasses(s.cell, s.colName, s.aName)}>
@@ -123,7 +133,8 @@ function CheckRow({ check }: { check: Check }) {
         </span>
       </TableCell>
       <TableCell className={mergeClasses(s.cell, s.aMsg)}>
-        {check.message ? <Text className={s.message}>{check.message}</Text> : <Text className={s.muted}>No message</Text>}
+        {check.message ? <Text className={mergeClasses(s.message, long && !more && s.clamp)}>{check.message}</Text> : <Text className={s.muted}>No message</Text>}
+        {long && <Button appearance="transparent" size="small" onClick={() => setMore(!more)}>{more ? "Show less" : "Show more"}</Button>}
       </TableCell>
       <TableCell className={mergeClasses(s.cell, s.colTime)}><Text className={s.muted}>{check.durationMs == null ? "" : `${check.durationMs} ms`}</Text></TableCell>
       <TableCell className={mergeClasses(s.cell, s.colAction, s.aAct)}>
@@ -140,8 +151,10 @@ function CheckRow({ check }: { check: Check }) {
 function GroupSection({ group }: { group: Group }) {
   const s = useStyles();
   const problems = group.checks.filter((c) => STATUS[c.status].problem).length;
-  const [open, setOpen] = useState(problems > 0); // problems open, all-healthy collapsed
+  const [open, setOpen] = useState(false); // collapsed: the overview first, detail on demand
   const sorted = [...group.checks].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
+  const worst = STATUS[sorted[0].status];
+  const cause = sorted.find((c) => STATUS[c.status].problem)?.message?.split("\n")[0];
   return (
     <>
       <TableRow className={mergeClasses(s.groupRow, s.groupBlock)}>
@@ -149,7 +162,8 @@ function GroupSection({ group }: { group: Group }) {
           <div className={s.groupInner}>
             <Button appearance="transparent" size="small" aria-expanded={open} aria-label={`${open ? "Collapse" : "Expand"} ${group.name}`} icon={open ? <ChevronDown16Regular /> : <ChevronRight16Regular />} onClick={() => setOpen(!open)} />
             <Text weight="semibold">{group.name}</Text>
-            <Text className={s.muted}>{group.kind}</Text>
+            <span className={s.indicator}><span className={mergeClasses(s.indicatorIcon, s[worst.tone])} aria-hidden="true">{worst.icon}</span><Text>{worst.label}</Text></span>
+            {cause && !open && <Text className={s.groupCause} title={cause}>{cause}</Text>}
             <Text className={s.groupSummary}>{problems === 0 ? `${group.checks.length} checks, all fine` : `${problems} of ${group.checks.length} checks need attention`}</Text>
           </div>
         </TableCell>
@@ -163,8 +177,24 @@ export function StatusGrid({ groups }: { groups: Group[] }) {
   const s = useStyles();
   // Groups with problems first, so what is wrong is at the top.
   const ordered = [...groups].sort((a, b) => Number(b.checks.some((c) => STATUS[c.status].problem)) - Number(a.checks.some((c) => STATUS[c.status].problem)));
+  const [filter, setFilter] = useState<"all" | "problem" | "ok">("all");
+  const hasProblem = (g: Group) => g.checks.some((c) => STATUS[c.status].problem);
+  const bad = ordered.filter(hasProblem).length;
+  const shown = ordered.filter((g) => filter === "all" || (filter === "problem" ? hasProblem(g) : !hasProblem(g)));
   return (
     <div className={s.wrap}>
+      {/* The verdict, readable in one second, and the counts that filter the list. */}
+      <div className={s.summary}>
+        <span className={s.verdict}>
+          <span className={mergeClasses(s.indicatorIcon, bad ? s.danger : s.success)} aria-hidden="true">{bad ? <DismissCircle16Filled /> : <CheckmarkCircle16Filled />}</span>
+          <Text size={400} weight="semibold">{bad ? `${bad} of ${ordered.length} need attention` : `All ${ordered.length} are running fine`}</Text>
+        </span>
+        <div className={s.filters} role="group" aria-label="Filter">
+          <ToggleButton size="small" checked={filter === "all"} onClick={() => setFilter("all")}>{`All ${ordered.length}`}</ToggleButton>
+          <ToggleButton size="small" checked={filter === "problem"} onClick={() => setFilter("problem")}>{`Failing ${bad}`}</ToggleButton>
+          <ToggleButton size="small" checked={filter === "ok"} onClick={() => setFilter("ok")}>{`Healthy ${ordered.length - bad}`}</ToggleButton>
+        </div>
+      </div>
       <Table aria-label="Checks by integration" className={s.table}>
         <TableHeader className={s.head}>
           <TableRow>
@@ -176,7 +206,7 @@ export function StatusGrid({ groups }: { groups: Group[] }) {
             <TableHeaderCell className={s.colAction}><span className={s.visuallyHidden}>Actions</span></TableHeaderCell>
           </TableRow>
         </TableHeader>
-        <TableBody className={s.body}>{ordered.map((g) => <GroupSection key={g.id} group={g} />)}</TableBody>
+        <TableBody className={s.body}>{shown.map((g) => <GroupSection key={g.id} group={g} />)}</TableBody>
       </Table>
     </div>
   );

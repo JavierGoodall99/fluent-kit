@@ -41,6 +41,21 @@ State the brief in your first message (three to five lines, plain language), the
 
 ## 3. Hierarchy and focus
 
+**The first-glance rule.** Someone opening the page must understand within five seconds, without scrolling or reading paragraphs:
+1. **What is this?** A clear title, at most one short sentence under it.
+2. **Is anything wrong, or what matters most?** A verdict or the two or three key numbers, in the first screen, with the status indicator (icon, word, colour). Problems come before fine things.
+3. **What can I do next?** The one main action, near the title.
+
+Before you build, write those three answers in two lines. After you build, open the first-screen picture (`verify` saves `*-first.png`, only the first screen at 1440 and 375) and check you can read the three answers from it. If you cannot, change the page.
+
+How to get there:
+- **Overview before detail.** A summary strip (verdict plus counts that also filter) on top; one row or card per thing below it; detail opens on demand. Do not open every item by default.
+- **Numbers and words that say it.** "6 of 10 need attention" beats four unlabeled tiles. Lead a row with the name, then its status, then the one fact that matters (the first line of the cause, the count, the time).
+- **Less on the first screen.** About 150 words at most; `verify` warns above 220. Long text, logs and repeated messages go behind "Show more" or in a drawer.
+- **One visual rank.** One thing is biggest (the verdict or the main number), the rest follow in a clear order. Equal-weight tiles and cards of equal size read as noise.
+- **Same thing, same place.** Status always shows as the same icon, word and colour, in the same column, on every page.
+- **Tell what changed.** For data that updates, show when it was last updated and what moved since last time.
+
 - One `primary` button per view. If you have two, one of them is not primary.
 - Let type size, weight and space carry hierarchy before boxes, borders and colour. Use the type scale in `DESIGN.md`; do not invent in-between sizes.
 - Group with proximity first (spacing tokens), then dividers, then cards. Fewer containers is almost always better.
