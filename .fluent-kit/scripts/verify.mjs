@@ -2,7 +2,8 @@
 // Fluent kit visual verification. Opens a page in a real browser and checks it.
 // Usage: node .fluent-kit/scripts/verify.mjs --start /invoices          (starts the dev server itself, checks, stops it)
 //        node .fluent-kit/scripts/verify.mjs http://localhost:3000/invoices   (dev server already running)
-// Options: [--quick] (1440 and 375, light only: for small changes) [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]
+// Options: default 1440 and 375px, light. [--full] (1440, 768 and 375px, light and dark: new pages, shells, overlays)
+//          [--widths 1440,768,375] [--schemes light,dark] [--out .fluent-kit/out] [--wait <css selector>] [--no-axe]   (--quick is accepted and is the default)
 //          [--start] [--cmd "npm run dev"]   --start runs the project's dev script (or --cmd) and waits for its URL; paths like /invoices are
 //                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
 //          [--storage auth.json]   a Playwright storage state (saved with: npx playwright codegen --save-storage=auth.json <url>) so pages behind a login can be checked.
@@ -10,7 +11,8 @@
 //          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
 //                                            Use it for drawers, dialogs, menus and pickers: the page alone never shows them.
 // Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
-// Writes one screenshot per url x scheme x width, then LOOK AT THEM (open the PNG files) before reporting.
+// (or @axe-core/playwright). Writes screenshots plus one contact-sheet.png of every first screen; it names the screenshot to open
+// next to each problem, so look at the contact sheet once and open other files only when a problem points to them.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
 import { createRequire } from "node:module";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -55,9 +57,9 @@ function shortError(text) {
   return text.replace(/\s+/g, " ").slice(0, 600);
 }
 if (!startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
-const quick = args.includes("--quick"); // fast pass: desktop and phone, light only
-const widths = opt("--widths", quick ? "1440,375" : "1440,768,375").split(",").map(Number);
-const schemes = opt("--schemes", quick ? "light" : "light,dark").split(",");
+const full = args.includes("--full"); // default is the fast pass (1440 and 375, light); --full adds 768 and dark
+const widths = opt("--widths", full ? "1440,768,375" : "1440,375").split(",").map(Number);
+const schemes = opt("--schemes", full ? "light,dark" : "light").split(",");
 const outDir = resolve(opt("--out", ".fluent-kit/out"));
 const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
@@ -70,7 +72,7 @@ const req = createRequire(join(process.cwd(), "package.json"));
 let pw = null;
 for (const name of ["playwright", "@playwright/test", "playwright-core"]) { try { pw = req(name); break; } catch { /* next */ } }
 if (!pw?.chromium) {
-  console.error("Playwright is not installed in this project, so the page could not be checked.\nInstall it:  npm i -D playwright  &&  npx playwright install chromium\nThen run this script again. Until then say clearly that visual verification was NOT done.");
+  console.error("fluent-kit verify: NOT RUN, Playwright is not installed. Fix once: npm i -D playwright axe-core && npx playwright install chromium (or re-run the kit installer with --with-deps). Do not retry before that; say in your reply that the UI was not verified.");
   process.exit(2);
 }
 // Optionally start the dev server, wait for its URL, and stop it when we are done.
@@ -92,6 +94,7 @@ if (startServer) {
   }
   console.log(`Starting dev server: ${cmd}`);
   let log = "";
+  let exited = false;
   server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
   const ready = new Promise((resolveUrl) => {
     let timer = null;
@@ -107,6 +110,7 @@ if (startServer) {
     };
     server.stdout.on("data", onData); server.stderr.on("data", onData);
     server.on("exit", () => {
+      exited = true;
       // The dev server stopped at once, often because one is already running for this project ("another instance is already running"
       // and it prints that server's URL). Use that URL instead of failing.
       const all = log.replace(/\x1b\[[0-9;]*m/g, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
@@ -115,13 +119,16 @@ if (startServer) {
     setTimeout(() => resolveUrl(null), 90000);
   });
   const base = await ready;
-  if (!base) { console.error(`The dev server did not report a URL within 90 seconds.\nLast output:\n${log.slice(-800)}\nIf another dev server is already running (the log may say "port in use" or "already running"), pass its full URL instead, for example http://localhost:3000/your-page. Otherwise fix the server error. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
+  if (!base) { console.error(`${exited ? "The dev server exited without printing a localhost URL." : "The dev server did not report a URL within 90 seconds."}\nLast output:\n${log.slice(-800)}\nIf another dev server is already running (the log may say "port in use" or "already running"), pass its full URL instead, for example http://localhost:3000/your-page. Otherwise fix the server error. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
   for (let i = 0; i < 60; i++) { try { await fetch(base); break; } catch { await new Promise((r) => setTimeout(r, 500)); } }
   urls = urls.map((u) => (u.startsWith("/") ? base + u : u));
   console.log(`Dev server ready at ${base}`);
 }
 let axeSource = null;
-if (useAxe) { try { axeSource = readFileSync(req.resolve("axe-core/axe.min.js"), "utf8"); } catch { /* optional */ } }
+if (useAxe) {
+  try { axeSource = readFileSync(req.resolve("axe-core/axe.min.js"), "utf8"); }
+  catch { try { axeSource = readFileSync(createRequire(req.resolve("@axe-core/playwright")).resolve("axe-core/axe.min.js"), "utf8"); } catch { /* optional */ } }
+}
 
 mkdirSync(outDir, { recursive: true });
 try { writeFileSync(join(outDir, ".gitignore"), "*\n"); } catch { /* ignore */ }
@@ -133,6 +140,8 @@ let ignoreList = [];
 try { const f = resolve(".fluent-kit/verify-ignore.json"); if (existsSync(f)) ignoreList = JSON.parse(readFileSync(f, "utf8")).filter((x) => typeof x === "string"); } catch { /* ignore */ }
 const note = (level, where, msg) => { if (ignoreList.some((x) => msg.includes(x))) return; problems.push({ level, where, msg }); };
 const shots = [];
+const shotFor = new Map(); // render label -> the screenshot that shows it
+const firstShots = []; // [label, file] for the contact sheet
 const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").slice(0, 60) || "page";
 
 // Try the bundled Chromium, then Edge, then Chrome already installed on the machine.
@@ -143,7 +152,7 @@ for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
 if (!browser) {
-  console.error("No browser could be started for the check.\n" + launchErrors.join("\n") + "\nInstall one:  npx playwright install chromium   (Microsoft Edge or Chrome on this machine also works).\nUntil then say clearly that visual verification was NOT done.");
+  console.error("fluent-kit verify: NOT RUN, no browser could start (" + (launchErrors[0] || "unknown error").slice(0, 160) + "). Fix once: npx playwright install chromium (Edge or Chrome on this machine also works). Do not retry before that; say in your reply that the UI was not verified.");
   process.exit(2);
 }
 let loaded = 0;
@@ -260,7 +269,7 @@ for (const url of urls) {
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
       if (info.bottomGap !== null && info.bottomGap < 8) note("warn", where, `The last content ends ${Math.max(info.bottomGap, 0)}px from the bottom of the scrolling area, so cards look cut off at the end. Add space below the page content (padding-bottom: tokens.spacingVerticalXL, or the page wrapper's bottom padding).`);
-      if (info.flatCards) note("warn", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and borderRadiusLarge (8px), as in DESIGN.md "Raised sections".`);
+      if (info.flatCards) note("warn", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and tokens.borderRadiusXLarge (8px), see deviations.md "Surfaces".`);
       if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
       if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
@@ -288,6 +297,8 @@ for (const url of urls) {
       } catch { /* screenshot as is */ }
       await page.screenshot({ path: file, fullPage: true });
       shots.push(file, firstFile);
+      shotFor.set(where, file);
+      if (scheme === schemes[0]) firstShots.push([where, firstFile]); // the sheet shows one scheme; problems in others still name their file
       // --click: open what is behind a button (drawer, dialog, menu, picker) and check that state too.
       if (clickSteps.length) {
         let opened = true;
@@ -296,19 +307,34 @@ for (const url of urls) {
           catch { note("error", where, `--click '${step}' could not be clicked within 5 seconds (not on the page, covered, or disabled: a button that needs a selected row stays disabled until you add that click first, for example --click \"role=checkbox[name='Row 1'];role=button[name='Delete']\"). Use a Playwright selector such as "role=button[name='New task']" or "text=New task".`); opened = false; break; }
         }
         if (opened) {
+          shotFor.set(`${where} after clicking ${clickSteps.join(" then ")}`, file.replace(/\.png$/, "-open.png"));
           await runAxe(page, `${where} after clicking ${clickSteps.join(" then ")}`);
           await page.screenshot({ path: file.replace(/\.png$/, "-open.png") });
           shots.push(file.replace(/\.png$/, "-open.png"));
+          if (scheme === schemes[0]) firstShots.push([`${where} after click`, file.replace(/\.png$/, "-open.png")]);
         }
       }
       await ctx.close();
     }
   }
 }
+// One contact sheet of every first screen, so one image shows all renders.
+let sheet = null;
+if (firstShots.length) {
+  try {
+    const tiles = firstShots.map(([label, f]) => `<figure><img src="data:image/png;base64,${readFileSync(f).toString("base64")}"><figcaption>${label.replace(/[<>&]/g, "")}</figcaption></figure>`).join("");
+    const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+    const pg = await ctx.newPage();
+    await pg.setContent(`<style>body{margin:0;padding:8px;font:12px sans-serif;background:#ddd}main{display:inline-flex;flex-wrap:wrap;max-width:1584px;gap:8px;align-items:flex-start}figure{margin:0}img{height:${firstShots.length > 2 ? 480 : 560}px;display:block;border:1px solid #999}</style><main>${tiles}</main>`);
+    sheet = join(outDir, "contact-sheet.png");
+    await (await pg.$("main")).screenshot({ path: sheet });
+    await ctx.close();
+  } catch { sheet = null; }
+}
 await browser.close();
 
-if (!axeSource && useAxe) problems.push({ level: "warn", where: "setup", msg: "axe-core is not installed, so accessibility was not checked automatically. npm i -D axe-core" });
-// Same problem at several widths or schemes is reported once, with the list of places.
+if (!axeSource && useAxe) problems.push({ level: "warn", where: "setup", msg: "axe-core is not installed, so accessibility was not checked. npm i -D axe-core" });
+// Same problem at several widths or schemes is reported once, with the list of places and the screenshot to open.
 const groups = new Map();
 for (const p of problems) {
   const k = p.level + "|" + p.msg;
@@ -317,13 +343,20 @@ for (const p of problems) {
 }
 const uniq = [...groups.values()];
 for (const g of uniq) {
-  const w = g.where.length > 3 ? `${g.where.length} of ${loaded} renders` : g.where.join(", ");
-  console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${w}`);
+  const w = g.where.length > 3 ? `${g.where.length} checks across ${loaded} renders` : g.where.join(", ");
+  const shot = g.where.map((x) => shotFor.get(x)).find(Boolean);
+  console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${w}${shot ? `\n       open: ${shot}` : ""}`);
 }
 const errs = uniq.filter((p) => p.level === "error").length;
-console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s). Screenshots: ${outDir}`);
-console.log("Open the screenshots and review them against .fluent-kit/DESIGNER.md section 8 before reporting.\nFirst-glance test: open the *-first.png files (just the first screen) and answer in one line each: what is this page, is anything wrong or important, what can I do next. If you cannot, change the page, not the answer.");
-if (shots.length) console.log(`Screenshot files (open these; editor search skips this folder because it is git-ignored):\n${shots.slice(0, 16).map((f) => "  " + f).join("\n")}${shots.length > 16 ? `\n  ... and ${shots.length - 16} more in ${outDir}` : ""}`);
+console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s).`);
+if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
+else console.log(`Screenshots: ${outDir}. Open the 1440px *-first.png once, and other files only where a problem above says "open:".`);
+console.log(`Critique before you report (one line each in your head, fix what fails):
+  1. Five seconds: what is this page, is anything wrong, what do I do next? (verdict and key numbers on the first screen)
+  2. Squint: is the main thing still obvious, with a clear second level?
+  3. Remove one: does any element do nothing? Leave it out.
+  4. Stranger: does every label make sense without knowing the code?
+  5. Same as the rest: does it match the nearest existing page (cards, header, spacing, wording)?`);
 if (rawErrors.length) {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "console-errors.txt"), [...new Set(rawErrors)].join("\n\n----\n\n"));

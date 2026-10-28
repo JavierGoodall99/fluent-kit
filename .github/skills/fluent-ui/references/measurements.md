@@ -12,8 +12,7 @@ Read from the Microsoft 365 UI Kit (Figma community file), "Templates" page, Web
 |---|---|
 | Page padding | 20px (`spacingHorizontalXL`) |
 | Gap between cards, or between a section's blocks | 12px (`spacingHorizontalM`) on dashboards; 20px (`spacingVerticalXL`) on forms and boards |
-| Page title | 20px semibold, 28px line (`fontSizeBase500`); subtitle 14px, `colorNeutralForeground3` |
-| Form or settings title | 16px bold, 22px line; description 14px `colorNeutralForeground3` |
+| Page title | 24px semibold, 32px line (`fontSizeBase600`) on every page, forms and settings included; description 14px, `colorNeutralForeground3`. The M365 templates use 20px; the kit standardises on 24px (`Title3`) so every page title is the same size |
 | Section header in a form | 12px bold; its description 14px `colorNeutralForeground3` |
 | Section title above a list | 16px semibold, 22px line, in a 32px-high row with the filter and search at the right |
 | Card | radius 8px, padding 16px, gap 16px, `shadow4`; header 12px between title and tabs |
@@ -60,8 +59,8 @@ Read from the Microsoft 365 UI Kit "Mobile" frames (390px wide: dashboard, list,
 | List | Rows run edge to edge with no card around them. Selection control or avatar at the start, title and description in one line each (ellipsis), "..." at the end, a hairline divider between rows. A section title row sits above (32px high). |
 | Card grid | All cards in a grid share one height; overflow scrolls inside the card body or opens a drawer. Never let content change a card's height. |
 | Table at 375px | Keep the name and the status. Hide other columns, or move one short secondary value under the name. A cell never wraps to more than two lines, and the row stays close to 48px. A toolbar action (refresh, filter) sits on the same line as the tabs or search, never alone on its own row. |
-| Form | Label above the field (12px, brand colour while focused, danger colour on error), error text under the field in the danger colour. Groups of choices have a small group label above and rows about 48px high. Switch rows live in a rounded group (radius 12px) on the tinted canvas. Save is full width and primary, Discard full width and outline under it, 12px apart, pinned at the bottom of the screen. An error message bar goes at the very top. |
-| Settings | Sections with a bold header and a short description; each section is a rounded group of rows about 48px high. A row is the label at the left and the current value plus a chevron at the right (opens a detail view), or a switch at the right. |
+| Form | Label above the field (Fluent `Field`, its own colours for focus and error), error text under the field. Groups of choices have a small group label above and rows about 48px high. Switch rows sit in one grouped surface (`colorNeutralBackground1`, the theme radius) on the tinted canvas. Save is full width and primary, Discard full width and secondary under it, 12px apart, pinned at the bottom of the screen. An error message bar goes at the very top. |
+| Settings | Sections with a bold header and a short description; each section is one grouped surface (theme radius) of rows about 48px high. A row is the label at the left and the current value plus a chevron at the right (opens a detail view), or a switch at the right. |
 
 Rules that follow from this:
 - Below 640px: stack cards, drop columns that are not the name, status or main action, turn table rows into two-line list rows, and make dialogs and drawers full width.

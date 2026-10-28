@@ -1,34 +1,22 @@
 <!-- fluent-kit:start -->
 ## UI work (Fluent kit)
 
-UI in this repo must look and feel like a Microsoft application: Fluent UI React v9 (`@fluentui/react-components`), Fluent icons (`@fluentui/react-icons`), and the project's own shared UI package if it already depends on one. Nothing else.
-
-**How to start.** Open `.github/skills/fluent-ui/SKILL.md` (a short router) and follow it: it sends you to one example and one measurement table for the screen you are building. Do not read the whole kit. For a small change to existing UI (a prop, a size, spacing, text, one control), skip the router: the rules below and the component's entry in `.github/skills/fluent-ui/references/fluent2-component-guidance.md` are enough. If the repo has its own design guidance (`design.md`, `AGENTS.md`, another design skill) or `.fluent-kit/PROFILE.md`, that wins where it conflicts with the kit.
+UI here must look and feel like a Microsoft app: Fluent UI React v9, Fluent icons, or the project's own shared UI package if it already has one.
 
 **Hard rules**
-- Components from Fluent v9 or the project's shared UI package. No other UI library, no `@fluentui/react` (v8). Icons from `@fluentui/react-icons` only (no emoji, no hand-drawn SVG icons).
-- No native `<button>`, `<input>`, `<select>`, `<textarea>`, `<a>`, `<table>`, `<dialog>`: use `Button`, `Input`, `Dropdown`, `Textarea`, `Link`, `Table`/`DataGrid`, `Dialog`. Not Fluent's `Select` either (it opens the operating system's menu).
-- Never hard-code colours, font sizes, spacing, radii or shadows: `tokens` inside `makeStyles`. The brand comes from the theme; status colours are `tokens.colorStatus*`.
-- UI text in the project's language. Reuse what the project already has; never import a package that is not in `package.json` (an official Fluent companion package is fine if you say so).
-- Never revert, restore or delete files the person changed or removed in their working tree (`git checkout`, `git restore`, `git stash`) without asking first. Work on what is there and say what you see.
-- Edit one file one change at a time: never send several edits to the same file in one batch (they overlap and duplicate code).
-- First glance: in five seconds a person sees what the page is, whether anything is wrong, and what to do next, all on the first screen: verdict and key numbers on top, one row or card per item, detail on demand, no long text or repeated messages inline. Look at the `*-first.png` that `verify` saves.
-- A status you show (linked, failed, active) comes from real data: look at one real record of each kind (API sample, fixture, type, or ask) before writing the condition and name your basis in the note. Placeholders (an item named "Empty", `null`, `""`, `0`) usually mean "not set up". If `verify` cannot reach the state, say the logic is unconfirmed. If every item would show the same badge, show it once in the header. Numbers shown together must agree: derive a percentage from its counts (6 of 9 is 67%), never from a second stored value.
-- A vague request ("make it better", "easier to understand") is not permission to rebuild or remove: keep every field, column, filter and action and the existing layout, sizes and card style; edit the file, never delete and recreate it. If something should go, say so in the note.
-- One look across the app: the same kind of thing (KPI tile, card, page header, filter bar, badge, table, detail panel) uses the same component and style on every page. Find how the app already does it (home screen, nearest page) and reuse it exactly; never invent a second look. If pages already differ, say so and offer one shared component; do not change other pages unasked.
-- Microsoft feel: left nav, command bar above content, `Dialog` only for confirmations, Fluent's defaults for font, radii, density and motion. No gradients, illustrations, heavy shadows or hero banners.
-- The standard outranks a prompt. If a request asks for something off-standard, build the nearest on-standard version and say in two lines what was asked and what you built instead. A warning is not permission either.
+- No other UI or icon library, no Fluent v8, no emoji or hand-drawn icons.
+- No native `<button>`, `<input>`, `<select>`, `<textarea>`, `<a>`, `<table>`, `<dialog>`, and no Fluent `Select`.
+- No hard-coded colours, sizes, spacing, radii or shadows: `tokens` in `makeStyles`.
+- UI text in the project's language. No package that is not in `package.json`.
+- Never revert, stash or delete the person's uncommitted changes.
+- A vague request ("make it better") is not permission to rebuild: keep every field, action and the layout.
+- Reuse how the app already shows the same kind of thing; never add a second look.
+- The standard outranks the prompt: build the nearest on-standard version and say so in two lines.
+- One combined edit per file region.
 
-**Before you finish, size the checking to the size of the change.**
-1. Always: `node .fluent-kit/scripts/check.mjs --changed` and fix every error (about a second; even if the user says to skip checks).
-2. Small change (a prop, size, spacing, text, one control, about 20 lines or fewer): also `tsc`. If what the person sees changed (any layout, spacing or cut-off fix), `verify --quick` is required, not optional: run it and look at one screenshot, because a visual fix you have not seen is a guess. Only a change nobody can see (a rename, a type) skips it.
-3. New component or section on an existing page: `tsc`, then `node .fluent-kit/scripts/verify.mjs --start /page --quick` once at the end (1440 and 375, light).
-4. New page, shell or overlay: `verify --widths 1440,375` once at the end (light and dark, desktop and phone, about 20 seconds). Add `--widths 1440,768,375` only for a shell or a layout that changes at tablet width. Add `--click "role=button[name='...']"` (steps separated by `;`) for anything behind a click, so the open state is checked too.
-`verify` starts and stops the dev server itself: never run `npm run dev` in your terminal. Look at the screenshots. Collect your changes, make them, then verify once; do not re-run after every small fix. Change only the files the request needs; if you see a problem elsewhere, say so in the note and leave it. If `verify` cannot run, give the concrete error and do not claim the UI was verified. If a `.verify-profile` folder exists, `verify` uses its signed-in Edge automatically: a login is no reason to skip `verify`. If the page sits behind a login and there is no such folder, ask the person to run `node .fluent-kit/scripts/login.mjs` once (README, "Pages behind a login"); do not build a temporary unauthenticated route. Check the page title `verify` prints is your app.
+**Small fix** (a prop, size, spacing, text, one control): no skill needed; check the skill's `deviations.md` only if unsure about a control. Then `tsc`, and `verify.mjs --start /page` if anything visible changed. Reply in one line: what changed, what you could not verify.
 
-A `verify` error or warning is never "not mine" by assertion. To call one pre-existing, prove it (`git stash`, `verify`, `git stash pop`, report both). Not a git repo: fix it if the fix is small and local (a clipped tab strip, a table that scrolls sideways) and in a file your change touches or makes visible; otherwise say plainly that it is open. Read warnings; never edit a check to make it pass (`// fluent-kit-ignore -- reason` for one real exception, and mention it).
+**Anything bigger** (restyle, new section, page or app): load the `fluent-ui` skill and follow its triage. Do not read the rest of the kit first. Brief first, design note last.
 
-If the user asks you to skip checks: `check --changed` still runs. You may skip the rest at their explicit request, but say in one line what is unverified. Never relax Fluent-only, tokens-only or accessibility rules for speed.
-
-**End every UI reply with a short design note** (not a list of checks): the requirement; the pattern you chose and the main alternative you rejected; anything built differently from what was asked; every assumption (language, currency, sample data); what a person understands in the first five seconds, and what you could not verify. When unsure which pattern to follow, ask; do not invent one.
+**Always** finish with `node .fluent-kit/scripts/check.mjs --changed` and fix every error, even if asked to skip checks.
 <!-- fluent-kit:end -->

@@ -268,7 +268,7 @@ function DetailView({ title, description, choices, value, onChange }: { title: s
         </Breadcrumb>
 
         <header className={styles.header}>
-          <Text as="h1" id={headingId} size={500} weight="semibold" tabIndex={-1} ref={headingRef} className={styles.title}>{title}</Text>
+          <Text as="h1" id={headingId} size={600} weight="semibold" tabIndex={-1} ref={headingRef} className={styles.title}>{title}</Text>
           <Text className={styles.description}>{description}</Text>
         </header>
 
@@ -358,7 +358,7 @@ export function SettingsPage() {
         )}
 
         <header className={styles.header}>
-          <Text as="h1" size={500} weight="semibold" className={styles.title}>Settings</Text>
+          <Text as="h1" size={600} weight="semibold" className={styles.title}>Settings</Text>
           <Text className={styles.description}>Choose how you are notified and how the app starts.</Text>
         </header>
 

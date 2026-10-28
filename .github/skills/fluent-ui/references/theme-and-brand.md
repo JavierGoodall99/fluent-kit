@@ -1,4 +1,4 @@
-# Theme, brand and language (read when `detect-theme` does not say `fluent-v9-custom-brand`)
+# Theme, brand and language (read when `detect-theme` reports v8, another UI library, a new project, or the user asks to brand the app)
 
 ## Decide which theme applies
 
@@ -7,7 +7,7 @@ Run `node .fluent-kit/scripts/detect-theme.mjs .` (or `--json`) in the project r
 | Result | What to do |
 |---|---|
 | `fluent-v9-custom-brand` | **Existing project.** Keep its theme and brand ramp. Do not recolor, rename or regenerate it. Build with it. |
-| `fluent-v9-stock-theme` | Use the brand step below. If a brand color is found, derive a ramp from it. If not, ask for the brand hex. |
+| `fluent-v9-stock-theme` | **Existing project on the stock Microsoft theme.** Keep it and build with it. Do not ask for a brand color. Use the brand step below only when the user asks to brand the app. |
 | `fluent-v8` | Do not mix v8 and v9 in new code. Ask whether this task is a migration. |
 | `other-ui-library` | Ask the user: migrate to Fluent v9, or keep that library for this task? If migrating, reuse steps 3 to 7 of `references/new-project-setup.md` inside the existing app. |
 | `new-project` | Nothing to read a brand from (an empty folder, or a fresh scaffold: its default colors are not a brand). Follow `references/new-project-setup.md`: ask once for the brand hex or "stock", install Fluent, run `make-theme.mjs`, wrap the app, build the first screen from `examples/`. Never invent a brand color. |

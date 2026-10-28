@@ -6,13 +6,13 @@ Read by AI agents and developers. Fluent UI React v9 is the foundation, so every
 
 Some projects have their own shared UI or theme package. Use it only if the project already depends on one; `.fluent-kit/scripts/detect-theme.mjs` lists likely candidates. If there is none, use Fluent v9 directly. Never import or create a package that is not in `package.json`. Checked against `@fluentui/react-components` 9.74.x.
 
-Read `.fluent-kit/DESIGNER.md` as well: it covers how to think about a screen (brief, hierarchy, content, states, self-critique), where this file covers the parts and tokens.
+Agents: do not read this file top to bottom. The `fluent-ui` skill (`SKILL.md`) says which section a task needs.
 
 ## Framework and styling notes
 
 - **Next.js (App Router):** a file that uses `makeStyles`, Fluent hooks or event handlers needs `"use client"`. Do not pass icon components or elements from a Server Component to a Client Component; pass a string and pick the icon inside the client component.
 - **Next.js, Fluent and `data-tabster-dummy` hydration warnings:** a hydration error whose only server-side difference is `<i data-tabster-dummy ...>` elements comes from Fluent's focus helper (tabster) touching the HTML before React hydrates that chunk. It depends on timing, shows up on pages with toolbars, tab lists, menus or grids, and is not a mistake in the page. `verify.mjs` reports it as a warning. Do not restructure the page, wrap components in client-only mounts, or add `suppressHydrationWarning` to chase it; mention it in the design note as an open Fluent issue. Any other hydration difference is a real error.
-- **Next.js and the virtualized DataGrid:** the sortable virtualized grid can fail hydration when it is rendered on the server (the header does not match what the browser renders). Mount it on the client only and show a `Spinner` until then (`useSyncExternalStore(() => () => {}, () => true, () => false)` as the "mounted" flag). Found in the Copilot behaviour test (prompt 9).
+- **Next.js and the virtualized DataGrid:** the sortable virtualized grid can fail hydration when it is rendered on the server (the header does not match what the browser renders). Mount it on the client only and show a `Spinner` until then (`useSyncExternalStore(() => () => {}, () => true, () => false)` as the "mounted" flag).
 - **Tailwind:** if the project uses it, keep its existing use for page layout. In new code, take colors, typography, radii and shadows from Fluent tokens (`makeStyles` + `tokens`), not Tailwind color utilities, unless the project's own guidance says otherwise.
 
 ## 0. Source of truth
@@ -55,7 +55,7 @@ Each app supplies a 16-step brand ramp to `createLightTheme` / `createDarkTheme`
 How the brand is chosen. Nobody sets the brand beforehand; the agent finds it:
 
 1. Run `node .fluent-kit/scripts/detect-theme.mjs .` in the project.
-2. **The project already has a 16-step Fluent ramp** (`createLightTheme` or `BrandVariants`): keep it exactly. Do not change or regenerate it.
+2. **The project already has a 16-step Fluent ramp** (`createLightTheme` or `BrandVariants`): keep it exactly. Do not change or regenerate it. **The project uses the stock Microsoft theme:** keep it too, and do not ask for a brand color; the steps below apply only when the user asks to brand it.
 3. **No ramp, but a brand color is found** (a `colorBrandBackground` override, a variable named brand/primary/accent, or the most-used saturated color): run `node .fluent-kit/scripts/generate-ramp.mjs <hex> --ts`, put the result where the theme is created, and tell the user in one line which color was used. Do not ask first. If the color came only from usage counts (the script says "medium" confidence), say in the same line that it is a guess.
 4. **Several candidate colors** (the script says "ambiguous"): ask the user to pick one. Show the candidates.
 5. **No brand color found**: ask the user for the brand hex, or whether the app should stay on the stock Microsoft theme. Never invent one. Save the answer in `.fluent-kit/brand.json` (`{ "mode": "stock" }` or `{ "hex": "#rrggbb" }`) so it is not asked again; `detect-theme.mjs` honours that file.
@@ -99,8 +99,8 @@ Common uses:
 
 | Use | Size token | Weight token |
 |---|---|---|
-| Page title | `fontSizeBase600` | `fontWeightSemibold` |
-| Section title | `fontSizeBase500` | `fontWeightSemibold` |
+| Page title (`h1`, every page, forms and settings included) | `fontSizeBase600` (24px, `Title3`) | `fontWeightSemibold` |
+| Section title (`h2`) | `fontSizeBase400` (16px, `Subtitle2`) | `fontWeightSemibold` |
 | Body | `fontSizeBase300` | `fontWeightRegular` |
 | Secondary / caption | `fontSizeBase200` | `fontWeightRegular` |
 
@@ -245,7 +245,7 @@ Page patterns that make a product feel like Microsoft software:
 | **First run** | The first time a person opens the app with no data, show a welcome empty state: what this app is for and the one action that gets them started. Never show a blank page. |
 | **Personal content** | Show what is relevant to the person (their items, their activity) before everything in the organisation. Do not show content unrelated to them. |
 | **Keep the app focused** | Put the core tasks in the app and send rare or complex features (chart builders, bulk admin) to a full page or the full web app with a link. Do not cram the whole product into one screen. |
-| **Records** | Pick the presentation from the requirement (see "Choose by requirement" below). Whatever you pick, add a command bar above if there are actions (New, Delete, Refresh, filter via `SearchBox`), and always show empty, loading and error states. |
+| **Records** | Pick the presentation from the requirement (see "Choose by requirement" above). Whatever you pick, add a command bar above if there are actions (New, Delete, Refresh, filter via `SearchBox`), and always show empty, loading and error states. |
 | **Forms** | Single column of `Field`s. Inline validation messages. Button order: in a dialog or drawer footer the primary action comes first (Fluent 2 Web), then the secondary. A full-page form or settings page follows the Microsoft 365 template instead: Discard then Save, right-aligned. Use one order per surface type across the whole app. |
 | **Confirmations** | `Dialog`, only for destructive or irreversible actions. Never use a dialog for a normal edit form. |
 | **Status** | `MessageBar` inline at the top of the content for persistent messages. `Toast` for transient confirmation. |
@@ -299,18 +299,7 @@ The numbers (padding, gaps, row heights, radii, control sizes) for each page pat
 
 ## 9. Agent prompt guide
 
-When asked to build UI, an agent should:
-
-1. Read this file (and `.fluent-kit/PROFILE.md` if it exists). Run `.fluent-kit/scripts/detect-theme.mjs` to find the theme and brand.
-2. Pick the page pattern from section 5 and reuse existing components from the project.
-3. Write styles with `makeStyles` and `tokens` only. Icons from `@fluentui/react-icons` only.
-4. Run the lint rules, `tsc`, and the checklist in `.github/skills/fluent-ui/checklist.md`.
-
-Example prompts that should work well:
-
-- "Add a settings page using the Fluent design kit."
-- "Migrate `InvoiceList` from Fluent v8 to v9 and remove hard-coded styles."
-- "Build a list page for customers with a command bar and a details drawer."
+Agents start from the `fluent-ui` skill (`.github/skills/fluent-ui/SKILL.md`, or `.claude/skills/fluent-ui/SKILL.md`). It sends each kind of task to the one example and the one section it needs. This file is the reference behind it.
 
 ## 10. Language and copy
 

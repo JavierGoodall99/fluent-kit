@@ -1,6 +1,6 @@
 // Status grid: many same-shaped records (checks, jobs, steps) grouped under a parent, read to find what is wrong.
 // Use when the requirement is "see which of these items are failing, why, and compare them".
-// Rules this example follows (see "Same-shaped records" in .fluent-kit/DESIGNER.md):
+// Rules this example follows (see "A page that reports status" in .fluent-kit/DESIGNER.md section 1):
 //  - One row component for every status. Status changes the badge, icon and emphasis, never the layout.
 //  - The same columns on every row, in the same order, at the same widths.
 //  - Message text wraps and is capped at about 75ch, on a neutral surface. It never runs across the screen.

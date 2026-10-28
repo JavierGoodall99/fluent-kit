@@ -12,7 +12,7 @@ const dirs = (roots.length ? roots : ["src", "app", "components", "pages"]).filt
 if (!dirs.length) { console.log("No src, app, components or pages folder here. Pass the folder: node .fluent-kit/scripts/consistency.mjs <folder>"); process.exit(0); }
 
 const files = [];
-const walk = (d) => { for (const n of readdirSync(d)) { if (/^(node_modules|\.next|dist|build|\.git|\.fluent-kit|\.github)$/.test(n)) continue; const p = join(d, n); const st = statSync(p); if (st.isDirectory()) walk(p); else if (/\.(tsx|jsx|ts)$/.test(n) && !/\.(test|spec|stories)\./.test(n)) files.push(p); } };
+const walk = (d) => { for (const n of readdirSync(d)) { if (/^(node_modules|\.next|dist|build|\.git|\.fluent-kit|\.github|\.claude|\.agents)$/.test(n)) continue; const p = join(d, n); const st = statSync(p); if (st.isDirectory()) walk(p); else if (/\.(tsx|jsx|ts)$/.test(n) && !/\.(test|spec|stories)\./.test(n)) files.push(p); } };
 dirs.forEach(walk);
 
 const NAME = /(?:^|[a-z0-9])(?:[Cc]ard|[Tt]ile|[Kk]pi|[Ss]tats?|[Mm]etric|[Pp]anel)(?:[A-Z0-9]|$)/;
