@@ -112,7 +112,7 @@ if (startServer) {
       // If the port was busy the server says so and then prints the port it really uses: wait a moment and take the last URL.
       const busy = /in use|already|trying|instead/i.test(clean);
       clearTimeout(timer); timer = setTimeout(() => resolveUrl(all[all.length - 1]), busy ? 2500 : 0);
-      if (busy) console.log("Note: the dev server reported a busy port. Using " + all[all.length - 1] + " (another project may be running on the default port).");
+      if (busy) console.log("Note: the dev server reported a busy port. Using " + all[all.length - 1] + " (another project may be using the default port). Check the heading printed below against the page you asked for before you trust the run.");
     };
     server.stdout.on("data", onData); server.stderr.on("data", onData);
     server.on("exit", () => {
@@ -194,7 +194,9 @@ for (const url of urls) {
       loaded++;
 
       const pageTitle = await page.title();
-      console.log(`  ${where}: title "${pageTitle.slice(0, 60)}"`);
+      // The tab title is often fixed in index.html and says nothing about the view: also print the page's own heading and URL.
+      const heading = await page.evaluate(() => (document.querySelector("h1, [role=heading][aria-level='1']") || document.querySelector("h2"))?.textContent?.trim().slice(0, 60) || "");
+      console.log(`  ${where}: heading "${heading}"  (tab title "${pageTitle.slice(0, 40)}")`);
       if (/sign in|log ?in|inloggen|aanmelden/i.test(pageTitle) || /login\.microsoftonline|login\.live/.test(page.url())) note("error", where, "This is a sign-in page, not your app, so nothing here was really checked. Run once: node .fluent-kit/scripts/login.mjs (README: Pages behind a login), then run verify again.");
       const info = await page.evaluate(() => {
         const prov = document.querySelector(".fui-FluentProvider");
