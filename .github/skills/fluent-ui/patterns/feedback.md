@@ -12,7 +12,7 @@ Something happened, or there is nothing yet. Examples: `examples/notifications.t
 | extra info with structure, links or actions | `Popover` |
 
 **MessageBar**
-- Bold title, a full stop, then the detail: "Saving failed. Check your connection and try again."
+- A `MessageBarTitle`, a full stop, then the detail: "Saving failed. Check your connection and try again."
 - Info is neutral, success green, warning orange, error red, each with its own icon; never colour alone.
 - Single line is 36px: 12px by 6px padding, 20px status icon. Text column about 520px or 100 characters; multiline puts actions in a row below, right-aligned.
 - Actions (Retry, Fix) sit in the bar; link only to a page that really shows that thing.
@@ -22,7 +22,7 @@ Something happened, or there is nothing yet. Examples: `examples/notifications.t
 **Empty state**
 - Centred in the available space; 20px between icon, text and actions.
 - A 48px Fluent icon in `colorBrandForeground1`, not an illustration.
-- Title 16px bold; text 14px, at most 600px wide; actions in a column about 280px wide: primary, then secondary, then a link; 8px apart.
+- Title 16px semibold; text 14px, at most 600px wide; actions in a column about 280px wide: primary, then secondary, then a link; 8px apart.
 - First use (what this is for and the one action that starts it), no results (clear the filter) and no permission (who to ask) are three different states with different text.
 - Never a blank page.
 

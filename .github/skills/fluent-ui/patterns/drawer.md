@@ -11,7 +11,7 @@ Many fields or sections belong on a full page (`patterns/form.md`). A short hint
 **Drawer**
 - Widths 320px (default), 592px, 940px. Overlay drawers block the page and carry `shadow64` already; do not add a shadow.
 - Header: 24px padding, title 20px semibold (`DrawerHeaderTitle`), close button (`Dismiss24Regular`, `aria-label`) at the right; optional back button.
-- Body: 24px side padding; fields 16px apart, each in a `Field`.
+- Body: 24px side padding; fields 12px apart (`spacingVerticalM`), each in a `Field`.
 - Footer: 16px above, 24px below and at the sides. Primary (Save) first, then Cancel, then an optional "..." menu.
 - Save disabled while required fields are empty; validation next to the field; closing with unsaved changes asks first.
 

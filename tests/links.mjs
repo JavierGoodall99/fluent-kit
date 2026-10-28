@@ -21,6 +21,9 @@ for (const f of shipped) {
     for (const m of line.matchAll(/(?<![\w./-])((?:tasks|patterns|examples)\/[\w-]+\.(?:md|tsx)|deviations\.md|SKILL\.md)/g)) {
       if (!existsSync(K + m[1])) problems.push(`${f}:${i + 1}  missing file: ${m[1]}`);
     }
+    for (const m of line.matchAll(/\.github\/skills\/fluent-ui\/([\w/-]+\.(?:md|tsx))/g)) {
+      if (!existsSync(K + m[1])) problems.push(`${f}:${i + 1}  missing file: .github/skills/fluent-ui/${m[1]}`);
+    }
     for (const m of line.matchAll(/\.fluent-kit\/scripts\/([\w-]+\.mjs)/g)) {
       if (!existsSync(".fluent-kit/scripts/" + m[1])) problems.push(`${f}:${i + 1}  missing script: ${m[1]}`);
     }

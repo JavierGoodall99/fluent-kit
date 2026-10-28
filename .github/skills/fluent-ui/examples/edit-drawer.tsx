@@ -19,7 +19,7 @@ const useStyles = makeStyles({
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: tokens.spacingVerticalL,
+    gap: tokens.spacingVerticalM,
   },
 });
 

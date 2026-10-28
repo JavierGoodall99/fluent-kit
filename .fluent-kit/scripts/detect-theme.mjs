@@ -30,7 +30,7 @@ const styleFiles = [];
 const deps = {};
 const pkgPath = join(root, "package.json");
 if (existsSync(pkgPath)) {
-  try { const j = JSON.parse(readFileSync(pkgPath, "utf8")); Object.assign(deps, j.dependencies, j.devDependencies, j.peerDependencies); } catch {}
+  try { const j = JSON.parse(readFileSync(pkgPath, "utf8")); Object.assign(deps, j.dependencies, j.devDependencies, j.peerDependencies); } catch { /* not readable: skip */ }
 }
 const has = (n) => deps[n];
 const OTHER_UI = ["@mui/material", "antd", "@chakra-ui/react", "react-bootstrap", "@mantine/core", "primereact", "@blueprintjs/core", "semantic-ui-react"];
@@ -64,12 +64,11 @@ const TOOLING = /^(react|react-dom|vite|@vitejs\/.+|typescript|typescript-eslint
 const nonTrivialDeps = Object.keys(deps).filter((n) => !TOOLING.test(n));
 let readmeScaffold = false;
 for (const n of ["README.md", "readme.md"]) {
-  try { readmeScaffold = /minimal setup to get React working in Vite|Getting Started with Create React App|bootstrapped with \[?`?create-next-app|bootstrapped with .?create-next-app|This template provides/i.test(readFileSync(join(root, n), "utf8").slice(0, 4000)); break; } catch {}
+  try { readmeScaffold = /minimal setup to get React working in Vite|Getting Started with Create React App|bootstrapped with \[?`?create-next-app|bootstrapped with .?create-next-app|This template provides/i.test(readFileSync(join(root, n), "utf8").slice(0, 4000)); break; } catch { /* not readable: skip */ }
 }
 const freshScaffold = files.length <= 8 && (nonTrivialDeps.length === 0 || readmeScaffold) && !has("@fluentui/react-components") && !has("@fluentui/react");
 
 // 2b. brand color detection (used when there is no 16-step ramp to keep)
-const HEX = /#[0-9a-fA-F]{6}\b/;
 function hsl(hex) {
   const n = parseInt(hex.slice(1, 7), 16);
   const r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
@@ -117,7 +116,7 @@ if (!ramp && !freshScaffold) {
 }
 // shared UI/theme packages (names are not known in advance, so this is a heuristic: verify)
 const KNOWN_SCOPES = /^@(fluentui|types|babel|testing-library|storybook|vitejs|typescript-eslint|eslint|azure|microsoft|griffel|emotion|swc|rollup|vitest|playwright|angular|nx|tanstack|reduxjs|react-spring|floating-ui|mui|chakra-ui|mantine|blueprintjs|heroicons|fortawesome|radix-ui)\//;
-const sharedPackages = Object.keys(deps).filter((n) => n[0] === "@" && !KNOWN_SCOPES.test(n) && /(^|[\/-])(ui|design|theme|components)(-|$)/.test(n));
+const sharedPackages = Object.keys(deps).filter((n) => n[0] === "@" && !KNOWN_SCOPES.test(n) && /(^|[/-])(ui|design|theme|components)(-|$)/.test(n));
 
 
 // 2c. UI language signals
@@ -140,7 +139,7 @@ for (const rel of allPaths) {
     const t = readFileSync(join(root, rel), "utf8").slice(0, 200000);
     const m = t.match(/<html[^>]*\blang\s*=\s*["']([A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})?)["']/);
     if (m) { htmlLang = m[1]; break; }
-  } catch {}
+  } catch { /* not readable: skip */ }
 }
 const localeCodes = new Set();
 for (const rel of allPaths) {
@@ -166,7 +165,7 @@ try {
   const d = JSON.parse(readFileSync(join(root, ".fluent-kit", "brand.json"), "utf8"));
   if (d && d.mode === "stock") decision = { mode: "stock" };
   else if (d && /^#[0-9a-fA-F]{6}$/.test(d.hex || "")) decision = { hex: d.hex.toLowerCase() };
-} catch {}
+} catch { /* not readable: skip */ }
 if (decision && decision.hex && !ramp) brand = { hex: decision.hex, source: ".fluent-kit/brand.json", confidence: "high", candidates: [] };
 
 // 2e. existing guidance in the repo, styling approach, framework
@@ -175,7 +174,7 @@ for (const f of ["design.md", "DESIGN.md", "STYLEGUIDE.md", "docs/design.md", "d
   if (existsSync(join(root, f))) {
     // Agent instruction files count as design guidance only for what they say outside the kit's own block.
     if (/^(AGENTS\.md|CLAUDE\.md|\.github\/copilot-instructions\.md|\.cursorrules)$/.test(f)) {
-      let rest = ""; try { rest = readFileSync(join(root, f), "utf8").replace(/<!-- fluent-kit:start -->[\s\S]*?<!-- fluent-kit:end -->/, ""); } catch {}
+      let rest = ""; try { rest = readFileSync(join(root, f), "utf8").replace(/<!-- fluent-kit:start -->[\s\S]*?<!-- fluent-kit:end -->/, ""); } catch { /* not readable: skip */ }
       if (!/\b(design|ui|ux|styles?|styling|theme|css|tailwind|components?|colou?rs?|fonts?|layout)\b/i.test(rest)) continue;
     }
     existingGuidance.push(f);
@@ -184,7 +183,7 @@ for (const f of ["design.md", "DESIGN.md", "STYLEGUIDE.md", "docs/design.md", "d
 for (const d of [".agents/skills", ".github/skills", ".claude/skills", ".cursor/rules"]) {
   try {
     for (const n of readdirSync(join(root, d))) if (/fluent|design|\bui\b|style|theme|frontend/i.test(n) && n !== "fluent-ui") existingGuidance.push(`${d}/${n}`);
-  } catch {}
+  } catch { /* not readable: skip */ }
 }
 const framework = has("next") ? "next" : has("vite") ? "vite" : has("react-scripts") ? "cra" : has("@remix-run/react") ? "remix" : null;
 const tailwind = !!(has("tailwindcss") || has("@tailwindcss/postcss") || has("@tailwindcss/vite"));

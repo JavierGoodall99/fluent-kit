@@ -3,9 +3,9 @@
 A few preferences, changed now and then, saved once for the whole page. Not for a record someone edits (`patterns/drawer.md`). Example: `examples/settings-page.tsx`.
 
 **Layout** (1440px)
-- Page `colorNeutralBackground2`, padding 24px (`spacingVerticalXXL`); one centred column, max 480px; blocks 20px apart.
+- Page `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`); one centred column, max 480px; blocks 20px apart.
 - Header: `h1` `fontSizeBase600` semibold, one-line description 14px `colorNeutralForeground3`.
-- Section: `h2` title (14px semibold) with a 14px `colorNeutralForeground3` description, 4px apart, 12px above its group.
+- Section: `h2` title (16px semibold) with a 14px `colorNeutralForeground3` description, 4px apart, 12px above its group.
 - Group: one surface, `colorNeutralBackground1`, `borderRadiusXLarge`, `shadow4`, thin `colorNeutralStroke2` border; rows separated by a `colorNeutralStroke2` divider, no shadow per row.
 
 **Rows** (48px minimum, 12px side padding)

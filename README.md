@@ -24,7 +24,8 @@ Options:
 
 - `--profile <name>`: also set organisation overrides (language, tone, shared packages) from `.fluent-kit/profiles/<name>.md`. Without it, defaults apply.
 - `--brand stock` or `--brand #rrggbb`: record the brand decision in `.fluent-kit/brand.json` (`stock` keeps the stock Microsoft theme, so the agent never asks for a brand color).
-- `--claude`: also install for Claude Code: the rules block in `CLAUDE.md` and the skill in `.claude/skills/fluent-ui/`. Automatic when the repo already has `CLAUDE.md` or a `.claude/` folder.
+- `--claude`: also install for Claude Code: the rules block in `CLAUDE.md`, and the skill in `.claude/skills/fluent-ui/` instead of `.github/skills/`. Copilot reads both folders, so one copy serves both agents and Copilot never sees the skill twice. Automatic when the repo already has `CLAUDE.md` or a `.claude/` folder.
+- `--skills-dir <dir>`: put the skill in `<dir>/fluent-ui/` instead (for example `.agents/skills`, or `.github/skills` for a Copilot surface that does not read `.claude/skills`).
 - `--agents`: also add the rules block to `AGENTS.md`, which Copilot's coding agent, Codex, Cursor and other agents read. Automatic (kept in sync) when `AGENTS.md` already exists.
 - `--with-deps`: also install what `verify.mjs` needs: `playwright` and `axe-core` as dev dependencies, then the Chromium browser (about 150 MB). Without it the installer only prints the command.
 - `--hooks`: also install a git pre-commit hook that runs `check.mjs --changed`.
@@ -33,9 +34,9 @@ Options:
 
 Safe to run again to update. It replaces kit files, removes kit files a newer version no longer ships (it keeps a list in `.fluent-kit/manifest.json`), never touches your `PROFILE.md`, `brand.json` or `.fluent-kit/brands/` files, and only replaces its own marked block inside `copilot-instructions.md`, `CLAUDE.md` and `AGENTS.md` (the rest of those files stays yours).
 
-By hand: copy `.fluent-kit/` and `.github/skills/` into the repo root (for Claude Code, also copy `.github/skills/fluent-ui/` to `.claude/skills/fluent-ui/`) and paste the block between the `fluent-kit` markers from `.github/copilot-instructions.md` into your own instruction file.
+By hand: copy `.fluent-kit/` and `.github/skills/` into the repo root (for Claude Code, put the skill in `.claude/skills/fluent-ui/` instead, and change the two skill paths in the block to match) and paste the block between the `fluent-kit` markers from `.github/copilot-instructions.md` into your own instruction file.
 
-Then commit what it installed. Copilot reads `.github/` and Claude Code reads `CLAUDE.md` and `.claude/` on their own. Check that your Copilot version supports Agent Skills (`.github/skills/`); the instructions files work without it.
+Then commit what it installed. Copilot reads `.github/` (and the skill from `.claude/skills/` too); Claude Code reads `CLAUDE.md` and `.claude/`. Check that your Copilot version supports Agent Skills (`.github/skills/`); the instructions files work without it.
 
 ## What it does in an existing repo and in a new one
 
@@ -63,7 +64,7 @@ Installed into your repo:
 ```
 .github/
   copilot-instructions.md            always-on rules, under 250 words (the installer inserts the marked block here, and in CLAUDE.md / AGENTS.md)
-  skills/fluent-ui/                  (copied to .claude/skills/fluent-ui/ for Claude Code)
+  skills/fluent-ui/                  (in .claude/skills/fluent-ui/ instead when Claude Code is used)
     SKILL.md                         the router: small fix, restyle, new page, new app -> one task card + one pattern card
     tasks/                           one card per kind of task: small-fix, restyle, new-page, new-app
     patterns/                        one card per page pattern, with its measurements and narrow-screen rules:

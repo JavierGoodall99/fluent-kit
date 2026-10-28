@@ -20,7 +20,7 @@
 const NATIVE = [
   ["button", "Use Fluent Button, ToolbarButton or MenuItem instead of a native <button>."],
   ["input", "Use Fluent Input, Checkbox, Radio, Switch or SearchBox instead of a native <input>."],
-  ["select", "Use Fluent Select, Dropdown or Combobox instead of a native <select>."],
+  ["select", "Use Fluent Dropdown (with Option) or Combobox instead of a native <select>; RadioGroup for 2 to 5 visible choices. Not Fluent Select: it opens the operating system list."],
   ["textarea", "Use Fluent Textarea instead of a native <textarea>."],
   ["a", "Use Fluent Link, NavItem or BreadcrumbItem instead of a native <a>."],
   ["dialog", "Use Fluent Dialog instead of a native <dialog>."],

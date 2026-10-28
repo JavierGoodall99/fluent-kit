@@ -61,6 +61,7 @@ const full = args.includes("--full"); // default is the fast pass (1440 and 375,
 const widths = opt("--widths", full ? "1440,768,375" : "1440,375").split(",").map(Number);
 const schemes = opt("--schemes", full ? "light,dark" : "light").split(",");
 const outDir = resolve(opt("--out", ".fluent-kit/out"));
+const ANSI = new RegExp(String.fromCharCode(27) + "\\[[0-9;]*m", "g"); // terminal colour codes in dev-server output
 // One line per call in verify-runs.jsonl (also calls that stop early), so a benchmark can count how often the agent verified.
 const runLog = { at: new Date().toISOString(), args, renders: 0, errors: null, warnings: null };
 process.on("exit", (code) => {
@@ -105,7 +106,7 @@ if (startServer) {
     let timer = null;
     const onData = (d) => {
       log = (log + d.toString()).slice(-4000);
-      const clean = log.replace(/\x1b\[[0-9;]*m/g, "");
+      const clean = log.replace(ANSI, "");
       const all = clean.match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
       if (!all) return;
       // If the port was busy the server says so and then prints the port it really uses: wait a moment and take the last URL.
@@ -118,7 +119,7 @@ if (startServer) {
       exited = true;
       // The dev server stopped at once, often because one is already running for this project ("another instance is already running"
       // and it prints that server's URL). Use that URL instead of failing.
-      const all = log.replace(/\x1b\[[0-9;]*m/g, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
+      const all = log.replace(ANSI, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
       if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); resolveUrl(all[all.length - 1]); } else resolveUrl(null);
     });
     setTimeout(() => resolveUrl(null), 90000);
@@ -309,7 +310,7 @@ for (const url of urls) {
         let opened = true;
         for (const step of clickSteps) {
           try { await page.locator(step).first().click({ timeout: 5000 }); await page.waitForTimeout(600); }
-          catch { note("error", where, `--click '${step}' could not be clicked within 5 seconds (not on the page, covered, or disabled: a button that needs a selected row stays disabled until you add that click first, for example --click \"role=checkbox[name='Row 1'];role=button[name='Delete']\"). Use a Playwright selector such as "role=button[name='New task']" or "text=New task".`); opened = false; break; }
+          catch { note("error", where, `--click '${step}' could not be clicked within 5 seconds (not on the page, covered, or disabled: a button that needs a selected row stays disabled until you add that click first, for example --click "role=checkbox[name='Row 1'];role=button[name='Delete']"). Use a Playwright selector such as "role=button[name='New task']" or "text=New task".`); opened = false; break; }
         }
         if (opened) {
           shotFor.set(`${where} after clicking ${clickSteps.join(" then ")}`, file.replace(/\.png$/, "-open.png"));

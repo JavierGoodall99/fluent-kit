@@ -16,8 +16,10 @@ Target defaults to the current folder.
 Options:
   --profile <name>       copy .fluent-kit/profiles/<name>.md to .fluent-kit/PROFILE.md (organisation overrides)
   --brand <stock|#hex>   record the brand decision in .fluent-kit/brand.json
-  --claude               also install for Claude Code: the rules block in CLAUDE.md and the skill in .claude/skills/fluent-ui/
-                         (done automatically when the repo already has CLAUDE.md or a .claude/ folder)
+  --claude               also install for Claude Code: the rules block in CLAUDE.md, and the skill in .claude/skills/fluent-ui/
+                         instead of .github/skills/ (Copilot reads both folders; one copy avoids a duplicate skill).
+                         Done automatically when the repo already has CLAUDE.md or a .claude/ folder.
+  --skills-dir <dir>     put the skill in <dir>/fluent-ui/ instead (for example .github/skills or .agents/skills)
   --agents               also write the rules block to AGENTS.md (Codex, Cursor, Copilot's coding agent and others;
                          done automatically when AGENTS.md already exists)
   --with-deps            also install what verify.mjs needs: playwright and axe-core as dev dependencies, and the
@@ -31,7 +33,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
-const target = args.find((a, i) => !a.startsWith("-") && args[i - 1] !== "--profile" && args[i - 1] !== "--brand");
+const target = args.find((a, i) => !a.startsWith("-") && !["--profile", "--brand", "--skills-dir"].includes(args[i - 1]));
 const dry = flag("--dry-run");
 const profile = opt("--profile");
 const brandOpt = opt("--brand");
@@ -102,15 +104,18 @@ if (brandOpt) {
   else { if (!dry) writeFileSync(out, JSON.stringify(val, null, 2) + "\n"); log(`brand.json written: ${JSON.stringify(val)}`); }
 }
 
-// 3. the skill: .github/skills (Copilot) always, .claude/skills (Claude Code) when asked or already used
+// 3. the skill, in one folder only: Copilot reads .github/skills, .claude/skills and .agents/skills, and shows a skill
+// twice if it is in two of them. Claude Code reads only .claude/skills, so that folder serves both when Claude is used.
 const skillSrc = join(here, ".github", "skills", "fluent-ui");
-copyDir(skillSrc, join(dest, ".github", "skills", "fluent-ui"));
-log("copied .github/skills/fluent-ui/");
-if (claude) { copyDir(skillSrc, join(dest, ".claude", "skills", "fluent-ui")); log("copied .claude/skills/fluent-ui/ (Claude Code)"); }
+const skillsDir = (opt("--skills-dir") || (claude ? ".claude/skills" : ".github/skills")).replace(/\\/g, "/").replace(/\/+$/, "");
+const SKILL = `${skillsDir}/fluent-ui`;
+copyDir(skillSrc, join(dest, ...SKILL.split("/")));
+log(`copied ${SKILL}/`);
 
 // 4. rules block in copilot-instructions.md, CLAUDE.md and AGENTS.md
 const kitText = readFileSync(join(here, ".github", "copilot-instructions.md"), "utf8");
-const block = kitText.slice(kitText.indexOf(START), kitText.indexOf(END) + END.length);
+// The block names the skill by its real path, so the agent does not have to look for it.
+const block = kitText.slice(kitText.indexOf(START), kitText.indexOf(END) + END.length).split(".github/skills/fluent-ui/").join(`${SKILL}/`);
 function putBlock(file, title) {
   let text = existsSync(file) ? readFileSync(file, "utf8") : null;
   let action;
@@ -145,10 +150,11 @@ const kitInfo = (() => {
   let version = null; try { version = JSON.parse(readFileSync(join(here, "package.json"), "utf8")).version; } catch { /* none */ }
   const git = spawnSync("git", ["-C", here, "rev-parse", "--short", "HEAD"], { encoding: "utf8" });
   const h = createHash("sha256");
-  for (const f of installed.filter((x) => x.startsWith(".github/skills/fluent-ui/")).sort()) { h.update(f); h.update(readFileSync(join(here, f))); }
+  // Hash each skill file by its path inside the skill, so the fingerprint does not depend on the folder it went to.
+  for (const f of installed.filter((x) => x.startsWith(`${SKILL}/`)).sort()) { const r = f.slice(SKILL.length + 1); h.update(r); h.update(readFileSync(join(skillSrc, r))); }
   return { version, commit: git.status === 0 ? git.stdout.trim() : null, fingerprint: h.digest("hex").slice(0, 12) };
 })();
-if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by fluent-kit. The installer uses this list to remove files a newer kit no longer ships.", kit: kitInfo, files: [...now].sort() }, null, 2) + "\n");
+if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by fluent-kit. The installer uses this list to remove files a newer kit no longer ships.", kit: kitInfo, skill: SKILL, files: [...now].sort() }, null, 2) + "\n");
 
 // 6. look at the project
 console.log("\nWhat the kit found in this project:\n");
@@ -169,7 +175,7 @@ const hasAxe = canResolve("axe-core") || canResolve("@axe-core/playwright");
 const pm = existsSync(join(dest, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(dest, "yarn.lock")) ? "yarn" : (existsSync(join(dest, "bun.lockb")) || existsSync(join(dest, "bun.lock"))) ? "bun" : "npm";
 const addDev = (pkgs) => (pm === "npm" ? ["install", "-D", ...pkgs] : pm === "yarn" ? ["add", "-D", ...pkgs] : ["add", "-D", ...pkgs]);
 const missing = [!hasPlaywright && "playwright", !hasAxe && "axe-core"].filter(Boolean);
-let depsNote = "";
+let depsNote;
 if (!missing.length) depsNote = "verify.mjs dependencies: installed.";
 else if (flag("--with-deps") && !dry && existsSync(pj)) {
   console.log(`\nInstalling for verify.mjs: ${missing.join(", ")} (dev dependencies), then the Chromium browser (about 150 MB)...`);

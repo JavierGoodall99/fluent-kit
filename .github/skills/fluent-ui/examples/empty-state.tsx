@@ -26,7 +26,7 @@ export function EmptyState({ icon = <DocumentAdd48Regular />, title, description
     <div className={s.wrap} role="status">
       <span className={s.icon} aria-hidden="true">{icon}</span>
       <div className={s.text}>
-        <Text as="h2" size={400} weight="bold" align="center" className={s.title}>{title}</Text>
+        <Text as="h2" size={400} weight="semibold" align="center" className={s.title}>{title}</Text>
         <Text align="center">{description}</Text>
       </div>
       <div className={s.actions}>

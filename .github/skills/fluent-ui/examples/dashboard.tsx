@@ -47,7 +47,7 @@ function DashboardCard({ title, description, summary, range, onRange, children, 
   return (
     <Card className={s.card} role="group" aria-label={title}>
       <CardHeader
-        header={<Text weight="bold" size={300}>{title}</Text>}
+        header={<Text weight="semibold" size={300}>{title}</Text>}
         description={<Text size={200} className={s.description}>{description}</Text>}
         action={<Button appearance="transparent" icon={<MoreHorizontal20Regular />} aria-label={`More options for ${title}`} />}
       />

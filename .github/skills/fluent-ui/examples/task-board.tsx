@@ -54,7 +54,7 @@ export function TaskBoard({ initial }: { initial: Record<Stage, Task[]> }) {
       {STAGES.map((stage) => (
         <section key={stage.id} className={s.column} aria-label={stage.label}>
           <div className={s.columnHeader}>
-            <Text weight="bold">{stage.label}</Text>
+            <Text weight="semibold">{stage.label}</Text>
             <Text className={s.muted}>{cols[stage.id].length}</Text>
           </div>
           <Button className={s.add} appearance="outline" icon={<Add24Regular />} aria-label={`Add a task to ${stage.label}`} />
