@@ -74,6 +74,8 @@ Installed into your repo:
 .fluent-kit/
   scripts/check.mjs, verify.mjs      the rules checker and the browser check
   scripts/login.mjs                  one-time sign-in for pages behind a login
+  scripts/context.mjs <route>        one call at the start of a task: theme, brand, language, PROFILE.md, the app's
+                                     standard card style and what to read next (cached in .fluent-kit/context.json)
   scripts/detect-theme.mjs           theme, brand and language detection
   scripts/consistency.mjs            the app's standard card style and the pages that differ
   scripts/generate-ramp.mjs          16-step brand ramp from one color, with contrast checks

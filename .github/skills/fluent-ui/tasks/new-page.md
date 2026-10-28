@@ -1,9 +1,9 @@
 # New page, section, shell or overlay
 
 **Before you build**
-1. `node .fluent-kit/scripts/detect-theme.mjs .`: keep the theme; text in the language it reports. Read `.fluent-kit/PROFILE.md` if it exists; the repo's own design guidance wins.
-2. Reuse the project's existing component or page for the job. Card-like pieces: `node .fluent-kit/scripts/consistency.mjs`, then match the standard style.
-3. Brief, three to five lines, first: who uses it, the job, how much data, what can go wrong, what they see in five seconds. Cannot answer who, job or how much: ask once.
+1. `node .fluent-kit/scripts/context.mjs new-page` (skip it if you came from `tasks/new-app.md`): one call for the theme, language, the repo's own guidance and `PROFILE.md` (both win), and the standard card style.
+2. Reuse the project's existing component or page for the job, and the standard card style.
+3. Brief, three lines, first: who uses it, the job, how much data, what can go wrong, what they see in five seconds. Cannot answer who, job or how much: ask once.
 4. Open the pattern card and its example. Copy the structure, not the placeholder data.
 
 **No card fits**: a `Card` grid to browse; `Tree` for a hierarchy; a detail page for a large record; a stepped full page for a multi-stage process; an `InlineDrawer` for filters. Two fit: what the repo already does, then the simpler. Never invent one.

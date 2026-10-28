@@ -7,9 +7,10 @@ import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const strict = process.argv.includes("--strict");
+const asJson = process.argv.includes("--json"); // { styles: [{ style, count, where }] }, most used first
 const roots = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const dirs = (roots.length ? roots : ["src", "app", "components", "pages"]).filter((d) => existsSync(d));
-if (!dirs.length) { console.log("No src, app, components or pages folder here. Pass the folder: node .fluent-kit/scripts/consistency.mjs <folder>"); process.exit(0); }
+if (!dirs.length) { console.log(asJson ? JSON.stringify({ styles: [], note: "no src, app, components or pages folder" }) : "No src, app, components or pages folder here. Pass the folder: node .fluent-kit/scripts/consistency.mjs <folder>"); process.exit(0); }
 
 const files = [];
 const walk = (d) => { for (const n of readdirSync(d)) { if (/^(node_modules|\.next|dist|build|\.git|\.fluent-kit|\.github|\.claude|\.agents)$/.test(n)) continue; const p = join(d, n); const st = statSync(p); if (st.isDirectory()) walk(p); else if (/\.(tsx|jsx|ts)$/.test(n) && !/\.(test|spec|stories)\./.test(n)) files.push(p); } };
@@ -37,6 +38,7 @@ for (const f of files) {
     e.n++; e.where.push(`${relative(process.cwd(), f)} (${m[1]})`); sigs.set(key, e);
   }
 }
+if (asJson) { console.log(JSON.stringify({ styles: [...sigs].sort((a, b) => b[1].n - a[1].n).map(([style, e]) => ({ style, count: e.n, where: [...new Set(e.where)] })) })); process.exit(0); }
 if (!sigs.size) { console.log("No card-like styles found (names with card, tile, kpi, stat, metric or panel). Nothing to compare."); process.exit(0); }
 const list = [...sigs].sort((a, b) => b[1].n - a[1].n);
 console.log(`Card-like styles in this project: ${list.length} distinct.\n`);

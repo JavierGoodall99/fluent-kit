@@ -3,9 +3,8 @@
 "Make it better", "easier to understand", "update the UI/UX", "make it pop".
 
 **Before you change anything**
-1. `node .fluent-kit/scripts/detect-theme.mjs .`: keep the theme and the language it reports. Read `.fluent-kit/PROFILE.md` if it exists; the repo's own design guidance, if listed, wins.
-2. Anything card-like on the page: `node .fluent-kit/scripts/consistency.mjs`. It names the app's standard card style and the pages that differ.
-3. Brief, three lines: who uses the page, the job, what they must see in five seconds.
+1. `node .fluent-kit/scripts/context.mjs restyle`: one call that prints the theme, the language, the repo's own guidance and `PROFILE.md` (both win over the kit), and the app's standard card style. Keep the theme and language; match the standard card.
+2. Brief, three lines: who uses the page, the job, what they must see in five seconds.
 
 **Rules**
 - Improve, do not rebuild. Keep every field, column, filter, action, the grouping, the order and the layout. Edit the file; never delete and recreate it. If something should go, say so in the note.

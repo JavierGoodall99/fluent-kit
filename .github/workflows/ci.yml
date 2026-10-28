@@ -42,6 +42,9 @@ jobs:
       - name: check --finish tests
         run: node tests/check-finish.test.mjs
 
+      - name: context.mjs tests
+        run: node tests/context.test.mjs
+
       - name: Shipped scripts pass ESLint recommended
         run: npx eslint -c tests/eslint.shipped.config.mjs .fluent-kit install.mjs
 
