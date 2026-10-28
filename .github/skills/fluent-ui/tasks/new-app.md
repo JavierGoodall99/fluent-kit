@@ -25,4 +25,4 @@
 
 **Migrating a screen** to v9: swap components one at a time, keeping behaviour; swap hard-coded values for tokens (ask if none fits); delete CSS Fluent now covers; list what is left.
 
-**Check**: `check --changed`, `tsc`, `node .fluent-kit/scripts/verify.mjs --start / --full`.
+**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page / --full`.

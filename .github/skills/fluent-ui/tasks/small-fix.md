@@ -7,9 +7,6 @@ A prop, a size, spacing, text or one control: about 20 lines.
 - New text in the project's language, worded like the strings around it.
 - A problem you notice elsewhere: mention it, do not fix it.
 
-**Check**
-1. `node .fluent-kit/scripts/check.mjs --changed`: fix every error.
-2. `tsc`.
-3. Anything visible changed (layout, spacing, cut-off text): `node .fluent-kit/scripts/verify.mjs --start /page` (the default quick pass) and look at the contact sheet it names. Nothing visible changed: skip it.
+**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page`. It runs the rules, `tsc`, and `verify` only if something visible changed; fix what it reports and look at the contact sheet it names.
 
 **Reply** in one line: what changed, and what you could not verify.
