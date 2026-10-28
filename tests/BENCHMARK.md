@@ -33,7 +33,9 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 | 7 | the tabs and toolbar are cut off on my phone | small fix |
 | 8 | Make the activity log KPI cards look like the ones on the home screen | consistency |
 
-## Results so far (Javier's runs, 2026-10)
+## Old kit results (Javier's runs, 2026-10, kit up to `6fb7ac7`, before the task and pattern split)
+
+One run per row, on pages that earlier runs had already changed, with the kit changing between rows. Reference only; the new kit is not compared against these row by row.
 
 | Run | Time | Credits | Quality |
 |---|---|---|---|
@@ -57,9 +59,75 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 
 Pattern: targeted prompts are fast, cheap and right. The failures and the cost spikes are all open-ended whole-page requests. Every kit change after those failures targeted that case.
 
-## How to run it
+## New kit: restyle validation (prompts 4, 5, 6)
 
-1. Install the kit in a project, update it, note the commit (`npx -y github:JavierGoodall99/fluent-kit`).
-2. For each prompt: fresh chat, one run, no follow-ups. Note time and credits from the chat footer.
-3. Answer the six quality checks from the screenshots (first screen, 375px, one state).
-4. Add a row above. Ready when the medians and worst cases meet the targets and no row fails a quality check, across at least two projects and at least three people.
+Two stages, new kit only. Stage 2 starts only after Stage 1 passes cleanly.
+
+| Stage | Runs | Passes when |
+|---|---|---|
+| 1. Smoke test | one run each of #4, #5, #6 | every run: route followed, ≤45 credits, ≤4 minutes, 6 of 6 quality checks |
+| 2. Consistency | two more runs per prompt (runs 2 and 3) | across all 9 runs: median ≤45 credits and ≤4 minutes, worst ≤90 credits and ≤8 minutes, no quality check fails |
+
+**Route followed** means the agent read only its route before the first edit: the always-on block, `SKILL.md`, `tasks/restyle.md`, at most one `patterns/` card (and `deviations.md` if a control needed it), plus the app's own files. Reading anything in `docs/`, another task card, or searching the repo for design guidance is a **N**.
+
+**Files read before edit**: in the Copilot chat, count the "Read" steps (files and searches) above the first edit. Kit files and app files both count.
+
+### Setup (once)
+
+1. In the pilot app, make a branch from one base commit and install the kit at a fixed commit:
+   `git switch -c bench/kit-new <base> && npx -y github:JavierGoodall99/fluent-kit#<kit-commit> . && git add -A && git commit -m "kit <kit-commit>"`
+2. Have Playwright and axe-core installed, `.verify-profile/` signed in with a tenant that has real data, and a clone of this kit repo for `tests/record-run.mjs` (below: `~/fluent-kit`).
+3. Agent: GitHub Copilot, Agent mode, Claude Sonnet. Same model for every run.
+
+### Each run: three steps
+
+```
+# 1. Fresh Copilot chat in the pilot app. Paste the prompt exactly as in the table above. No follow-ups.
+#    When it finishes, note credits and wall time from the chat footer; count the files read before the first edit;
+#    export the chat (optional, gives a route hint).
+
+# 2. Record it (from the pilot app's root). Copies the diff, verify screenshots and report, empties .fluent-kit/out.
+node ~/fluent-kit/tests/record-run.mjs --prompt 4 --run 1 --credits 38.5 --time 3m40s --files-read 3 --route y --transcript chat.json
+
+# 3. Reset the app for the next run.
+git reset --hard && git clean -fd
+```
+
+The Kit column comes from `.fluent-kit/manifest.json`. An install with `npx` has no git commit, so it shows the version and a fingerprint of the skill files; add `--kit <kit-commit>` to step 2 to record the commit instead. If the fingerprint no longer matches the installed files, the script warns that the run did not use a clean kit.
+
+Run folders go to `../bench-runs/p<prompt>-run<run>/` next to the app (outside it, so step 3 cannot delete them). Each holds `run.json`, `diff.patch`, `verify/` (contact sheet, screenshots, `verify-report.json`, `verify-runs.jsonl`) and the transcript.
+
+Score the six quality checks afterwards from the run folders, ideally without knowing which run is which (rename or shuffle the folders first). Record them, then summarise:
+
+```
+node ~/fluent-kit/tests/record-run.mjs --prompt 4 --run 1 --update --quality PPPPPP   # six letters, P/F/?, in the order of the checks above
+node ~/fluent-kit/tests/record-run.mjs --summary                                    # medians, worst cases, Stage 1 and 2 verdicts
+```
+
+`--update` also takes `--credits`, `--time`, `--files-read`, `--route` and `--note`. `../bench-runs/results.md` is rewritten after every command; copy its rows here when a stage is done.
+
+### Results
+
+Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
+
+| Kit | Stage | Prompt | Run | Credits | Time | Files read before edit | Route followed | Verify calls | Diff | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| | 1 | #4 | 1 | | | | | | | | | | | | |
+| | 1 | #5 | 1 | | | | | | | | | | | | |
+| | 1 | #6 | 1 | | | | | | | | | | | | |
+| | 2 | #4 | 2 | | | | | | | | | | | | |
+| | 2 | #4 | 3 | | | | | | | | | | | | |
+| | 2 | #5 | 2 | | | | | | | | | | | | |
+| | 2 | #5 | 3 | | | | | | | | | | | | |
+| | 2 | #6 | 2 | | | | | | | | | | | | |
+| | 2 | #6 | 3 | | | | | | | | | | | | |
+
+Summary (paste from `--summary`):
+
+| Prompts | Runs | Median credits | Worst credits | Median time | Worst time | Quality fails |
+| --- | --- | --- | --- | --- | --- | --- |
+| all | | | | | | |
+
+## Ready for wide use
+
+The new kit meets the targets above on all eight prompts, across at least two projects and at least three people, none of whom wrote the kit.

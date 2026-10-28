@@ -15,7 +15,7 @@
 // next to each problem, so look at the contact sheet once and open other files only when a problem points to them.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
 import { createRequire } from "node:module";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
@@ -61,6 +61,11 @@ const full = args.includes("--full"); // default is the fast pass (1440 and 375,
 const widths = opt("--widths", full ? "1440,768,375" : "1440,375").split(",").map(Number);
 const schemes = opt("--schemes", full ? "light,dark" : "light").split(",");
 const outDir = resolve(opt("--out", ".fluent-kit/out"));
+// One line per call in verify-runs.jsonl (also calls that stop early), so a benchmark can count how often the agent verified.
+const runLog = { at: new Date().toISOString(), args, renders: 0, errors: null, warnings: null };
+process.on("exit", (code) => {
+  try { mkdirSync(outDir, { recursive: true }); appendFileSync(join(outDir, "verify-runs.jsonl"), JSON.stringify({ ...runLog, exitCode: code, ms: Date.now() - Date.parse(runLog.at) }) + "\n"); } catch { /* never block the exit */ }
+});
 const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
 const useAxe = !args.includes("--no-axe");
@@ -348,6 +353,8 @@ for (const g of uniq) {
   console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${w}${shot ? `\n       open: ${shot}` : ""}`);
 }
 const errs = uniq.filter((p) => p.level === "error").length;
+Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs });
+try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, renders: loaded, errors: errs, warnings: uniq.length - errs, problems: uniq, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
 console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s).`);
 if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
 else console.log(`Screenshots: ${outDir}. Open the 1440px *-first.png once, and other files only where a problem above says "open:".`);

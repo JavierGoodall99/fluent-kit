@@ -8,6 +8,7 @@ import { join, resolve, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
+import { createHash } from "node:crypto";
 
 const HELP = `Usage: npx github:JavierGoodall99/fluent-kit [target-repo] [options]
 Target defaults to the current folder.
@@ -138,7 +139,16 @@ for (const f of stale) {
   }
   log(`removed ${f} (no longer part of the kit)`);
 }
-if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by fluent-kit. The installer uses this list to remove files a newer kit no longer ships.", files: [...now].sort() }, null, 2) + "\n");
+// Which kit this is: the package version, the git commit when installed from a checkout (npx from GitHub has no .git),
+// and a fingerprint of the skill files, so a benchmark run can say exactly what the agent read.
+const kitInfo = (() => {
+  let version = null; try { version = JSON.parse(readFileSync(join(here, "package.json"), "utf8")).version; } catch { /* none */ }
+  const git = spawnSync("git", ["-C", here, "rev-parse", "--short", "HEAD"], { encoding: "utf8" });
+  const h = createHash("sha256");
+  for (const f of installed.filter((x) => x.startsWith(".github/skills/fluent-ui/")).sort()) { h.update(f); h.update(readFileSync(join(here, f))); }
+  return { version, commit: git.status === 0 ? git.stdout.trim() : null, fingerprint: h.digest("hex").slice(0, 12) };
+})();
+if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by fluent-kit. The installer uses this list to remove files a newer kit no longer ships.", kit: kitInfo, files: [...now].sort() }, null, 2) + "\n");
 
 // 6. look at the project
 console.log("\nWhat the kit found in this project:\n");

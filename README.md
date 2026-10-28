@@ -87,7 +87,7 @@ Kept in this repo only, not installed:
 ```
 docs/                                the long-form reference for people: DESIGN.md, DESIGNER.md, measurements.md,
                                      fluent2-component-guidance.md. Agents never read it.
-tests/                               reading-cost and link checks, and the Copilot test logs
+tests/                               reading-cost and link checks, the benchmark recorder (record-run.mjs), and the Copilot test logs
 install.mjs, package.json            the installer, and dev dependencies for CI
 ```
 
@@ -102,7 +102,7 @@ node .fluent-kit/scripts/verify.mjs --start /invoices
 
 - **`check.mjs`** scans your source for hard-coded colours, spacing and fonts, other UI or icon libraries, Fluent v8, native `<button>`/`<input>`/`<a>`/`<table>`, inline styles, icon-only buttons without a name, `<img>` without `alt`, gradients and `tokens.colorPalette*` decoration (errors), and Tailwind colour classes (warning). No dependencies, no ESLint needed. Exit code 1 on errors, so it works in CI, a pre-commit hook or an Azure DevOps step. `--changed` checks only files changed in git. Skip one real exception with `// fluent-kit-ignore -- reason`. Allow the project's own shared UI package with `{"allow": ["@company/ui"]}` in `.fluent-kit/config.json`.
 - **Old code:** in a repo that already has violations, run `node .fluent-kit/scripts/check.mjs --baseline` once and commit `.fluent-kit/baseline.json`. From then on only new violations fail.
-- **`verify.mjs`** starts your dev server (`--start`, using the `dev` script; or give a full URL if one is already running), opens the page in a real browser at 1440 and 375px in light mode (`--full` adds 768px and dark mode), saves screenshots plus one `contact-sheet.png` of every first screen to `.fluent-kit/out/`, and checks: Fluent is actually applied (`FluentProvider`), no sideways page scroll, no controls cut off, no console errors, non-Fluent controls in the rendered page, and accessibility with axe. Each problem names the screenshot that shows it, so the agent looks at one image instead of a dozen. Needs `npm i -D playwright axe-core` and `npx playwright install chromium` (or `--with-deps` at install; Edge or Chrome on the machine also works). If it cannot run it prints one line starting `NOT RUN`, and the agent must say verification was not done.
+- **`verify.mjs`** starts your dev server (`--start`, using the `dev` script; or give a full URL if one is already running), opens the page in a real browser at 1440 and 375px in light mode (`--full` adds 768px and dark mode), saves screenshots plus one `contact-sheet.png` of every first screen to `.fluent-kit/out/`, and checks: Fluent is actually applied (`FluentProvider`), no sideways page scroll, no controls cut off, no console errors, non-Fluent controls in the rendered page, and accessibility with axe. Each problem names the screenshot that shows it, so the agent looks at one image instead of a dozen. Every call also writes `verify-report.json` and appends to `verify-runs.jsonl` in the same folder (used by the benchmark). Needs `npm i -D playwright axe-core` and `npx playwright install chromium` (or `--with-deps` at install; Edge or Chrome on the machine also works). If it cannot run it prints one line starting `NOT RUN`, and the agent must say verification was not done.
 
 `install.mjs --wire` adds `"ui:check"` to your `package.json` scripts.
 
