@@ -20,6 +20,7 @@ import { join, resolve } from "node:path";
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage", "--profile"]);
+if (args.includes("--help") || args.includes("-h")) { console.log(readFileSync(new URL(import.meta.url), "utf8").split("\n").filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n")); process.exit(0); }
 const startServer = args.includes("--start") || args.includes("--cmd");
 let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
 if (startServer && !urls.length) urls = ["/"];
@@ -126,7 +127,11 @@ mkdirSync(outDir, { recursive: true });
 try { writeFileSync(join(outDir, ".gitignore"), "*\n"); } catch { /* ignore */ }
 
 const problems = [];
-const note = (level, where, msg) => problems.push({ level, where, msg });
+// Known app-wide issues the team accepted (for example one in the app shell) can be listed in .fluent-kit/verify-ignore.json as an array of
+// text fragments, such as ["scrollable-region-focusable", "landmark-no-duplicate-main"]. Matching messages are not reported.
+let ignoreList = [];
+try { const f = resolve(".fluent-kit/verify-ignore.json"); if (existsSync(f)) ignoreList = JSON.parse(readFileSync(f, "utf8")).filter((x) => typeof x === "string"); } catch { /* ignore */ }
+const note = (level, where, msg) => { if (ignoreList.some((x) => msg.includes(x))) return; problems.push({ level, where, msg }); };
 const shots = [];
 const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").slice(0, 60) || "page";
 

@@ -52,6 +52,7 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 | Tenant: badge readability | 1m 29s | 13.8 | pass |
 | Log monitor, whole-page "easier to understand" | 10m 18s | 87.1 | FAIL: scope (rebuilt, removed features), cards blend, squashed table |
 | Log monitor KPI cards match home | 2m 12s | 29.3 | pass, labels left in English |
+| Groepsberichten, whole-page "update the ui/ux" (#4 type, untouched page) | 8m 17s | 61.3 | pass with notes: changed a shared component used by two other pages (disclosed), about 6 wasted verify calls |
 
 Pattern: targeted prompts are fast, cheap and right. The failures and the cost spikes are all open-ended whole-page requests. Every kit change after those failures targeted that case.
 

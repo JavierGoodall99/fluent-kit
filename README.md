@@ -116,6 +116,7 @@ From then on `node .fluent-kit/scripts/verify.mjs --start /` and Copilot's own c
 - When the session expires and the title `verify` prints says "Sign in", run `login.mjs` again.
 - `verify` prints the page title for each screenshot. If it is not your app, the check looked at the wrong page.
 - If Edge says it cannot open the profile, a window is still open on it: close all Edge windows opened by `login.mjs` and retry.
+- **Known issues in your app shell** (for example a scrolling `<main>` that is not focusable) fail every page and make every `verify` exit with an error. List them once in `.fluent-kit/verify-ignore.json`, for example `["scrollable-region-focusable"]`, and fix them when you have time. `verify` then skips them, so Copilot stops chasing problems that are not in its page.
 - Other ways: `--profile <folder>` to use another folder, `--storage auth.json` for a Playwright login file, `--headed` to watch the check run.
 - Needs Microsoft Edge. Not tested on every company policy; if your policy rejects this profile too, the check cannot see the page and Copilot must say the UI was not verified.
 
