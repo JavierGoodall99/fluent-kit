@@ -58,13 +58,14 @@ Added tests with real data shapes (Dutch project): tenants list (51 tenants) PAS
 | Hydration error `<i data-tabster-dummy>` (and dev `groupper API used before initialization`) on pages with toolbars and grids in Next.js, also in production (#418). `@fluentui/react-tabster` is newer than the version an upstream issue says fixed it | Cause read from the diff, not proven; `verify` reports it as a warning; a small repro could be posted to Fluent |
 | Landmark (`region`) warning on narrow widths | Probably the mobile top bar outside a `<header>`; not confirmed |
 | "Not finished yet" note and `verify --click` | Not yet seen used by Copilot; the date picker popup and the 375px drawer not yet looked at |
+| Kit aligned with Fluent 2 Web and the M365 UI Kit (Oct 2026): 8px cards, dialog footer order, status indicator, measurements tables, gallery example | Not yet re-run with Copilot; dashboard, settings and tenant-health prompts to be re-run |
 | Prompts not re-run after their fix: 8, 10, 11, 13, 14 and the nav follow-ups | Re-run after the kit is next updated |
 | Prompt 7 miss: warn when a requested colour fails the contrast rule before offering a re-brand | Not built |
 | Framework question in an empty folder (prompts 13 and the prompt 1 re-run): the setup guide told the agent to ask | Changed: default to Vite + React + TypeScript and say so; not yet re-tested |
 | Not tested on a real codebase (DataBalk `api-monitor`) | The largest remaining risk |
 | `npm publish` (`npx fluent-kit` without the GitHub path) | Not done |
 | DataBalk profile in a public repo | Decision needed |
-| Figma community file terms | Not checked |
+| Figma community file terms | Checked: Figma's Community Free Resource licence allows use inside Figma and forbids modified copies or derivative works of the file; no attribution is required. The kit copies no Figma files or assets, only measured numbers (sizes, spacing), and the code is written from the installed Fluent package. Low risk, not legal advice; a lawyer or Microsoft would settle it for certain |
 | Other agents (CLAUDE.md, Cursor) and non-React frameworks | Not built |
 | A shorter instructions block based on what the tests showed mattered | Not done |
 | `npm run lint` times out in Javier's environment | Environment, not the kit |

@@ -34,7 +34,7 @@ State the brief in your first message (three to five lines, plain language), the
 - Show the most important thing without scrolling. Put the page's main action near its title or its content, not in a footer nobody sees.
 - Density follows the job: dense for scanning and comparing, roomy for reading and onboarding.
 - Cap the width of reading text. A line of prose or an error message should stay around 70 to 80 characters (`max-width` in `ch`), even when the card or page is wider. Long messages in a monospace block wrap inside that cap and are never stretched across the screen. Use a neutral surface token for such blocks, not a near-black fill.
-- One kind of thing gets one row design. If a list holds items in different states (healthy, degraded, failed; paid, due, overdue), every item uses the same layout, with the same parts in the same places. State changes the badge, the icon and the emphasis, never the structure. Build one component and give it a status prop.
+- One kind of thing gets one row design. If a list holds items in different states (healthy, degraded, failed; paid, due, overdue), every item uses the same layout, with the same parts in the same places. State changes the status indicator (icon and colour), and the emphasis, never the structure. Build one component and give it a status prop.
 
 ## 4. Content is part of the design
 

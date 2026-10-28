@@ -75,7 +75,7 @@ Working, type-checked examples are in `examples/`. These show how to build each 
 - `edit-drawer.tsx`: `OverlayDrawer` form with `Field` and validation.
 - `confirm-dialog.tsx`: `Dialog` for destructive actions only.
 - `notifications.tsx`: `Toast` and `MessageBar`.
-- `status-grid.tsx`: grouped `Table` of same-shaped checks with the same columns on every row, one row component for every status, wrapped capped message column, stacked rows on a phone.
+- `status-grid.tsx`: grouped `Table` of same-shaped checks with the same columns on every row, one row component for every status, Fluent status indicator (coloured icon plus text, one fixed icon per status), wrapped capped message column, stacked rows on a phone.
 - `dashboard.tsx`: canvas of cards (gauge, bar, line charts from `@fluentui/react-charts`), per-card time-range tabs, "View details" link. Use `LineChart`, not `AreaChart`.
 - `task-board.tsx`: a column per stage, a card per item, "Move to" menu instead of drag and drop, stacks on a phone.
 - `form-page.tsx`: centred form or settings page: sections, labels above inputs, validation, Discard and Save at the bottom right.

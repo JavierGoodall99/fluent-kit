@@ -8,7 +8,6 @@
 //  - Problems come first and stay open. A group with no problems is collapsed.
 // UI text here is English. Use the project's language and wording.
 import {
-  Badge,
   Button,
   Table,
   TableBody,
@@ -52,12 +51,14 @@ interface Group {
 }
 
 // One entry per status the data can have. Add every status the source documents.
-const STATUS: Record<Status, { label: string; icon: ReactElement; color: "success" | "warning" | "danger" | "informative" | "subtle"; problem: boolean }> = {
-  healthy: { label: "Healthy", icon: <CheckmarkCircle16Filled />, color: "success", problem: false },
-  degraded: { label: "Degraded", icon: <Warning16Filled />, color: "warning", problem: true },
-  unhealthy: { label: "Unhealthy", icon: <DismissCircle16Filled />, color: "danger", problem: true },
-  maintenance: { label: "Maintenance", icon: <Wrench16Regular />, color: "informative", problem: false },
-  unknown: { label: "Unknown", icon: <QuestionCircle16Regular />, color: "subtle", problem: false },
+// Microsoft's "Status indicator" (Fluent 2 Web): a 16px icon plus a 14px label, 6px apart, the same icon for the same status on every screen.
+// The icon carries the colour; the text stays in the normal text colour. Problem rows additionally get the subtle row background below.
+const STATUS: Record<Status, { label: string; icon: ReactElement; tone: "success" | "warning" | "danger" | "neutral"; problem: boolean }> = {
+  healthy: { label: "Healthy", icon: <CheckmarkCircle16Filled />, tone: "success", problem: false },
+  degraded: { label: "Degraded", icon: <Warning16Filled />, tone: "warning", problem: true },
+  unhealthy: { label: "Unhealthy", icon: <DismissCircle16Filled />, tone: "danger", problem: true },
+  maintenance: { label: "Maintenance", icon: <Wrench16Regular />, tone: "neutral", problem: false },
+  unknown: { label: "Unknown", icon: <QuestionCircle16Regular />, tone: "neutral", problem: false },
 };
 const ORDER: Status[] = ["unhealthy", "degraded", "unknown", "maintenance", "healthy"];
 
@@ -95,6 +96,12 @@ const useStyles = makeStyles({
     fontSize: tokens.fontSizeBase200,
     overflowWrap: "anywhere", // long URLs and ids wrap instead of forcing sideways scroll
   },
+  indicator: { display: "inline-flex", alignItems: "center", columnGap: tokens.spacingHorizontalSNudge },
+  indicatorIcon: { display: "inline-flex" },
+  success: { color: tokens.colorStatusSuccessForeground1 },
+  warning: { color: tokens.colorStatusWarningForeground1 },
+  danger: { color: tokens.colorStatusDangerForeground1 },
+  neutral: { color: tokens.colorNeutralForeground3 },
   muted: { color: tokens.colorNeutralForeground3 },
   visuallyHidden: { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" },
 });
@@ -110,7 +117,10 @@ function CheckRow({ check }: { check: Check }) {
       </TableCell>
       <TableCell className={mergeClasses(s.cell, s.colType)}><Text className={s.muted}>{check.type}</Text></TableCell>
       <TableCell className={mergeClasses(s.cell, s.colStatus, s.aStatus)}>
-        <Badge appearance={st.problem ? "tint" : "outline"} color={st.color} icon={st.icon} size="medium">{st.label}</Badge>
+        <span className={s.indicator}>
+          <span className={mergeClasses(s.indicatorIcon, s[st.tone])} aria-hidden="true">{st.icon}</span>
+          <Text>{st.label}</Text>
+        </span>
       </TableCell>
       <TableCell className={mergeClasses(s.cell, s.aMsg)}>
         {check.message ? <Text className={s.message}>{check.message}</Text> : <Text className={s.muted}>No message</Text>}

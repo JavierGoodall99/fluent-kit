@@ -56,6 +56,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Parts:** label, required marker (red asterisk), optional info button, the control, validation message (error text with an icon).
 - **Sizes:** small, medium (default), large. The label size follows the field size.
 - Every input is wrapped in a `Field`. Placeholder text is a hint, never the label.
+- **Spec (Fluent 2 Web Figma):** label row 26px high (14px label, red `*` for required in `colorPaletteRedForeground1`, optional 24px info button); status text is 12px with a 12px icon, 2px under the control; helper text 12px `colorNeutralForeground3`. Use `InfoLabel` when you only need a label with an info button.
 
 ## MessageBar
 
@@ -71,6 +72,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **For critical messages use:** a modal `Dialog`, a `Field` error, or a `MessageBar`.
 - **Types:** dismiss (X), timestamp, action link. **Status:** informational, success, warning, error, plus icon, upload, download, spinner and avatar variants.
 - **Content:** a title, then optional secondary and tertiary lines, a progress bar, or quick action links.
+- **Spec (Fluent 2 Web Figma):** 292px wide, 4px radius, 12px padding, `shadow16`. Header: 20px status icon, 14px semibold title, 20px dismiss at the end. Body is indented 28px to line up under the title: 14px text, optional 12px `colorNeutralForeground2` detail, optional 2px progress bar with a "00% complete" line, and quick actions as 14px links 16px apart. Use for information that is useful but not critical; critical messages go in a Dialog, a Field error or a MessageBar.
 
 ## Toolbar
 
@@ -112,6 +114,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Sizes:** tiny, extra-small, small, medium, large, extra-large. **Shapes:** circular, rounded, square.
 - **Presence** (`PresenceBadge`): available, away, blocked, busy, do not disturb, offline, unknown, out of office. **Counts:** `CounterBadge`.
 - Color never carries meaning alone; always include text or an icon.
+- **Spec (Fluent 2 Web Figma):** extra large is 32px high with 6px padding, 2px gap, 12px semibold text and a 20px icon; smaller sizes are rounder. Filled brand uses `colorBrandBackground` with `colorNeutralForegroundOnBrand` text.
 
 ## Menu
 
@@ -119,6 +122,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - **Not for collecting information:** use a `Select`, `Dropdown` or `Combobox`.
 - **Parts:** menu item (optional icon, shortcut text, submenu chevron, check mark for selection), split item, section header, divider.
 - **States:** rest, hover, pressed, selected, focus, disabled.
+- **Spec (Fluent 2 Web Figma):** surface 260px wide, 4px padding, 2px between items, 4px radius, `shadow16`. Item 32px high: 20px icon, 14px text in `colorNeutralForeground2`, 6px left padding; shortcut text 14px `colorNeutralForeground3` at the right; section header 12px bold; divider 1px `colorNeutralStroke2`.
 
 ## Popover
 
@@ -153,6 +157,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
 - A representation of a person with additional contextual information. Usually an avatar, a presence badge, and up to four lines of text.
 - **Sizes:** small (badge only), medium (default), large.
 - **Text position:** after the avatar (default), before, or below. Can show presence without an avatar.
+- **Spec (Fluent 2 Web Figma):** avatar plus up to four lines of text, 8px between them; primary line 14px `colorNeutralForeground1`, other lines 12px `colorNeutralForeground2`. Medium is 38px high, large 44px; text after the avatar is the default, text below and text before also exist; the presence badge goes on the avatar.
 
 ## SearchBox
 
@@ -278,6 +283,7 @@ States the kit shows for interactive components: rest, hover, pressed, selected,
   - Warning: Warning
 - **v9 mapping:** the Figma kit ships this as a design component (`.StatusIndicator`, a subcomponent), but `@fluentui/react-components` 9.74.11 has no `StatusIndicator` export. Build it from a Fluent icon plus `Text`, or from `Badge` with an icon and text, and keep one shared component in the project so all screens use the same icon and color per status. Verify against the installed version before assuming this changed.
 - Labels are UI text, so they follow the project's language (see `.fluent-kit/DESIGN.md` section 10).
+- **Spec (Fluent 2 Web Figma):** a 16px icon in a 20px-high holder, then a 14px label in `colorNeutralForeground1`, 6px apart (small 16px, medium 20px default, large 24px high). The text is not coloured; the icon carries the status colour. One fixed icon per status: success = checkmark circle (Success, Synced), error = diamond dismiss (Failed, Cancelled), warning = warning triangle, active = circle (New), arrow sync (Syncing), neutral = arrow circle (Archived), question circle (Unknown), plus Scheduled, Pending, Not started, Pause, Draft, Generic information. The same status must use the same icon on every screen.
 
 ## TeachingPopover
 

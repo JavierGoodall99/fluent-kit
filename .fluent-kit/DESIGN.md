@@ -118,7 +118,8 @@ Use in this order: (1) the project's shared UI package, if it has one, (2) Fluen
 | Navigation | The project's app shell if it has one; otherwise `NavDrawer`, `NavItem` |
 | Breadcrumb | `Breadcrumb` |
 | People | `Persona`, `Avatar` |
-| Status and labels | `Badge`, `Tag` |
+| Status of an object, action or process (healthy, failed, syncing) | Status indicator: a 16px Fluent icon plus 14px text, one fixed icon per status (see `examples/status-grid.tsx`); `Badge` for a short label or count next to something |
+| Labels the person can set | `Tag` |
 | Counts (nav items, notifications) | `CounterBadge` (colors: `brand`, `danger`, `important`, `informative` only) |
 | Help | `Tooltip`, `InfoLabel` |
 | Loading | `Spinner`, `Skeleton`, `ProgressBar` |
@@ -269,6 +270,7 @@ Read from the Microsoft 365 UI Kit (Figma community file), "Templates" page, Web
 | Form column | about 480px wide, centred; fields 12px apart; 8px between a label and its input; labels above inputs |
 | Form and settings footer | Discard (secondary) then Save (primary), right-aligned, 8px apart, thin divider above |
 | Empty state | centred; image 200px; 20px between image, text and actions; title 16px bold; text 14px, up to 600px wide; actions in a 280px column: primary, secondary, then a link |
+| Settings row | label at the left (14px, about 250px wide), control at the right filling the rest, 8px apart, rows 12px apart; switches sit in rows 36px high with the label before the switch; a checkbox group has a 12px `colorNeutralForeground3` group label above it. Section header 12px bold with a 14px grey description, 4px apart. An error goes in a MessageBar at the top of the column |
 | Toolbar search | a "Filter" button and a 200px "Find" input at the right edge of the toolbar |
 | Section title row (gallery, home, feed) | 32px high: title 16px semibold (22px line) at the left; at the right a "See more" link (14px, brand link colour), or subtle 20px icon buttons (add, share, more), or carousel arrows. 8px between this row and its content; 20px between sections |
 | Card row (gallery) | cards side by side, 12px apart, equal width (`flex: 1` or a grid), about 250px high, radius 8px, padding 16px, 16px inside, `shadow4`, on the tinted canvas (`colorNeutralBackground2`) |
