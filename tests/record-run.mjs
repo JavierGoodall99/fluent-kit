@@ -88,7 +88,7 @@ function kitInfo(app) {
 function routeHint(text, prompt) {
   const seen = [...new Set(text.match(/(?:SKILL\.md|deviations\.md|tasks\/[\w-]+\.md|patterns\/[\w-]+\.md|examples\/[\w-]+\.tsx|docs\/[\w.-]+|DESIGN(?:ER)?\.md)/g) || [])];
   const expectTask = [4, 5, 6].includes(Number(prompt)) ? "tasks/restyle.md" : null;
-  const stray = seen.filter((f) => f.startsWith("docs/") || /^DESIGN/.test(f) || (expectTask && f.startsWith("tasks/") && f !== expectTask));
+  const stray = seen.filter((f) => f.startsWith("docs/") || f.startsWith("research/") || /^DESIGN/.test(f) || (expectTask && f.startsWith("tasks/") && f !== expectTask));
   const cards = seen.filter((f) => f.startsWith("patterns/"));
   const looks = expectTask ? seen.includes(expectTask) && cards.length <= 1 && !stray.length : null;
   return { mentioned: seen, stray, looksFollowed: looks };
