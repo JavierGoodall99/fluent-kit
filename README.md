@@ -26,13 +26,13 @@ Options:
 - `--brand stock` or `--brand #rrggbb`: record the brand decision in `.fluent-kit/brand.json` (`stock` keeps the stock Microsoft theme, so the agent never asks for a brand color).
 - `--claude`: also install for Claude Code: the rules block in `CLAUDE.md`, and the skill in `.claude/skills/fluent-ui/` instead of `.github/skills/`. Copilot reads both folders, so one copy serves both agents and Copilot never sees the skill twice. Automatic when the repo already has `CLAUDE.md` or a `.claude/` folder.
 - `--skills-dir <dir>`: put the skill in `<dir>/fluent-ui/` instead (for example `.agents/skills`, or `.github/skills` for a Copilot surface that does not read `.claude/skills`).
-- `--agents`: also add the rules block to `AGENTS.md`, which Copilot's coding agent, Codex, Cursor and other agents read. Automatic (kept in sync) when `AGENTS.md` already exists.
+- `--agents`: also add the rules block to `AGENTS.md`, which Copilot's coding agent, Codex, Cursor and other agents read. Automatic (kept in sync) when `AGENTS.md` already exists. With both, `CLAUDE.md` gets an `@AGENTS.md` import instead of a second copy of the block (nothing at all if it already imports `AGENTS.md`).
 - `--with-deps`: also install what `verify.mjs` needs: `playwright` and `axe-core` as dev dependencies, then the Chromium browser (about 150 MB). Without it the installer only prints the command.
 - `--hooks`: also install a git pre-commit hook that runs `check.mjs --changed`.
 - `--wire`: also add an npm script `ui:check` to `package.json`.
 - `--dry-run`: show what would change.
 
-Safe to run again to update. It replaces kit files, removes kit files a newer version no longer ships (it keeps a list in `.fluent-kit/manifest.json`), never touches your `PROFILE.md`, `brand.json` or `.fluent-kit/brands/` files, and only replaces its own marked block inside `copilot-instructions.md`, `CLAUDE.md` and `AGENTS.md` (the rest of those files stays yours).
+Safe to run again to update. It replaces kit files, removes kit files a newer version no longer ships (it keeps a list in `.fluent-kit/manifest.json`), never touches your `PROFILE.md` or `brand.json`, and only replaces its own marked block inside `copilot-instructions.md`, `CLAUDE.md` and `AGENTS.md` (the rest of those files stays yours).
 
 By hand: copy `.fluent-kit/` and `.github/skills/` into the repo root (for Claude Code, put the skill in `.claude/skills/fluent-ui/` instead, and change the two skill paths in the block to match) and paste the block between the `fluent-kit` markers from `.github/copilot-instructions.md` into your own instruction file.
 
@@ -80,16 +80,16 @@ Installed into your repo:
   scripts/consistency.mjs            the app's standard card style and the pages that differ
   scripts/generate-ramp.mjs          16-step brand ramp from one color, with contrast checks
   scripts/make-theme.mjs             writes a ready theme + provider file (brand hex or stock; --next for Next.js)
-  scripts/scan-colors.mjs            lists every color a repo uses
   eslint/                            lint rules and tests
-  profiles/, brands/_template.md     organisation profile template, optional brand ramp file
+  rules.json                         banned libraries and native elements, shared by check.mjs, detect-theme and the lint rules
+  profiles/_template.md              organisation profile template
 ```
 
 Kept in this repo only, not installed:
 
 ```
-docs/                                the long-form reference for people: DESIGN.md, DESIGNER.md, measurements.md,
-                                     fluent2-component-guidance.md. Agents never read it.
+research/                            source notes the cards were built from: measurements.md (from Microsoft's Figma
+                                     files) and fluent2-component-guidance.md. Agents never read them.
 tests/                               reading-cost and link checks, the benchmark recorder (record-run.mjs), and the Copilot test logs
 install.mjs, package.json            the installer, and dev dependencies for CI
 ```

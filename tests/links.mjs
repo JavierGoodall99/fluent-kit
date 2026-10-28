@@ -1,5 +1,5 @@
 // Link check for everything the installer ships. Fails when an agent-facing file points at a kit file that does not
-// exist, at the human-only docs/ folder, or at a reference file that moved there; and when an example and its card
+// exist, at the repo-only research/ notes, or at a reference file that moved there; and when an example and its card
 // do not point at each other.
 // Run: node tests/links.mjs
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -11,7 +11,7 @@ const shipped = [".github/copilot-instructions.md", ...walk(K), ...walk(".fluent
 
 // detect-theme looks for the user's own design docs by name; that list is not a link.
 const ALLOWED = [/^\s*for \(const f of \["design\.md", "DESIGN\.md"/];
-const FORBIDDEN = /\bdocs\/|\bDESIGNER?\.md\b|measurements\.md|fluent2-component-guidance|\breferences\/|checklist\.md|new-project-setup|theme-and-brand|migrating\.md/;
+const FORBIDDEN = /\b(?:docs|research)\/|scan-colors|brands\/_template|\bDESIGNER?\.md\b|measurements\.md|fluent2-component-guidance|\breferences\/|checklist\.md|new-project-setup|theme-and-brand|migrating\.md/;
 
 const problems = [];
 for (const f of shipped) {

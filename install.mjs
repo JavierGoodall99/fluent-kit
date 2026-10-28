@@ -2,7 +2,7 @@
 // Installs the Fluent kit into any repo. No dependencies.
 // Usage: npx github:JavierGoodall99/fluent-kit [target-repo] [options]   (target defaults to the current folder)
 // Safe to run again to update: kit files are replaced, files the kit no longer ships are removed, your PROFILE.md,
-// brand.json and .fluent-kit/brands/ files are not touched, and only the marked block in the instruction files is replaced.
+// brand.json and any .fluent-kit/brands/ files are not touched, and only the marked block in the instruction files is replaced.
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync, rmdirSync } from "node:fs";
 import { join, resolve, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -58,6 +58,8 @@ const LEGACY = [
   { path: SK + "references/new-project-setup.md", marker: "# New project setup" },
   { path: SK + "references/theme-and-brand.md", marker: "# Theme, brand and language" },
   { path: SK + "references/migrating.md", marker: "# Migrating an existing screen" },
+  { path: ".fluent-kit/scripts/scan-colors.mjs", marker: "// Lists every distinct color value used in one or more repos" },
+  { path: ".fluent-kit/brands/_template.md", marker: "# Brand: <product name>" },
 ];
 
 const installed = []; // relative paths of every kit file this run writes
@@ -75,13 +77,12 @@ const previous = (() => { try { return JSON.parse(readFileSync(MANIFEST, "utf8")
 const claude = flag("--claude") || existsSync(join(dest, "CLAUDE.md")) || existsSync(join(dest, ".claude"));
 const agents = flag("--agents") || existsSync(join(dest, "AGENTS.md"));
 
-// 1. .fluent-kit/ (docs, scripts, lint rules). Profiles and the user's own brand files are handled separately.
+// 1. .fluent-kit/ (scripts, rules, lint rules). Only the profile template ships; the user's brand files are theirs.
 // Never ship files a run of the kit's own scripts may have left in this checkout.
 const LOCAL_ONLY = new Set(["out", "context.json", "manifest.json", "brand.json", "baseline.json", "config.json", "verify-ignore.json", "PROFILE.md"]);
 copyDir(join(here, ".fluent-kit"), join(dest, ".fluent-kit"), (a, n) =>
   (dirname(a) === join(here, ".fluent-kit") && LOCAL_ONLY.has(n)) ||
-  a.includes(join(".fluent-kit", "profiles")) ||
-  (a.includes(join(".fluent-kit", "brands")) && n !== "_template.md" && existsSync(join(dest, ".fluent-kit", "brands", n))));
+  a.includes(join(".fluent-kit", "profiles")));
 installed.push(".fluent-kit/profiles/_template.md");
 if (!dry) { mkdirSync(join(dest, ".fluent-kit", "profiles"), { recursive: true }); cpSync(join(here, ".fluent-kit", "profiles", "_template.md"), join(dest, ".fluent-kit", "profiles", "_template.md")); }
 log("copied .fluent-kit/ (scripts, eslint, templates)");
@@ -116,18 +117,31 @@ log(`copied ${SKILL}/`);
 const kitText = readFileSync(join(here, ".github", "copilot-instructions.md"), "utf8");
 // The block names the skill by its real path, so the agent does not have to look for it.
 const block = kitText.slice(kitText.indexOf(START), kitText.indexOf(END) + END.length).split(".github/skills/fluent-ui/").join(`${SKILL}/`);
-function putBlock(file, title) {
+function putBlock(file, title, content = block) {
   let text = existsSync(file) ? readFileSync(file, "utf8") : null;
   let action;
-  if (text === null) { text = `# ${title}\n\n${block}\n`; action = "created"; }
-  else if (text.includes(START) && text.includes(END)) { text = text.slice(0, text.indexOf(START)) + block + text.slice(text.indexOf(END) + END.length); action = "updated the Fluent kit block in"; }
-  else { text = text.replace(/\s*$/, "") + `\n\n${block}\n`; action = "appended the Fluent kit block to"; }
+  if (text === null) { text = `# ${title}\n\n${content}\n`; action = "created"; }
+  else if (text.includes(START) && text.includes(END)) {
+    const rest = text.slice(0, text.indexOf(START)) + text.slice(text.indexOf(END) + END.length);
+    if (content === null) { text = rest.replace(/\n{3,}/g, "\n\n"); action = "removed the Fluent kit block from"; }
+    else { text = text.slice(0, text.indexOf(START)) + content + text.slice(text.indexOf(END) + END.length); action = "updated the Fluent kit block in"; }
+  }
+  else if (content === null) return;
+  else { text = text.replace(/\s*$/, "") + `\n\n${content}\n`; action = "appended the Fluent kit block to"; }
   if (!dry) { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, text); }
   log(`${action} ${rel(file)}`);
 }
 putBlock(join(dest, ".github", "copilot-instructions.md"), "Copilot instructions");
-if (claude) putBlock(join(dest, "CLAUDE.md"), "Claude instructions");
 if (agents) putBlock(join(dest, "AGENTS.md"), "Agent instructions");
+// With AGENTS.md in use, CLAUDE.md imports it (Claude Code reads @path imports) instead of holding a second copy of the
+// block; if CLAUDE.md already imports AGENTS.md outside the kit block, the kit block is left out of it altogether.
+if (claude) {
+  const cm = join(dest, "CLAUDE.md");
+  const own = existsSync(cm) ? readFileSync(cm, "utf8").replace(/<!-- fluent-kit:start -->[\s\S]*?<!-- fluent-kit:end -->/, "") : "";
+  if (!agents) putBlock(cm, "Claude instructions");
+  else if (/^@(\.\/)?AGENTS\.md\s*$/m.test(own)) putBlock(cm, "Claude instructions", null);
+  else putBlock(cm, "Claude instructions", `${START}\n@AGENTS.md\n${END}`);
+}
 
 // 5. remove kit files this version no longer ships
 const now = new Set(installed);

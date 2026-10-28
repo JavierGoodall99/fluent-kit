@@ -6,7 +6,7 @@ Numbers read from Microsoft's own Figma files: the Microsoft 365 UI Kit (Web and
 
 ## 1 Page patterns (Microsoft 365 UI Kit templates)
 
-Read from the Microsoft 365 UI Kit (Figma community file), "Templates" page, Web Large frames. Use these when you build the matching screen; the examples in `examples/` already follow them.
+Read from the Microsoft 365 UI Kit (Figma community file), "Templates" page, Web Large frames. Use these when you build the matching screen; the kit's pattern cards (`.github/skills/fluent-ui/patterns/`) are built from them.
 
 | What | Value (Fluent token) |
 |---|---|

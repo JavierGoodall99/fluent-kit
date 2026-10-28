@@ -68,7 +68,7 @@ Two stages, new kit only. Stage 2 starts only after Stage 1 passes cleanly.
 | 1. Smoke test | one run each of #4, #5, #6 | every run: route followed, ≤45 credits, ≤4 minutes, 6 of 6 quality checks |
 | 2. Consistency | two more runs per prompt (runs 2 and 3) | across all 9 runs: median ≤45 credits and ≤4 minutes, worst ≤90 credits and ≤8 minutes, no quality check fails |
 
-**Route followed** means the agent read only its route before the first edit: the always-on block, `SKILL.md`, `tasks/restyle.md`, at most one `patterns/` card (and `deviations.md` if a control needed it), plus the app's own files. Reading anything in `docs/`, another task card, or searching the repo for design guidance is a **N**.
+**Route followed** means the agent read only its route before the first edit: the always-on block, `SKILL.md`, `tasks/restyle.md`, at most one `patterns/` card (and `deviations.md` if a control needed it), plus the app's own files. Reading anything in `research/` (or an old kit's `docs/`), another task card, or searching the repo for design guidance is a **N**.
 
 **Files read before edit**: in the Copilot chat, count the "Read" steps (files and searches) above the first edit. Kit files and app files both count.
 
