@@ -5,16 +5,16 @@ description: Build or change UI so it looks and feels like a Microsoft applicati
 
 # Fluent UI: router
 
-Pick one route, read only what it names, run its checks. Paths are relative to this folder.
+Pick one route and read only what it names. Paths are relative to this folder.
 
-| Route | When | Read | Check before you finish |
-|---|---|---|---|
-| Small fix | a prop, size, spacing, text, one control | `tasks/small-fix.md` | `check --changed`, `tsc`; `verify --start /page` if anything visible changed |
-| Restyle | "make it better", "easier to understand", "update the UI/UX" of a page that exists | `tasks/restyle.md` + the page's pattern card | `check --changed`, `tsc`, `verify --start /page` |
-| New page | a new page, section, shell or overlay in an app on Fluent v9 | `tasks/new-page.md` + one pattern card and its example | `check --changed`, `tsc`, `verify --start /page --full` (`--click` for anything behind a click) |
-| New app | empty folder, fresh scaffold, Fluent v8 or another UI library | `tasks/new-app.md`, then the new-page route | as for a new page |
+| Route | When | Read |
+|---|---|---|
+| Small fix | a prop, size, spacing, text, one control | `tasks/small-fix.md` |
+| Restyle | "make it better", "easier to understand", "update the UI/UX" of a page that exists | `tasks/restyle.md` + the page's pattern card |
+| New page | a new page, section, shell or overlay in an app on Fluent v9 | `tasks/new-page.md` + one pattern card and its example |
+| New app | empty folder, fresh scaffold, Fluent v8 or another UI library | `tasks/new-app.md`, then the new-page route |
 
-`check` is `node .fluent-kit/scripts/check.mjs`; `verify` is `node .fluent-kit/scripts/verify.mjs`.
+Every route ends with one command: `node .fluent-kit/scripts/check.mjs --finish --page /path` (new page or app: add `--full`). It runs the rules, `tsc`, and `verify` only when something visible changed, and stops at the first failure.
 
 ## Pattern cards
 

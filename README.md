@@ -94,12 +94,15 @@ install.mjs, package.json            the installer, and dev dependencies for CI
 
 ## Checks that run (no setup)
 
-The agent is told to run these before it says it is done. You can run them too, and put the first one in CI.
+The agent ends every task with one command, which you can run too:
 
 ```
-node .fluent-kit/scripts/check.mjs --changed
-node .fluent-kit/scripts/verify.mjs --start /invoices
+node .fluent-kit/scripts/check.mjs --finish --page /invoices
 ```
+
+It runs the rules on the changed files, then `tsc` (the project's `typecheck` script, `tsc -b` for project references, or `tsc --noEmit`), then `verify` on that page, and stops at the first step that fails. `verify` is skipped with one line when nothing visible changed (comments, types and formatting don't count) or when Playwright isn't installed, and the agent then has to say the UI was not verified. Add `--full` for a new page, `--click "role=button[name='...']"` for something behind a click, and `--no-verify` when you asked it to skip checks. In a Next.js app the page is read from the changed `app/**/page.tsx` when you leave out `--page`.
+
+For CI, run the rules on everything: `node .fluent-kit/scripts/check.mjs`.
 
 - **`check.mjs`** scans your source for hard-coded colours, spacing and fonts, other UI or icon libraries, Fluent v8, native `<button>`/`<input>`/`<a>`/`<table>`, inline styles, icon-only buttons without a name, `<img>` without `alt`, gradients and `tokens.colorPalette*` decoration (errors), and Tailwind colour classes (warning). No dependencies, no ESLint needed. Exit code 1 on errors, so it works in CI, a pre-commit hook or an Azure DevOps step. `--changed` checks only files changed in git. Skip one real exception with `// fluent-kit-ignore -- reason`. Allow the project's own shared UI package with `{"allow": ["@company/ui"]}` in `.fluent-kit/config.json`.
 - **Old code:** in a repo that already has violations, run `node .fluent-kit/scripts/check.mjs --baseline` once and commit `.fluent-kit/baseline.json`. From then on only new violations fail.
