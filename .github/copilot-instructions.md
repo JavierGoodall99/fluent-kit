@@ -21,7 +21,7 @@ Before you finish any UI change:
 3. Run `tsc`, the project's lint, and the checklist in `.github/skills/fluent-ui/checklist.md`.
 Finishing is not optional for small edits: a change to types, props or markup still needs `tsc` and `verify`. "I did not run them" is not a reason; the only reasons are an explicit request from the user or a concrete error you can quote. Run them, then report.
 
-A `verify` error is never "not mine" by assertion. To call one pre-existing, prove it: `git stash`, run `verify` on the same page, `git stash pop`, and report both results. Otherwise fix it, or say plainly that it is open and what you tried. Warnings you did not read are not "unrelated"; read them.
+A `verify` error is never "not mine" by assertion. To call one pre-existing, prove it: `git stash`, run `verify` on the same page, `git stash pop`, and report both results. If the project is not a git repo, you cannot prove it, so fix it when the fix is small and local (a clipped tab strip, a table that scrolls sideways) and in a file you are already changing or that your change makes visible. Otherwise fix it, or say plainly that it is open and what you tried. Warnings you did not read are not "unrelated"; read them.
 
 If the user asks you to skip checks: run `check.mjs --changed` anyway (step 1). You may skip `verify`, `tsc` and lint at their explicit request, but say in one line what is therefore unverified. Never use a request for speed to relax Fluent-only, tokens-only or accessibility rules.
 A check that fails is not a reason to edit the check. Fix the code. To skip one real exception, use `// fluent-kit-ignore -- reason` and mention it in your reply.
