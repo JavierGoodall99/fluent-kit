@@ -19,6 +19,8 @@ Same-shaped records that people compare or scan (checks, invoices, tenants, jobs
 A page that reports status (health, checks, jobs) also follows these:
 - **Say the verdict first.** The top of the page states the overall result in one line with the status indicator (for example "3 of 6 checks need attention"). Tabs and counts do not replace it.
 - **Never cut off an error.** A message someone needs to act on is shown in full, or clamped to a few lines with a "Show more" control that reveals the rest. Keep the Copy action next to it. A trailing "..." with no way to see the rest loses the cause.
+- **A failed row says why.** A red "Error" pill alone is a dead end. Show the cause on the row (one short line, or a tooltip/detail on narrow screens) and the time it happened, and put the retry or fix action next to it. If you do not know the cause, say that in the note instead of leaving the pill bare.
+- **Banners and links.** A MessageBar is a bold title, then a full stop, then the detail. Only link to a page that really shows that thing (an integrations banner does not link to tenant health). With no right target, link nowhere.
 - **Look at every state you build.** If the page has loading, error, empty or filtered states, render each one (`verify --click` or a temporary preview) and look at it before saying it works. Do not list a state as done if you never saw it.
 
 State the brief in your first message (three to five lines, plain language), then pick the pattern from "Choose by requirement" in `DESIGN.md` and build. If you cannot answer 1 to 3 from the request or the repo, ask once, briefly, before building. If the request is clear enough to proceed, state your assumptions in the brief instead of asking.

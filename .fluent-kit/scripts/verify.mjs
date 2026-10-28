@@ -157,7 +157,7 @@ for (const url of urls) {
         const cs = prov ? getComputedStyle(prov) : null;
         const lum = (rgb) => { const m = (rgb || "").match(/\d+(\.\d+)?/g); if (!m) return null; const [r, g, b] = m.slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
         const stray = [...document.querySelectorAll("button, input, select, textarea, a[href], table, dialog")].filter((el) => !el.closest("[class*='fui-']") && !(el.className && String(el.className).includes("fui-")));
-        const tiny = [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Checkbox, .fui-Switch, .fui-Radio")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24); }).length;
+        const tiny = [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Checkbox, .fui-Switch, .fui-Radio")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24); }).map((el) => { const r = el.getBoundingClientRect(); return `<${el.tagName.toLowerCase()}> "${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}" ${Math.round(r.width)}x${Math.round(r.height)}px`; });
         return {
           provider: !!prov,
           font: cs?.fontFamily || null,
@@ -201,7 +201,7 @@ for (const url of urls) {
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
-      if (info.tiny) note("warn", where, `${info.tiny} Fluent control(s) smaller than 24px. Check touch targets.`);
+      if (info.tiny.length) note("warn", where, `${info.tiny.length} Fluent control(s) smaller than 24px: ${info.tiny.slice(0, 4).join("; ")}. Make them at least 24px (32px on touch) or use a larger size.`);
       if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("warn", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
       // Fluent's focus helper (tabster) can insert hidden <i data-tabster-dummy> elements before React hydrates a
       // page chunk. React then reports a mismatch whose only server-side difference is those helpers. It is a known
