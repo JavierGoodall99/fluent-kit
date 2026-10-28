@@ -69,7 +69,7 @@ Added tests with real data shapes (Dutch project): tenants list (51 tenants) PAS
 | DataBalk profile in a public repo | Decision needed |
 | Figma community file terms | Checked: Figma's Community Free Resource licence allows use inside Figma and forbids modified copies or derivative works of the file; no attribution is required. The kit copies no Figma files or assets, only measured numbers (sizes, spacing), and the code is written from the installed Fluent package. Low risk, not legal advice; a lawyer or Microsoft would settle it for certain |
 | Other agents (CLAUDE.md, Cursor) and non-React frameworks | Not built |
-| A shorter instructions block based on what the tests showed mattered | Not done |
+| Reading cost: the agent read about 20 files (about 12,000 words) before writing, and test users found runs slow and costly | Restructured (Oct 2026): short router `SKILL.md`, core block under 700 words, measurements/theme/migration moved to reference files; new page now reads about 3,400 to 4,300 words (`node tests/reading-cost.mjs`). Not yet re-run with Copilot: compare Read steps before the first edit and time on `add a dashboard`, `add a page that shows the health of our tenants`, and a small fix |
 | `npm run lint` times out in Javier's environment | Environment, not the kit |
 
 ## Caveats

@@ -3,57 +3,55 @@ name: fluent-ui
 description: Build or change UI so it looks and feels like a Microsoft application, using Fluent UI React v9, Fluent icons and tokens. Use when creating pages, forms, tables, dialogs, or when restyling or migrating an existing screen. Works in any repo; detects the existing theme and brand.
 ---
 
-# Fluent UI
+# Fluent UI: router
 
-Use this skill for any task that creates or changes what users see in a React app that should have the Microsoft (Fluent 2) look and feel.
+Read this file, then open only what the table below sends you to. Do not read the whole kit. The always-on rules are already in `.github/copilot-instructions.md` and `.github/instructions/fluent-ui.instructions.md`; they load on their own.
 
-## Step 0: decide which theme applies (always first)
+## 1. Start (every UI task)
 
-Run `node .fluent-kit/scripts/detect-theme.mjs .` (or `--json`) in the project root. If you cannot run scripts, check by hand: `package.json` for `@fluentui/react-components` / `@fluentui/react` / other UI libraries, and search for `FluentProvider`, `createLightTheme`, `BrandVariants`, `webLightTheme`.
+1. Run `node .fluent-kit/scripts/detect-theme.mjs .`. If it says `fluent-v9-custom-brand`, keep the project's theme and brand, and write new text in the language it reports. For any other result (no theme yet, v8, another UI library, new project), read `references/theme-and-brand.md` (and `references/new-project-setup.md` for an empty folder). If `.fluent-kit/PROFILE.md` exists, read it: it holds the organisation's overrides. The repo's own design guidance, if the script lists any, wins over the kit.
+2. Look for an existing component or page in the project that already does the job. Reuse it and follow its conventions.
+3. Write the brief in your first message, three to five lines: who uses it, what they need to do, how much data, what can go wrong. If you cannot answer who, job or how much, ask once.
 
-| Result | What to do |
-|---|---|
-| `fluent-v9-custom-brand` | **Existing project.** Keep its theme and brand ramp. Do not recolor, rename or regenerate it. Build with it. |
-| `fluent-v9-stock-theme` | Use the brand step below. If a brand color is found, derive a ramp from it. If not, ask for the brand hex. |
-| `fluent-v8` | Do not mix v8 and v9 in new code. Ask whether this task is a migration. |
-| `other-ui-library` | Ask the user: migrate to Fluent v9, or keep that library for this task? If migrating, reuse steps 3 to 7 of `references/new-project-setup.md` inside the existing app. |
-| `new-project` | Nothing to read a brand from (an empty folder, or a fresh scaffold: its default colors are not a brand). Follow `references/new-project-setup.md`: ask once for the brand hex or "stock", install Fluent, run `make-theme.mjs`, wrap the app, build the first screen from `examples/`. Never invent a brand color. |
+## 2. Pick the pattern and open one file
 
-**Brand step (nobody sets the brand beforehand).** The script also prints a "Brand" line and "Brand advice":
+Choose from the requirement, not from habit. Open the example and the measurement table for the row that fits. Copy the structure, not the placeholder data.
 
-- Existing ramp: keep it as is.
-- No ramp but a brand color found: run `node .fluent-kit/scripts/generate-ramp.mjs <hex> --ts`, use the result in the theme, and tell the user in one line which color you used. Do not ask first. If the advice says the color is a guess (medium confidence), say that in the same line.
-- Several candidates ("ambiguous"): ask the user to pick one.
-- Nothing found: ask for the hex. If the user says the app should stay on the stock Microsoft theme, write `{ "mode": "stock" }` to `.fluent-kit/brand.json` so nobody asks again. If you derive a ramp or the user picks a color, you may also record it as `{ "hex": "#rrggbb" }` there.
-- A `.fluent-kit/brand.json` already present is a saved decision: follow it.
-- If the contrast checks fail, say so and ask. Do not use that ramp for buttons or text. Never pass `--force` to `make-theme.mjs` to get around a failed contrast check; that flag is only for a design owner who has approved the colour. Offer the nearest passing darker shade (the script prints the contrast numbers) instead.
+| The person needs to... | Open this example | Measurements (`references/measurements.md`) |
+|---|---|---|
+| Scan, sort and select records (up to a few hundred) | `examples/list-page.tsx` | 1 "List"; 2 "DataGrid / Table" |
+| Scan thousands of records | `examples/large-list.tsx` | 2 "DataGrid / Table" |
+| Find what is failing among many checks or jobs, and why | `examples/status-grid.tsx` | 2 "Message bar"; 3 "List" |
+| See an overview of several measures | `examples/dashboard.tsx` | 1 "Card"; 3 "Dashboard" |
+| Review and change preferences, saved once | `examples/settings-page.tsx` | 1 "Settings row"; 3 "Settings" |
+| Fill in a form on its own page | `examples/form-page.tsx` | 1 "Form column"; 3 "Form" |
+| Edit one record from a list | `examples/edit-drawer.tsx` | 2 "Drawer" |
+| Confirm a destructive action | `examples/confirm-dialog.tsx` | 2 "Dialog" |
+| Move work through stages | `examples/task-board.tsx` | 1 "Task board" |
+| Browse a home or gallery of cards | `examples/gallery-page.tsx` | 1 "Section title row", "Card row" |
+| Start from nothing (first run, no results) | `examples/empty-state.tsx` | 1 "Empty state" |
+| Move between pages | `examples/app-nav.tsx` | 2 "Nav", "Toolbar" |
+| Tell someone something happened | `examples/notifications.tsx` | 2 "Message bar" |
+| Set up the theme in a new app | `examples/theme.tsx` | none |
 
-Rules that always hold, whatever the result: Fluent components, Fluent icons, tokens only, UI text in the project's language. Only the brand ramp is decided in this step. Never change an existing project's theme as a side effect of an unrelated task; if the theme looks wrong, report it instead.
+If no row fits, or two fit and you cannot choose, read `.fluent-kit/DESIGN.md` section 5, "Choose by requirement". Do not invent a presentation.
 
-**Language step.** The script also prints a "UI language" line and "Language advice". Write new UI text in that language. If there is no signal, ask once; if the user does not say, use English. A `.fluent-kit/PROFILE.md` overrides this.
+## 3. Open only when needed
 
-When asking the user, ask one short question and wait. Do not guess a brand color.
+- **A component you have not used before:** its entry in `references/fluent2-component-guidance.md`. Search for its heading; do not read the file.
+- **A question about colour roles, type, elevation or responsive rules:** the one section of `.fluent-kit/DESIGN.md` (its first lines list the sections).
+- **An unclear, ambiguous or off-standard request, or a screen with many states:** `.fluent-kit/DESIGNER.md`.
+- **A brand colour, theme or language question:** `references/theme-and-brand.md`.
+- **A migration from another library or Fluent v8:** `references/migrating.md`.
+- **A new page, before you report:** `checklist.md`.
 
-## Workflow
+## 4. Build
 
-1. **Read the repo's own guidance first** if the detect script lists any ("Existing guidance": for example `design.md`, `AGENTS.md`, another design skill). It wins wherever it conflicts with the kit. Then **read `.fluent-kit/DESIGN.md`.** If `.fluent-kit/PROFILE.md` exists, read it too: it holds the organisation's overrides (language, tone, shared packages). It is the source of truth for tokens, components, and layout.
-1b. **Read `.fluent-kit/DESIGNER.md`** and act as a senior Microsoft product designer: write the five-line design brief (who, job, how much, what can go wrong, success) before choosing anything. Ask once if you cannot answer who, job or how much.
-2. **Identify the theme.** Use the result of Step 0. For an existing project, the ramp it already has is the brand file. Do not change brand values.
-3. **Look for an existing component.** Search the project (its shared UI package if it has one, and the repo) before writing a new one. Prefer reuse over variation.
-4. **Pick the page pattern** from `.fluent-kit/DESIGN.md` section 5 (app shell, command bar, list, drawer, confirmation). The result must feel like a Microsoft application.
-5. **Build with Fluent v9, Fluent icons and tokens.** Follow `.github/instructions/fluent-ui.instructions.md`. No hard-coded colors, spacing, or radii. No other UI or icon library. No native form controls.
-6. **Critique, then verify.** Do the critique pass in `DESIGNER.md` section 8 (squint, remove-one, five-second, worst-case, keyboard). Run `node .fluent-kit/scripts/check.mjs --changed` and fix every error. Run `node .fluent-kit/scripts/verify.mjs --start /path-of-the-changed-page` (starts the dev server itself and stops it; do not run `npm run dev` in your terminal, it blocks) (renders light and dark at three widths, runs layout and accessibility checks, saves screenshots to `.fluent-kit/out/`); open the screenshots and look at them. If verify cannot run, say so; never claim the UI was verified when it was not. Then run `tsc`, the project's lint, and go through `checklist.md`. Never weaken or edit a check to make it pass.
-7. **Report.** Give the short design note (requirement, pattern chosen, main alternative rejected and why; `DESIGNER.md` section 9). Say which existing components you reused, which new component (if any) you created and why, and anything that deviates from `.fluent-kit/DESIGN.md`.
+Fluent v9 components, Fluent icons, tokens only, no native controls: the rules are in `.github/instructions/fluent-ui.instructions.md`. Design every state the screen can be in (loading, empty, error, partial, long text). Look at each one before you say it works.
 
-## Migrating an existing screen
+## 5. Check, then report
 
-When the task is to bring a screen onto the system:
-
-1. List what is on the screen: components, hard-coded values, v8 imports, custom CSS.
-2. Replace v8 components with their v9 equivalents one at a time. Keep behavior unchanged.
-3. Replace each hard-coded value with the matching token. If no token fits, stop and ask. Do not approximate.
-4. Delete CSS that Fluent now covers. Keep only layout CSS expressed with tokens.
-5. Summarize any remaining hard-coded values at the end.
+Run the checks sized to the change, as `.github/copilot-instructions.md` says. End with the short design note: the requirement, the pattern and the main alternative you rejected, anything you built differently from what was asked, your assumptions, what you could not verify.
 
 ## Things to refuse or flag
 
@@ -65,34 +63,3 @@ The standard outranks the prompt. Do not build the off-standard thing and then f
 - A request for a design that does not fit the Microsoft patterns (hero banners, custom gradients, decorative illustrations): do not build it. Build the nearest Fluent pattern instead, for example a page header (breadcrumb, title, one-line description, primary action) on a plain surface, or a `MessageBar` for an announcement.
 - Decorative use of `colorPalette*` tokens (purple, berry and so on) to get a colour the theme does not have: not allowed. Palette tokens carry status and data meaning; surfaces use neutral and brand tokens.
 
-## Examples (copy the structure, not the placeholder data)
-
-Working, type-checked examples are in `examples/`. These show how to build each piece correctly (tokens, states, accessibility). They are not templates: choose the presentation from the requirement first (`.fluent-kit/DESIGN.md`, "Choose by requirement"), then open the matching example only if you chose that piece:
-
-- `theme.tsx`: `createProductTheme`, `AppProvider`. One structure; only the brand ramp varies per app.
-- `list-page.tsx`: command bar + `DataGrid`, selection, disabled actions, row count footer.
-- `large-list.tsx`: virtualized `DataGrid` for thousands of rows (search, sort, empty state). Use it when the list is large; do not render thousands of rows in a plain `DataGrid`.
-- `edit-drawer.tsx`: `OverlayDrawer` form with `Field` and validation.
-- `confirm-dialog.tsx`: `Dialog` for destructive actions only.
-- `notifications.tsx`: `Toast` and `MessageBar`.
-- `status-grid.tsx`: grouped `Table` of same-shaped checks with the same columns on every row, one row component for every status, Fluent status indicator (coloured icon plus text, one fixed icon per status), wrapped capped message column, stacked rows on a phone.
-- `dashboard.tsx`: canvas of cards (gauge, bar, line charts from `@fluentui/react-charts`), per-card time-range tabs, "View details" link. Use `LineChart`, not `AreaChart`.
-- `task-board.tsx`: a column per stage, a card per item, "Move to" menu instead of drag and drop, stacks on a phone.
-- `form-page.tsx`: centred form or settings page: sections, labels above inputs, validation, Discard and Save at the bottom right.
-- `gallery-page.tsx`: home or gallery page: page title, then sections with a 32px title row ("See more" at the right) and a grid of equal cards.
-- `settings-page.tsx`: settings page: sections of 48px rows (switch, checkbox, or value plus chevron that opens a routed detail view), one Save for the page (disabled until changed), sticky footer (full width on a phone, Save on top), MessageBar at the top on a failed save.
-- `empty-state.tsx`: first-run and empty state with a primary, secondary and tertiary action.
-- `app-nav.tsx`: collapsible sidebar. Expanded `NavDrawer` (Hamburger, `bundleIcon`, `NavCategory` for sub-pages), collapsed 56px icon rail (subtle Buttons with Tooltips, primary when selected), slide-over under 1024px.
-
-They are generic. Where a real screen in the project already does the same thing, prefer that screen's conventions.
-
-## Fluent 2 component guidance
-
-Before using a component in a way you have not used before, read its entry in `references/fluent2-component-guidance.md`. It records when Fluent 2 says to use the component, which neighbour to use instead, and its sizes, appearances and states. `.fluent-kit/DESIGN.md` section 4 has a "Which component when" table for quick choices.
-
-## Reference
-
-- `.fluent-kit/DESIGN.md`: the design system
-- `.fluent-kit/brands/`: per-product brand slots
-- `components.json`: catalogue of approved components
-- `checklist.md`: pre-delivery checks

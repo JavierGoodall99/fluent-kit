@@ -4,6 +4,8 @@ Source: Microsoft's [Fluent 2 Web UI kit (Figma, community file)](https://www.fi
 
 States the kit shows for interactive components: rest, hover, pressed, selected, focus, disabled. Do not restyle them; Fluent v9 implements them.
 
+**Entries (search for the heading; do not read the whole file):** Button, ToggleButton, MenuButton, SplitButton, CompoundButton · Nav (NavDrawer, NavItem, NavCategory, NavSubItem) · Drawer (OverlayDrawer, InlineDrawer) · DataGrid · Dialog · Field · MessageBar · Toast (Toaster) · Toolbar · Input · Card · TabList (Tab) · Breadcrumb · Badge (and PresenceBadge, CounterBadge) · Menu · Popover · List · Avatar and AvatarGroup · Dropdown (and Combobox) · Persona · SearchBox · Tree · Checkbox · RadioGroup · Switch · Link · ProgressBar · Spinner · Tag and InteractionTag · Textarea · Tooltip · Skeleton · Accordion · Divider · Label and InfoLabel · Slider · SpinButton · TagPicker · Status indicator · TeachingPopover · Carousel · Rating and RatingDisplay · SwatchPicker · Material acrylic
+
 ## Button, ToggleButton, MenuButton, SplitButton, CompoundButton
 
 - **Button:** triggers an action or event. Use it for important actions such as submitting, committing a change or moving to the next step. To navigate somewhere else, use a `Link`, not a button.

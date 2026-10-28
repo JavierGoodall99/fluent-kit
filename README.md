@@ -60,11 +60,14 @@ install.mjs                          the installer
   copilot-instructions.md            short always-on rules (the installer inserts the marked block)
   instructions/fluent-ui.instructions.md   applies to *.ts, *.tsx, *.css
   skills/fluent-ui/
-    SKILL.md                         on-demand workflow (build, migrate)
+    SKILL.md                         short router: request type -> one example + one measurement table
     checklist.md                     pre-delivery checks
     examples/*.tsx                   type-checked screens: theme, list, drawer, dialog, toast, nav
     references/fluent2-component-guidance.md   when to use each component, from the Fluent 2 Figma kit
     references/new-project-setup.md  step-by-step setup for a brand-new project
+    references/measurements.md       page-pattern, component and narrow-screen numbers from Microsoft's Figma files
+    references/theme-and-brand.md    theme, brand and language detection (read when not a custom-brand project)
+    references/migrating.md          migrating a screen to Fluent v9
 .fluent-kit/
   DESIGN.md                          the design system, agent-readable
   scripts/check.mjs, verify.mjs      the rules checker and the browser check
