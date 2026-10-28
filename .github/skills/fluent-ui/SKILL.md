@@ -80,6 +80,7 @@ Working, type-checked examples are in `examples/`. These show how to build each 
 - `task-board.tsx`: a column per stage, a card per item, "Move to" menu instead of drag and drop, stacks on a phone.
 - `form-page.tsx`: centred form or settings page: sections, labels above inputs, validation, Discard and Save at the bottom right.
 - `gallery-page.tsx`: home or gallery page: page title, then sections with a 32px title row ("See more" at the right) and a grid of equal cards.
+- `settings-page.tsx`: settings page: sections of 48px rows (switch, checkbox, or value plus chevron that opens a routed detail view), one Save for the page (disabled until changed), sticky footer (full width on a phone, Save on top), MessageBar at the top on a failed save.
 - `empty-state.tsx`: first-run and empty state with a primary, secondary and tertiary action.
 - `app-nav.tsx`: collapsible sidebar. Expanded `NavDrawer` (Hamburger, `bundleIcon`, `NavCategory` for sub-pages), collapsed 56px icon rail (subtle Buttons with Tooltips, primary when selected), slide-over under 1024px.
 
