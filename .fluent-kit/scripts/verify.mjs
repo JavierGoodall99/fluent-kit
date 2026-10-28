@@ -105,7 +105,12 @@ if (startServer) {
       if (busy) console.log("Note: the dev server reported a busy port. Using " + all[all.length - 1] + " (another project may be running on the default port).");
     };
     server.stdout.on("data", onData); server.stderr.on("data", onData);
-    server.on("exit", (code) => resolveUrl(null, code));
+    server.on("exit", () => {
+      // The dev server stopped at once, often because one is already running for this project ("another instance is already running"
+      // and it prints that server's URL). Use that URL instead of failing.
+      const all = log.replace(/\x1b\[[0-9;]*m/g, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
+      if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); resolveUrl(all[all.length - 1]); } else resolveUrl(null);
+    });
     setTimeout(() => resolveUrl(null), 90000);
   });
   const base = await ready;
