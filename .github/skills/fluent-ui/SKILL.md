@@ -21,7 +21,7 @@ Choose from the requirement, not from habit. Open the example and the measuremen
 |---|---|---|
 | Scan, sort and select records (up to a few hundred) | `examples/list-page.tsx` | 1 "List"; 2 "DataGrid / Table" |
 | Scan thousands of records | `examples/large-list.tsx` | 2 "DataGrid / Table" |
-| Find what is failing among many checks or jobs, and why | `examples/status-grid.tsx` | 2 "Message bar"; 3 "List" |
+| Find what is failing among many checks or jobs, and why | `examples/status-grid.tsx` | 2 "Message bar"; 3 "List"; and `.fluent-kit/DESIGNER.md` "A page that reports status" (verdict first, group repeated errors) |
 | See an overview of several measures | `examples/dashboard.tsx` | 1 "Card"; 3 "Dashboard" |
 | Review and change preferences, saved once | `examples/settings-page.tsx` | 1 "Settings row"; 3 "Settings" |
 | Fill in a form on its own page | `examples/form-page.tsx` | 1 "Form column"; 3 "Form" |
