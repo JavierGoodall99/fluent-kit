@@ -194,6 +194,17 @@ for (const url of urls) {
           emptyBody: document.body.innerText.trim().length === 0,
           // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
           hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).length : 0,
+          // Space under the last content in the scrolling area: a card that ends flush with the window edge looks cut off.
+          bottomGap: (() => {
+            const se = document.scrollingElement;
+            let c = se, best = se ? se.scrollHeight - se.clientHeight : 0;
+            for (const el of document.querySelectorAll("div, main, section")) { if (!/(auto|scroll)/.test(getComputedStyle(el).overflowY)) continue; const ex = el.scrollHeight - el.clientHeight; if (ex > best) { best = ex; c = el; } }
+            if (!c || best < 40) return null;
+            const top = c === se ? -c.scrollTop : c.getBoundingClientRect().top - c.scrollTop;
+            let bottom = 0;
+            for (const el of c.querySelectorAll("*")) { const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; const cs = getComputedStyle(el); if (cs.position === "fixed" || cs.visibility === "hidden") continue; bottom = Math.max(bottom, r.bottom - top); }
+            return Math.round(c.scrollHeight - bottom);
+          })(),
           // First glance: how much reading the first screen asks for, and text blocks that repeat.
           firstWords: (() => { let n = 0; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); for (let t = w.nextNode(); t; t = w.nextNode()) { const el = t.parentElement; if (!el || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(el.tagName)) continue; const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); if (!r.width || !r.height || cs.visibility === "hidden" || cs.display === "none" || r.top >= window.innerHeight || r.bottom <= 0) continue; n += (t.textContent.trim().match(/\S+/g) || []).length; } return n; })(),
           repeated: (() => { const m = new Map(); for (const el of document.querySelectorAll("p, span, div, td, li, pre, code")) { if (el.children.length) continue; const t = (el.textContent || "").replace(/\s+/g, " ").trim(); if (t.length < 70) continue; const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue; m.set(t, (m.get(t) || 0) + 1); } return [...m].filter(([, c]) => c >= 3).slice(0, 2).map(([t, c]) => `"${t.slice(0, 50)}..." x${c}`); })(),
@@ -228,6 +239,7 @@ for (const url of urls) {
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
+      if (info.bottomGap !== null && info.bottomGap < 8) note("warn", where, `The last content ends ${Math.max(info.bottomGap, 0)}px from the bottom of the scrolling area, so cards look cut off at the end. Add space below the page content (padding-bottom: tokens.spacingVerticalXL, or the page wrapper's bottom padding).`);
       if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
       if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
