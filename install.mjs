@@ -112,6 +112,7 @@ const skillsDir = (opt("--skills-dir") || (claude ? ".claude/skills" : ".github/
 const SKILL = `${skillsDir}/fluent-ui`;
 copyDir(skillSrc, join(dest, ...SKILL.split("/")));
 log(`copied ${SKILL}/`);
+if (!opt("--skills-dir") && !flag("--claude") && claude) log(`chose ${SKILL}/ because this repo has CLAUDE.md or a .claude/ folder (Copilot reads it too). Using only Copilot? Re-run with --skills-dir .github/skills`);
 // A copy in another skill folder (from an older install, before the kit kept a manifest, or from a different --claude choice) makes the
 // agent see two skills named fluent-ui, and the older one can contradict the new rules. Remove it when it is the kit's skill.
 for (const other of [".github/skills", ".claude/skills", ".agents/skills"]) {
