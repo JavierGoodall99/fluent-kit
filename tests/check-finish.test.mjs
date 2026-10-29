@@ -78,6 +78,44 @@ try {
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /rules ok, tsc ok, verify skipped at the person's request/);
 
+  // --no-verify is honoured for an icon, text or colour edit, and ignored when size, spacing, width or layout change.
+  const page = (body) => `import { Button, Text, makeStyles, tokens } from "@fluentui/react-components";\nimport { Add20Regular } from "@fluentui/react-icons";\nconst useStyles = makeStyles({ box: { ${body.style} } });\nexport const Page = () => { const s = useStyles(); return <div className={s.box}>${body.jsx}</div>; };\n`;
+  const base = { style: "color: tokens.colorNeutralForeground1, paddingTop: tokens.spacingVerticalM", jsx: '<Button icon={<Add20Regular />} size="medium">Save</Button><Text>Hello</Text>' };
+  const edit = (name, body) => {
+    const dir = project(name, { ts: true, playwright: true });
+    writeFileSync(join(dir, "src/Page.tsx"), page(base));
+    spawnSync("git", ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qam", "page"], { cwd: dir });
+    writeFileSync(join(dir, "src/Page.tsx"), page({ ...base, ...body }));
+    return dir;
+  };
+  for (const [name, body] of [
+    ["text", { jsx: base.jsx.replace("Hello", "Hallo") }],
+    ["colour", { style: base.style.replace("colorNeutralForeground1", "colorBrandForeground1") }],
+    ["icon", { jsx: base.jsx.replace("icon={<Add20Regular />} ", "") }],
+  ]) {
+    r = finish(edit(`skip-${name}`, body), "--no-verify");
+    assert.equal(r.code, 0, `${name}: ${r.out}`);
+    assert.match(r.out, /verify skipped at the person's request/, name);
+  }
+  for (const [name, body] of [
+    ["size", { jsx: base.jsx.replace('size="medium"', 'size="large"') }],
+    ["padding", { style: base.style.replace("spacingVerticalM", "spacingVerticalXXL") }],
+    ["width", { style: `${base.style}, maxWidth: "40rem"` }],
+    ["layout", { style: `${base.style}, display: "flex"` }],
+    ["element", { jsx: `${base.jsx}<Text>More</Text>` }],
+  ]) {
+    r = finish(edit(`ignore-${name}`, body), "--no-verify");
+    assert.equal(r.code, 2, `${name}: ${r.out}`); // verify is needed and there is no --page here
+    assert.match(r.out, /--no-verify ignored \(size, spacing, width or layout changed in src\/Page\.tsx\)/, name);
+    assert.match(r.out, /verify needed/, name);
+  }
+  // A new UI file counts as layout too.
+  d = edit("ignore-newfile", {});
+  writeFileSync(join(d, "src/Page.tsx"), page(base));
+  writeFileSync(join(d, "src/Extra.tsx"), page(base));
+  r = finish(d, "--no-verify");
+  assert.match(r.out, /--no-verify ignored/);
+
   // A Next.js route is read from the file path (verify then fails to start here, which is reported, not hidden).
   d = project("next", { playwright: true });
   mkdirSync(join(d, "app/(shop)/invoices"), { recursive: true });
