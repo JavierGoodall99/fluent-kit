@@ -63,6 +63,8 @@ Pattern: targeted prompts are fast, cheap and right. The failures and the cost s
 
 Two stages, new kit only. Stage 2 starts only after Stage 1 passes cleanly.
 
+Prompts 4 to 6 restyle pages that already exist. Prompts 1 to 3 (new page), 7 (small fix) and 8 (consistency) are not part of this validation, and the new-app route has no prompt yet. A restyle pass says nothing about those routes.
+
 | Stage | Runs | Passes when |
 |---|---|---|
 | 1. Smoke test | one run each of #4, #5, #6 | every run: route followed, ≤45 credits, ≤4 minutes, 6 of 6 quality checks |
@@ -105,6 +107,18 @@ node ~/fluent-kit/tests/record-run.mjs --summary                                
 ```
 
 `--update` also takes `--credits`, `--time`, `--files-read`, `--route` and `--note`. `../bench-runs/results.md` is rewritten after every command; copy its rows here when a stage is done.
+
+### First informal runs (2026-10-28, before this protocol was used)
+
+Nine runs of prompts 4 to 6 by Javier, Copilot Agent, Claude Sonnet 5.5, on the pilot app. The kit changed between them (before and after PRs #10, #12 and #13), the app was not always reset to one commit, and the screenshots were not kept, so the quality columns were never scored. Use them for time and credits only; repeat with `record-run.mjs` on one fixed kit commit for the real result.
+
+| Prompt | Credits | Time | Route followed |
+|---|---|---|---|
+| #4 home screen | 25.2, 28.7, 34.4 | 3m06s, 3m14s, 2m27s | y (first not checked) |
+| #5 activity log | 20.1, 21.6, 14.1 | 1m43s, 1m05s, 1m03s | y |
+| #6 tenants | 37.3, 34.0, 12.4 | 3m10s, 3m41s, 0m58s | y |
+
+Median 25.2 credits and 2m27s; worst 37.3 credits and 3m41s. The old kit took 14m04s and 189.9 credits on the home screen.
 
 ### Results
 
