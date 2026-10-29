@@ -8,6 +8,6 @@ A prop, a size, spacing, text or one control: about 20 lines.
 - Removing something: also delete the import it leaves behind.
 - A problem you notice elsewhere: mention it, do not fix it.
 
-**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page`. It runs the rules, `tsc`, and `verify` only if something visible changed; fix what it reports and look at the contact sheet it names.
+**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page --no-verify`: rules and `tsc`, a few seconds, enough for an icon, text, colour or prop. Changed size, spacing or layout, or added something that could wrap or overflow: leave out `--no-verify` so the browser check runs, and look at the contact sheet it names.
 
 **Reply** in one line: what changed, and what you could not verify.
