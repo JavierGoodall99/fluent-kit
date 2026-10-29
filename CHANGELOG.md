@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- `check.mjs --finish` ignores `--no-verify` when the change touches a size, spacing, width or layout setting, adds or removes a component (icons excepted), or adds or deletes a UI file. It says so in its summary line and runs the browser check. Text, colour and icon edits still skip it.
+- Installer `--ci` writes `.github/workflows/fluent-kit.yml`, a pull-request check that runs the rules whether or not the agent ran its own.
 - The always-on block no longer says `--no-verify` is for a "prop" change (a size is a prop); it is for a small fix to only an icon, text or colour, and any size, spacing, width or layout change gets the browser check.
 
 ## 1.5.1
