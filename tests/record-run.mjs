@@ -14,7 +14,7 @@
 //
 // Quality is six letters, P (pass), F (fail) or ? (not scored), in this order:
 //   scope, first glance, uniform, correct, every state, honest note.
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
@@ -141,10 +141,12 @@ function writeResults(out, runs) {
 
 function main() {
   if (flag("--help") || flag("-h")) { console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1).filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n")); return; }
-  const app = resolve(opt("--app") || process.cwd());
+  // Real paths, so they compare equal to what git prints (macOS /var -> /private/var, Windows short 8.3 names).
+  const real = (p) => { for (let q = p, rest = ""; ;) { try { return join(realpathSync.native(q), rest); } catch { const d = dirname(q); if (d === q) return p; rest = join(basename(q), rest); q = d; } } };
+  const app = real(resolve(opt("--app") || process.cwd()));
   const top = git(app, ["rev-parse", "--show-toplevel"]);
-  const appRoot = top.ok ? top.out.trim() : app;
-  const out = resolve(opt("--out") || join(appRoot, "..", "bench-runs"));
+  const appRoot = top.ok ? real(resolve(top.out.trim())) : app;
+  const out = real(resolve(opt("--out") || join(appRoot, "..", "bench-runs")));
 
   if (flag("--summary")) { const runs = loadRuns(out); if (!runs.length) die(`no runs in ${out}`); writeResults(out, runs); console.log(summarise(runs)); console.log(`\n${join(out, "results.md")}`); return; }
 

@@ -14,7 +14,7 @@
 //   --json      machine-readable output
 // Exit code 1 if there are errors, 0 otherwise. Warnings never fail the run.
 // Silence one line with a comment: // fluent-kit-ignore -- reason   (on the same line or the line above)
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, relative, resolve, sep, extname, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -23,7 +23,8 @@ import { createRequire } from "node:module";
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
-const root = resolve(args.find((a, i) => !a.startsWith("--") && !["--allow", "--page", "--click"].includes(args[i - 1])) || ".");
+// The real path, so it matches what git reports (macOS /var -> /private/var, Windows short 8.3 names, junctions).
+const root = (() => { const p = resolve(args.find((a, i) => !a.startsWith("--") && !["--allow", "--page", "--click"].includes(args[i - 1])) || "."); try { return realpathSync.native(p); } catch { return p; } })();
 const json = flag("--json");
 
 let config = {};
