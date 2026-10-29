@@ -112,6 +112,16 @@ const skillsDir = (opt("--skills-dir") || (claude ? ".claude/skills" : ".github/
 const SKILL = `${skillsDir}/fluent-ui`;
 copyDir(skillSrc, join(dest, ...SKILL.split("/")));
 log(`copied ${SKILL}/`);
+// A copy in another skill folder (from an older install, before the kit kept a manifest, or from a different --claude choice) makes the
+// agent see two skills named fluent-ui, and the older one can contradict the new rules. Remove it when it is the kit's skill.
+for (const other of [".github/skills", ".claude/skills", ".agents/skills"]) {
+  const od = `${other}/fluent-ui`;
+  if (od === SKILL) continue;
+  const f = join(dest, ...od.split("/"), "SKILL.md");
+  if (!existsSync(f) || !/^name:\s*fluent-ui\s*$/m.test(readFileSync(f, "utf8"))) continue;
+  if (!dry) rmSync(join(dest, ...od.split("/")), { recursive: true, force: true });
+  log(`removed ${od}/ (an older copy of this skill; the kit now lives in ${SKILL}/)`);
+}
 
 // 4. rules block in copilot-instructions.md, CLAUDE.md and AGENTS.md
 const kitText = readFileSync(join(here, ".github", "copilot-instructions.md"), "utf8");

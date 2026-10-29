@@ -67,3 +67,6 @@ jobs:
           test -f "$target/CLAUDE.md" && test -f "$target/AGENTS.md"
           test ! -e "$target/research" && test ! -e "$target/.fluent-kit/brands" && test ! -e "$target/.fluent-kit/DESIGN.md"
           node install.mjs "$target" --dry-run | grep -q "updated the Fluent kit block"
+          stale="$RUNNER_TEMP/stale" && mkdir -p "$stale/.github/skills/fluent-ui" "$stale/.github/skills/other" && printf -- '---\nname: fluent-ui\n---\n' > "$stale/.github/skills/fluent-ui/SKILL.md" && echo keep > "$stale/.github/skills/other/SKILL.md"
+          node install.mjs "$stale" --claude | grep -q "removed .github/skills/fluent-ui/"
+          test ! -e "$stale/.github/skills/fluent-ui" && test -f "$stale/.github/skills/other/SKILL.md" && test -f "$stale/.claude/skills/fluent-ui/SKILL.md"
