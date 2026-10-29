@@ -66,7 +66,7 @@ try {
   // An edited skill file is a warning, not a failure; CRLF line endings alone are not an edit.
   d = project("edited");
   const card = join(d, ".github/skills/fluent-ui/tasks/small-fix.md");
-  writeFileSync(card, readFileSync(card, "utf8").replace(/\n/g, "\r\n"));
+  writeFileSync(card, readFileSync(card, "utf8").replace(/\r?\n/g, "\r\n"));
   r = doctor(d);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /The skill files are unchanged since install/);
