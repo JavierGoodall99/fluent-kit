@@ -10,8 +10,8 @@ Use Fluent UI React v9 and Fluent icons (or the project's shared UI package).
 - Fluent controls only: `Button`, `Input`, `Dropdown` (never `<select>` or Fluent `Select`), `DatePicker` (never `type="date"`), `Link`, `Table`/`DataGrid`, `Dialog`.
 - No hard-coded colours, sizes, spacing, radii or shadows: `tokens` in `makeStyles`.
 - UI text in the project's language.
-- No new package except Fluent's official companion packages (listed in `deviations.md`): pin the version and name it in the note.
-- Never revert, stash or delete the person's uncommitted changes.
+- No new package except Fluent's companion packages (`deviations.md`): pin the version, name it in the note.
+- Never revert, stash or delete uncommitted changes.
 - A vague request ("make it better") is not permission to rebuild: keep every field, action and layout.
 - Reuse how the app already shows the same thing; no second look.
 - Edit each part of a file once.
@@ -20,5 +20,5 @@ Use Fluent UI React v9 and Fluent icons (or the project's shared UI package).
 
 **Anything bigger** (restyle, new section, page or app): read `.github/skills/fluent-ui/SKILL.md` and follow its route.
 
-**Always** finish, even a one-line change or a removal, with `node .fluent-kit/scripts/check.mjs --finish --page /path` and fix what it reports. Asked to skip, or a small fix to an icon, text, colour or prop: add `--no-verify`. A restyle, page or app always gets the browser check. If you could not run it, say so.
+**Always** finish, even a one-line change or a removal, with `node .fluent-kit/scripts/check.mjs --finish --page /path` and fix what it reports. Asked to skip, or a small fix to only an icon, text or colour: add `--no-verify`. Any size, spacing, width or layout change, a restyle, page or app: the browser check always runs. If you could not, say so.
 <!-- fluent-kit:end -->
