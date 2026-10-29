@@ -239,6 +239,7 @@ process.exit(errors.length ? 1 : 0);
 
 // --finish: rules (already reported above), then tsc, then verify sized to the change. One command, one summary line.
 function finish(ruleErrors) {
+  const shown = (f) => relative(root, f).split(sep).join("/"); // forward slashes on every system, so the message reads the same
   const done = (steps, code) => { console.log(`\nfluent-kit finish: ${steps.join(", ").replace(/\.+$/, "")}.`); return code; };
   if (ruleErrors) return done([`stopped at the rules (${ruleErrors} error(s) above): fix them, then run --finish again`], 1);
   const steps = ["rules ok"];
@@ -254,12 +255,12 @@ function finish(ruleErrors) {
   const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some((n) => { try { req.resolve(n); return true; } catch { return false; } });
   if (!hasPlaywright) return done([...steps, "verify not available (Playwright is not installed): say in your reply that the UI was not verified. To enable it once: npm i -D playwright axe-core && npx playwright install chromium"], 0);
   const page = opt("--page") || inferPage(change.visible);
-  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => relative(root, f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
+  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => shown(f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
 
   const vArgs = ["--start", page, ...(flag("--full") ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
   console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
   const v = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), ...vArgs], { cwd: root, stdio: "inherit" });
-  const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => relative(root, f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
+  const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => shown(f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
   if (v.status === 0) return done([...steps, `verify ok${hint ? "." + hint : ""}`], 0);
   if (v.status === 1) return done([...steps, `verify found problems (above): fix them, then run --finish again${hint ? "." + hint : ""}`], 1);
   return done([...steps, "verify could not run (see above): fix that, or say in your reply that the UI was not verified"], 2);
