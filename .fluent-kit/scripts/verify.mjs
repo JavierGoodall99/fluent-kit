@@ -103,7 +103,7 @@ if (startServer) {
   let exited = false;
   server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
   const ready = new Promise((resolveUrl) => {
-    let timer = null;
+    let timer = null, noted = null; // the busy-port note is printed once per URL, not once per chunk of server output
     const onData = (d) => {
       log = (log + d.toString()).slice(-4000);
       const clean = log.replace(ANSI, "");
@@ -112,7 +112,7 @@ if (startServer) {
       // If the port was busy the server says so and then prints the port it really uses: wait a moment and take the last URL.
       const busy = /in use|already|trying|instead/i.test(clean);
       clearTimeout(timer); timer = setTimeout(() => resolveUrl(all[all.length - 1]), busy ? 2500 : 0);
-      if (busy) console.log("Note: the dev server reported a busy port. Using " + all[all.length - 1] + " (another project may be using the default port). Check the heading printed below against the page you asked for before you trust the run.");
+      if (busy && noted !== all[all.length - 1]) { noted = all[all.length - 1]; console.log("Note: the dev server reported a busy port. Using " + noted + " (another project may be using the default port). Check the heading printed below against the page you asked for before you trust the run."); }
     };
     server.stdout.on("data", onData); server.stderr.on("data", onData);
     server.on("exit", () => {
