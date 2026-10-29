@@ -41,6 +41,8 @@ jobs:
 
       - name: check --finish tests
         run: node tests/check-finish.test.mjs
+      - name: doctor tests
+        run: node tests/doctor.test.mjs
 
       - name: context.mjs tests
         run: node tests/context.test.mjs

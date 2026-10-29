@@ -263,6 +263,6 @@ console.log(`
 Next steps:
   - Commit ${[".fluent-kit/", ".github/", ...(claude ? [".claude/", "CLAUDE.md"] : []), ...(agents ? ["AGENTS.md"] : [])].join(", ")}. ${claude ? "Copilot and Claude Code read them on their own." : "Copilot reads .github/ on its own."}${claude ? "" : " Using Claude Code? Re-run with --claude."}
   - ${depsNote}
-  - The agent ends each task with \`node .fluent-kit/scripts/check.mjs --finish --page /path\`. For CI, run \`node .fluent-kit/scripts/check.mjs\` (--ci writes a GitHub Actions workflow for it, --hooks adds a pre-commit hook).
+  - The agent ends each task with \`node .fluent-kit/scripts/check.mjs --finish --page /path\`. For CI, run \`node .fluent-kit/scripts/check.mjs\` (--ci writes a GitHub Actions workflow for it, --hooks adds a pre-commit hook). Something wrong later? Run \`node .fluent-kit/scripts/doctor.mjs\`.
 ${existingErrors ? `  - This repo already has ${existingErrors} violation(s) in old code. To fail only on NEW ones, run once: node .fluent-kit/scripts/check.mjs --baseline  (then commit .fluent-kit/baseline.json)\n` : ""}  - Optional lint: see "Lint setup" in the kit README (needs ESLint v9).
 `);
