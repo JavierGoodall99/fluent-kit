@@ -131,9 +131,19 @@ if (startServer) {
     });
     setTimeout(() => resolveUrl(null), 90000);
   });
-  const base = await ready;
+  let base = await ready;
   if (!base) { console.error(`${exited ? "The dev server exited without printing a localhost URL." : "The dev server did not report a URL within 90 seconds."}\nLast output:\n${log.slice(-800)}\nIf another dev server is already running (the log may say "port in use" or "already running"), pass its full URL instead, for example http://localhost:3000/your-page. Otherwise fix the server error. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
-  for (let i = 0; i < 60; i++) { try { await fetch(base); break; } catch { await new Promise((r) => setTimeout(r, 500)); } }
+  // The URL in the server output is not always the one that answers: when a port is busy the server prints several (3001, then 3000), or
+  // another instance is already running. Try the one chosen first, then every other URL it printed, until one responds.
+  const answers = async (u) => { try { await fetch(u, { signal: AbortSignal.timeout(2000) }); return true; } catch { return false; } };
+  let live = null;
+  for (let i = 0; i < 60 && !live; i++) {
+    const seen = [...new Set(log.replace(ANSI, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g) || [])].reverse();
+    for (const u of [base, ...seen.filter((x) => x !== base)]) if (await answers(u)) { live = u; break; }
+    if (!live) await new Promise((r) => setTimeout(r, 500));
+  }
+  if (!live) { console.error(`The dev server printed ${base} but nothing answered there (or at any other URL it printed) within 30 seconds.\nLast output:\n${log.slice(-600)}\nIf you already have the server running, pass its full URL, for example http://localhost:3000/your-page. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
+  if (live !== base) { console.log(`Note: nothing answered at ${base}; using ${live}, which the dev server also printed.`); base = live; }
   urls = urls.map((u) => (u.startsWith("/") ? base + u : u));
   console.log(`Dev server ready at ${base}`);
 }
