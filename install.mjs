@@ -25,6 +25,8 @@ Options:
   --with-deps            also install what verify.mjs needs: playwright and axe-core as dev dependencies, and the
                          Chromium browser (about 150 MB download). Without it the installer only tells you.
   --hooks                also install a git pre-commit hook that runs check.mjs --changed
+  --ci                   also write .github/workflows/fluent-kit.yml: a pull-request check that fails on rule errors,
+                         whether or not the agent ran its own check
   --wire                 also add an npm script "ui:check" to package.json
   --dry-run              show what would change, write nothing
   -h, --help             show this help`;
@@ -221,6 +223,30 @@ if (flag("--wire") && !dry) {
   }
 }
 
+// 9b. optional: GitHub Actions workflow that runs the rules on every pull request
+if (flag("--ci") && !dry) {
+  const wf = join(dest, ".github", "workflows", "fluent-kit.yml");
+  if (existsSync(wf)) log("kept .github/workflows/fluent-kit.yml (already there)");
+  else {
+    mkdirSync(dirname(wf), { recursive: true });
+    writeFileSync(wf, `# Written by the Fluent kit installer. Fails the pull request on UI rule errors, even when nobody ran the agent's own check.
+name: fluent-kit
+on:
+  pull_request:
+jobs:
+  ui-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node .fluent-kit/scripts/check.mjs
+`);
+    log("wrote .github/workflows/fluent-kit.yml (runs check.mjs on every pull request)");
+  }
+}
+
 // 10. optional: git pre-commit hook
 if (flag("--hooks") && !dry) {
   const hookDir = join(dest, ".git", "hooks");
@@ -237,6 +263,6 @@ console.log(`
 Next steps:
   - Commit ${[".fluent-kit/", ".github/", ...(claude ? [".claude/", "CLAUDE.md"] : []), ...(agents ? ["AGENTS.md"] : [])].join(", ")}. ${claude ? "Copilot and Claude Code read them on their own." : "Copilot reads .github/ on its own."}${claude ? "" : " Using Claude Code? Re-run with --claude."}
   - ${depsNote}
-  - The agent ends each task with \`node .fluent-kit/scripts/check.mjs --finish --page /path\`. For CI, run \`node .fluent-kit/scripts/check.mjs\` (--hooks adds a pre-commit hook).
+  - The agent ends each task with \`node .fluent-kit/scripts/check.mjs --finish --page /path\`. For CI, run \`node .fluent-kit/scripts/check.mjs\` (--ci writes a GitHub Actions workflow for it, --hooks adds a pre-commit hook).
 ${existingErrors ? `  - This repo already has ${existingErrors} violation(s) in old code. To fail only on NEW ones, run once: node .fluent-kit/scripts/check.mjs --baseline  (then commit .fluent-kit/baseline.json)\n` : ""}  - Optional lint: see "Lint setup" in the kit README (needs ESLint v9).
 `);
