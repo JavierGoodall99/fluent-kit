@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1
+- The finish command applies to every change, even a one-line change or a removal, and the agent says so when it could not run it. Removing something also removes the import it leaves behind.
+- Small fixes that only change an icon, text, colour or prop finish with `--no-verify` (rules and `tsc`, a few seconds). Size, spacing or layout changes keep the browser check.
+- verify prints the busy-port note once, not once per line of server output.
+- Always-on block trimmed back to 248 words.
+
 ## 1.5.0
 - `check.mjs --finish`: one command ends every task (rules, `tsc`, browser check only when something visible changed).
 - `context.mjs <route>`: one cached call at the start of a task replaces three or four reads.
