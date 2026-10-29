@@ -97,6 +97,13 @@ if (startServer) {
     let dev = null; try { dev = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")).scripts?.dev; } catch { /* none */ }
     if (!dev) { console.error("No \"dev\" script in package.json. Pass the command with --cmd \"...\", or start the server yourself and pass a full URL."); process.exit(2); }
     cmd = existsSync(join(cwd, "pnpm-lock.yaml")) ? "pnpm run dev" : existsSync(join(cwd, "yarn.lock")) ? "yarn dev" : (existsSync(join(cwd, "bun.lockb")) || existsSync(join(cwd, "bun.lock"))) ? "bun run dev" : "npm run dev";
+    // The agent's shell may not have the package manager the lockfile points to (bun on a Windows PATH, say): fall back to npm, which runs the same "dev" script.
+    const pm = cmd.split(" ")[0];
+    if (pm !== "npm" && spawnSync(pm, ["--version"], { shell: true, stdio: "ignore" }).status !== 0) {
+      if (spawnSync("npm", ["--version"], { shell: true, stdio: "ignore" }).status !== 0) { console.error(`${pm} is not available in this shell, and neither is npm. Start the dev server yourself and pass its full URL, or pass --cmd "<your dev command>". If you cannot verify, say that verification was NOT done.`); process.exit(2); }
+      console.log(`Note: ${pm} is not available in this shell; running the dev script with npm instead.`);
+      cmd = "npm run dev";
+    }
   }
   console.log(`Starting dev server: ${cmd}`);
   let log = "";
