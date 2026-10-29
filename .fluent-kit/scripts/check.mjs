@@ -5,7 +5,8 @@
 //   --finish    the one command to end a task: the rules on changed files, then tsc, then verify only if something
 //               visible changed (and Playwright is installed). Stops at the first step that fails.
 //               --page is the page you changed; --full and --click are passed to verify; --no-verify when the person
-//               asked to skip checks (the rules and tsc still run).
+//               asked to skip checks (the rules and tsc still run). --no-verify is ignored, with a note,
+//               when the change touches size, spacing, width or layout: only looking at the page catches those.
 //   --changed   only files changed in git (staged, unstaged, untracked). Use this while working.
 //   --baseline  record today's findings in .fluent-kit/baseline.json; later runs fail only on NEW findings.
 //               Use it once when adopting the kit in a repo that already has old violations.
@@ -232,7 +233,38 @@ function assessChange(changed) {
   const newFiles = visible.filter((f) => untracked.has(f)).length;
   const OVERLAY = /\b(OverlayDrawer|InlineDrawer|Dialog|DialogSurface|Popover|MenuPopover|DatePicker|TimePicker|Combobox|Dropdown|Toast|Tooltip)\b/;
   const overlays = visible.filter((f) => /\.(tsx|jsx)$/.test(f)).filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
-  return { visible, lines, newFiles, small: !newFiles && lines <= 20, overlays };
+  // Does the change touch size, spacing, width or layout? New and deleted files always do. Otherwise compare the
+  // lines the diff adds with the lines it removes: a text, colour or icon edit leaves these sets equal.
+  const layout = visible.filter((f) => {
+    if (untracked.has(f) || !existsSync(f)) return true;
+    return touchesLayout(git(["diff", "-U0", "HEAD", "--", f]).stdout);
+  });
+  return { visible, layout, lines, newFiles, small: !newFiles && lines <= 20, overlays };
+}
+
+// (The patterns live inside the function: this file calls it before the end of the module body is reached.)
+function touchesLayout(diff) {
+  // The size, spacing, width and layout settings on a line, each with its value: `size="large"`, `gap: tokens.spacingVerticalM`.
+  const NAME = "\\b(?:\\w*(?:width|height|size|padding|margin|gap|spacing|inset)\\w*|display|flex\\w*|grid\\w*|position|overflow\\w*|top|left|right|bottom|zIndex|align\\w*|justify\\w*|float|transform|lineHeight|textOverflow|whiteSpace|aspectRatio|order)";
+  const LAYOUT = new RegExp(`${NAME}\\s*[:=]\\s*(?:"[^"]*"|'[^']*'|\x60[^\x60]*\x60|\\{[^}]*\\}|[^,;}\\s]+)|\\btokens\\.(?:spacing|fontSize|lineHeight|strokeWidth)\\w*|@(?:media|container)[^{]*`, "gi");
+  const ICON_TAG = /^(?:\w+Icon|[A-Z]\w*\d+(?:Regular|Filled|Color))$/;
+  const added = [], removed = [];
+  for (const l of diff.split("\n")) {
+    if (l.startsWith("+++") || l.startsWith("---") || !/^[+-]/.test(l)) continue;
+    const text = l.slice(1).trim();
+    if (!text || /^(?:import\b|\/\/|\/\*|\*)/.test(text)) continue;
+    (l[0] === "+" ? added : removed).push(text.replace(/\s+/g, " "));
+  }
+  // Compare as multisets, so a line that only moved, or an edited label on a line that also has `size="small"`, does not count.
+  const minus = (a, b) => { const m = new Map(); for (const x of b) m.set(x, (m.get(x) || 0) + 1); return a.filter((x) => { const n = m.get(x) || 0; if (n) { m.set(x, n - 1); return false; } return true; }); };
+  const onlyAdded = minus(added, removed), onlyRemoved = minus(removed, added);
+  const settings = (list) => list.flatMap((t) => [...t.matchAll(LAYOUT)].map((m) => m[0].replace(/\s+/g, "")));
+  const sa = settings(onlyAdded), sr = settings(onlyRemoved);
+  if (minus(sa, sr).length || minus(sr, sa).length) return true;
+  // A JSX element added or removed (other than an icon) changes the layout; an edited label does not.
+  const tags = (list) => list.flatMap((t) => [...t.matchAll(/<([A-Za-z][\w.]*)(?=[\s>/])/g)].map((m) => m[1])).filter((n) => !ICON_TAG.test(n));
+  const a = tags(onlyAdded), r = tags(onlyRemoved);
+  return minus(a, r).length > 0 || minus(r, a).length > 0;
 }
 process.exit(errors.length ? 1 : 0);
 
@@ -247,7 +279,8 @@ function finish(ruleErrors) {
   if (tc.ran && tc.code !== 0) { console.log(`\n$ ${tc.cmd}\n${tc.output}`); return done([...steps, "stopped at tsc (errors above): fix them, then run --finish again"], 1); }
   steps.push(tc.ran ? "tsc ok" : `tsc skipped (${tc.why})`);
 
-  if (flag("--no-verify")) return done([...steps, "verify skipped at the person's request: say in your reply that the UI was not verified"], 0);
+  if (flag("--no-verify") && !change.layout.length) return done([...steps, "verify skipped at the person's request: say in your reply that the UI was not verified"], 0);
+  if (flag("--no-verify")) steps.push(`--no-verify ignored (size, spacing, width or layout changed in ${change.layout.slice(0, 3).map((f) => relative(root, f)).join(", ")}): the browser check runs`);
   if (!change.visible.length) return done([...steps, "verify not needed (nothing visible changed)"], 0);
   const req = createRequire(join(root, "package.json"));
   const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some((n) => { try { req.resolve(n); return true; } catch { return false; } });
