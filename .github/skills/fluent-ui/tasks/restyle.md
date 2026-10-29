@@ -17,6 +17,6 @@
 - No dead ends: no greyed link to a page that does not exist.
 - Changing a shared component other pages use: say which pages it affects.
 
-**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page`. Answer the five-second questions `verify` prints from the contact sheet; if you cannot, change the page.
+**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page` (never `--no-verify`: a restyle is judged by looking at it). Answer the five-second questions `verify` prints from the contact sheet; if you cannot, change the page.
 
 **Reply**: the brief first, then a short design note: what you changed and why, what you kept on purpose, what you suggest but did not build, what you could not verify.
