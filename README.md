@@ -38,9 +38,18 @@ By hand: copy `.fluent-kit/` and `.github/skills/` into the repo root (for Claud
 
 Then commit what it installed. Copilot reads `.github/` (and the skill from `.claude/skills/` too); Claude Code reads `CLAUDE.md` and `.claude/`. Check that your Copilot version supports Agent Skills (`.github/skills/`); the instructions files work without it.
 
+## How a task runs
+
+1. **Always on:** a block of under 250 words in `copilot-instructions.md` (and `CLAUDE.md` / `AGENTS.md`): the hard rules, and which file to read next.
+2. **One router:** `SKILL.md` sends the agent to one task card (`small-fix`, `restyle`, `new-page`, `new-app`) and at most one pattern card. A restyle reads about 2,700 tokens before its first edit, a small fix about 900.
+3. **One context call:** `node .fluent-kit/scripts/context.mjs <route>` prints the theme, language, your `PROFILE.md` and the app's card style in one go.
+4. **One finishing command:** `node .fluent-kit/scripts/check.mjs --finish --page /path` runs the rules, `tsc`, and the browser check (`verify.mjs`) only if something visible changed. The agent answers the critique it prints.
+
+Reading cost per route is kept under a budget by `tests/reading-cost.mjs`, which CI runs.
+
 ## What it does in an existing repo and in a new one
 
-When Copilot starts UI work, the `fluent-ui` skill tells it to run `.fluent-kit/scripts/detect-theme.mjs`. The script reports:
+`context.mjs` runs `.fluent-kit/scripts/detect-theme.mjs` for the agent (and caches the result). The script reports:
 
 - **Theme:** existing Fluent v9 brand ramp (kept as is), stock Microsoft theme, Fluent v8, another UI library, or nothing (new project).
 - **Brand color:** if there is no ramp, it looks for a brand color (a `colorBrandBackground` override, variables named brand/primary/accent, or the most-used saturated color). `generate-ramp.mjs` then builds the 16-step Fluent ramp from it. Several candidates: the agent asks which. Nothing found: the agent asks for the hex. It never invents one.
