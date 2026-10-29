@@ -20,7 +20,7 @@ function project(name, { ts = false, playwright = false } = {}) {
   writeFileSync(join(dir, "src/Page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport const Page = () => <Button>Save</Button>;\n');
   if (ts) {
     mkdirSync(join(dir, "node_modules"), { recursive: true });
-    symlinkSync(join(repoModules, "typescript"), join(dir, "node_modules/typescript"), "dir");
+    symlinkSync(join(repoModules, "typescript"), join(dir, "node_modules/typescript"), "junction");
     writeFileSync(join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions: { strict: true, noEmit: true, jsx: "preserve", skipLibCheck: true, noResolve: true, types: [] }, include: ["src/plain.ts"] }));
     writeFileSync(join(dir, "src/plain.ts"), "export const n: number = 1;\n");
   }

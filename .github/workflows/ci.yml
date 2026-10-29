@@ -54,22 +54,41 @@ jobs:
         run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done
 
       - name: Installer smoke test
+        run: bash tests/installer-smoke.sh
+
+  # The scripts spawn git, tsc and npm, build paths and read files: the parts that differ between systems.
+  platform:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Every test runs even if an earlier one fails, and a failure's output is also written as an annotation
+      # (the job log itself is not always readable from outside GitHub).
+      - name: Tests
         run: |
-          target="$RUNNER_TEMP/target"
-          mkdir -p "$target"
-          node install.mjs "$target" --claude --agents
-          test -f "$target/.claude/skills/fluent-ui/tasks/new-page.md"
-          test ! -e "$target/.github/skills/fluent-ui"
-          grep -q ".claude/skills/fluent-ui/SKILL.md" "$target/AGENTS.md"
-          grep -qx "@AGENTS.md" "$target/CLAUDE.md"
-          claude_only="$RUNNER_TEMP/claude-only" && mkdir -p "$claude_only" && node install.mjs "$claude_only" --claude
-          grep -q ".claude/skills/fluent-ui/SKILL.md" "$claude_only/CLAUDE.md"
-          plain="$RUNNER_TEMP/plain" && mkdir -p "$plain" && node install.mjs "$plain"
-          test -f "$plain/.github/skills/fluent-ui/SKILL.md" && test ! -e "$plain/.claude"
-          test -f "$target/CLAUDE.md" && test -f "$target/AGENTS.md"
-          test ! -e "$target/research" && test ! -e "$target/.fluent-kit/brands" && test ! -e "$target/.fluent-kit/DESIGN.md"
-          node install.mjs "$target" --dry-run | grep -q "updated the Fluent kit block"
-          stale="$RUNNER_TEMP/stale" && mkdir -p "$stale/.github/skills/fluent-ui" "$stale/.github/skills/other" && printf -- '---\nname: fluent-ui\n---\n' > "$stale/.github/skills/fluent-ui/SKILL.md" && echo keep > "$stale/.github/skills/other/SKILL.md"
-          node install.mjs "$stale" --claude | grep -q "removed .github/skills/fluent-ui/"
-          ci="$RUNNER_TEMP/ci" && mkdir -p "$ci" && node install.mjs "$ci" --ci && grep -q "check.mjs" "$ci/.github/workflows/fluent-kit.yml" && node install.mjs "$ci" --ci | grep -q "kept .github/workflows/fluent-kit.yml"
-          test ! -e "$stale/.github/skills/fluent-ui" && test -f "$stale/.github/skills/other/SKILL.md" && test -f "$stale/.claude/skills/fluent-ui/SKILL.md"
+          failed=0
+          t() {
+            local out
+            if out=$("$@" 2>&1); then echo "ok: $*"; else
+              failed=1; echo "$out"
+              echo "::error title=FAILED $*::$(printf '%s\n' "$out" | head -c 1800 | awk 'BEGIN{ORS="%0A"}{print}')"
+            fi
+          }
+          t node tests/record-run.test.mjs
+          t node tests/check-finish.test.mjs
+          t node tests/context.test.mjs
+          t bash tests/installer-smoke.sh
+          exit $failed
+      - name: Script syntax
+        run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done

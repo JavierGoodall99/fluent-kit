@@ -15,7 +15,7 @@
 //   --json      machine-readable output
 // Exit code 1 if there are errors, 0 otherwise. Warnings never fail the run.
 // Silence one line with a comment: // fluent-kit-ignore -- reason   (on the same line or the line above)
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, relative, resolve, sep, extname, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -24,7 +24,8 @@ import { createRequire } from "node:module";
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
-const root = resolve(args.find((a, i) => !a.startsWith("--") && !["--allow", "--page", "--click"].includes(args[i - 1])) || ".");
+// The real path, so it matches what git reports (macOS /var -> /private/var, Windows short 8.3 names, junctions).
+const root = (() => { const p = resolve(args.find((a, i) => !a.startsWith("--") && !["--allow", "--page", "--click"].includes(args[i - 1])) || "."); try { return realpathSync.native(p); } catch { return p; } })();
 const json = flag("--json");
 
 let config = {};
@@ -270,6 +271,7 @@ process.exit(errors.length ? 1 : 0);
 
 // --finish: rules (already reported above), then tsc, then verify sized to the change. One command, one summary line.
 function finish(ruleErrors) {
+  const shown = (f) => relative(root, f).split(sep).join("/"); // forward slashes on every system, so the message reads the same
   const done = (steps, code) => { console.log(`\nfluent-kit finish: ${steps.join(", ").replace(/\.+$/, "")}.`); return code; };
   if (ruleErrors) return done([`stopped at the rules (${ruleErrors} error(s) above): fix them, then run --finish again`], 1);
   const steps = ["rules ok"];
@@ -280,18 +282,18 @@ function finish(ruleErrors) {
   steps.push(tc.ran ? "tsc ok" : `tsc skipped (${tc.why})`);
 
   if (flag("--no-verify") && !change.layout.length) return done([...steps, "verify skipped at the person's request: say in your reply that the UI was not verified"], 0);
-  if (flag("--no-verify")) steps.push(`--no-verify ignored (size, spacing, width or layout changed in ${change.layout.slice(0, 3).map((f) => relative(root, f)).join(", ")}): the browser check runs`);
+  if (flag("--no-verify")) steps.push(`--no-verify ignored (size, spacing, width or layout changed in ${change.layout.slice(0, 3).map((f) => shown(f)).join(", ")}): the browser check runs`);
   if (!change.visible.length) return done([...steps, "verify not needed (nothing visible changed)"], 0);
   const req = createRequire(join(root, "package.json"));
   const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some((n) => { try { req.resolve(n); return true; } catch { return false; } });
   if (!hasPlaywright) return done([...steps, "verify not available (Playwright is not installed): say in your reply that the UI was not verified. To enable it once: npm i -D playwright axe-core && npx playwright install chromium"], 0);
   const page = opt("--page") || inferPage(change.visible);
-  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => relative(root, f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
+  if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => shown(f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
 
   const vArgs = ["--start", page, ...(flag("--full") ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
   console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
   const v = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), ...vArgs], { cwd: root, stdio: "inherit" });
-  const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => relative(root, f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
+  const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => shown(f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
   if (v.status === 0) return done([...steps, `verify ok${hint ? "." + hint : ""}`], 0);
   if (v.status === 1) return done([...steps, `verify found problems (above): fix them, then run --finish again${hint ? "." + hint : ""}`], 1);
   return done([...steps, "verify could not run (see above): fix that, or say in your reply that the UI was not verified"], 2);
