@@ -88,6 +88,7 @@ jobs:
           t node tests/record-run.test.mjs
           t node tests/check-finish.test.mjs
           t node tests/context.test.mjs
+          t node tests/doctor.test.mjs
           t bash tests/installer-smoke.sh
           exit $failed
       - name: Script syntax
