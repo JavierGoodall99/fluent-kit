@@ -71,13 +71,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Benchmark recorder tests
-        run: node tests/record-run.test.mjs
-      - name: check --finish tests
-        run: node tests/check-finish.test.mjs
-      - name: context.mjs tests
-        run: node tests/context.test.mjs
+      # Every test runs even if an earlier one fails, and a failure's output is also written as an annotation
+      # (the job log itself is not always readable from outside GitHub).
+      - name: Tests
+        run: |
+          failed=0
+          t() {
+            local out
+            if out=$("$@" 2>&1); then echo "ok: $*"; else
+              failed=1; echo "$out"
+              echo "::error title=FAILED $*::$(printf '%s' "$out" | head -c 1800 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            fi
+          }
+          t node tests/record-run.test.mjs
+          t node tests/check-finish.test.mjs
+          t node tests/context.test.mjs
+          t bash tests/installer-smoke.sh
+          exit $failed
       - name: Script syntax
         run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done
-      - name: Installer smoke test
-        run: bash tests/installer-smoke.sh
