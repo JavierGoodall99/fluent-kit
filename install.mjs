@@ -178,7 +178,7 @@ const kitInfo = (() => {
   const git = spawnSync("git", ["-C", here, "rev-parse", "--short", "HEAD"], { encoding: "utf8" });
   const h = createHash("sha256");
   // Hash each skill file by its path inside the skill, so the fingerprint does not depend on the folder it went to.
-  for (const f of installed.filter((x) => x.startsWith(`${SKILL}/`)).sort()) { const r = f.slice(SKILL.length + 1); h.update(r); h.update(readFileSync(join(skillSrc, r))); }
+  for (const f of installed.filter((x) => x.startsWith(`${SKILL}/`)).sort()) { const r = f.slice(SKILL.length + 1); h.update(r); const c = readFileSync(join(skillSrc, r)); h.update(/\.(md|tsx?|json)$/.test(r) ? Buffer.from(c.toString("utf8").replace(/\r\n/g, "\n")) : c); } // line endings do not change the fingerprint (a Windows checkout may have CRLF; doctor.mjs does the same)
   return { version, commit: git.status === 0 ? git.stdout.trim() : null, fingerprint: h.digest("hex").slice(0, 12) };
 })();
 if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by fluent-kit. The installer uses this list to remove files a newer kit no longer ships.", kit: kitInfo, skill: SKILL, files: [...now].sort() }, null, 2) + "\n");
