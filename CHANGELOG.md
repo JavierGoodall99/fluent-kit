@@ -1,6 +1,25 @@
 # Changelog
 
-## Unreleased
+## 1.6.0
+Plug-and-play and cost pass, from a full audit of the kit.
+
+- **One finishing command, no flags to choose.** `check.mjs --finish --page /path` sizes the check itself: no browser for comments, types or a text/icon edit of 20 lines or fewer (the agent says so); 1440 and 375px for colour, style or layout changes; the full check (three widths, light and dark) for a new UI file. `--full` and `--no-verify` still work; the task cards no longer mention them.
+- **verify output in three levels.** ERROR (must fix), warn (fix if your change caused it), and a separate Advisory list for judgement calls (long lines, words on the first screen, flat cards, repeated text, bottom space, dark mode) that never call for a re-run. Each problem points to the first-screen screenshot, which a model can read, instead of a full-page shot up to 7000px tall. Shorter critique.
+- **verify's dependencies install privately.** `node .fluent-kit/scripts/verify.mjs --setup` (and the installer's prompt or `--with-deps`) puts `playwright-core` and `axe-core` in `.fluent-kit/deps`, uses the Edge or Chrome on the machine, and downloads Chromium only when neither is there. The project's `package.json` and lockfile are untouched. When Playwright is missing, the agent is told not to install packages and to give the person that command.
+- **`verify.mjs --login <url>`** replaces `login.mjs` (removed on update).
+- **Migrate route fixed.** `context.mjs migrate` no longer tells the agent to ask whether this is a migration or to read `tasks/new-app.md`; a v8 `themePrimary` is detected as the brand.
+- **One way to apply a brand.** The Brand line names the one command for the project (`make-theme.mjs`, or `generate-ramp.mjs --ts` when a v9 provider exists); `new-app.md` and `migrate-v8.md` defer to it.
+- **No second routing.** `context.mjs` no longer ends with "Next: read ..." (the card that ran it is what the agent reads next); the unused `small-fix` route is gone.
+- **Always-on block 435 → 249 tokens.** Rules the checker enforces (native controls) and the long `--no-verify` policy (the command now decides) are out of it; one clause keeps "skip the checks" honest (rules still run).
+- **Each rule in one place.** The type roles and the card style live in `SKILL.md`; pattern cards name roles instead of pixel sizes, and no longer repeat Fluent's own defaults (drawer and dialog sizes, padding, shadows and titles, MessageBar and DataGrid row heights). Section descriptions are `fontSizeBase300` and captions `fontSizeBase200` everywhere (`SKILL.md`, `form.md` and `settings.md` disagreed).
+- **Broken pointers fixed.** `check.mjs` names `deviations.md` in the folder the skill was installed to (it always said `.github/skills/`); verify's flat-card warning pointed to a "Surfaces" section that did not exist.
+- **With `--agents`, Copilot no longer loads the block twice:** `copilot-instructions.md` gets a one-line pointer to `AGENTS.md`.
+- **One definition of "hard-coded".** `check.mjs` and the ESLint rule read colour functions, hex digits and spacing properties from `rules.json` (the checker missed the logical `paddingBlockStart` family).
+- **Shared helpers** (`scripts/lib.mjs`): package manager, Playwright, axe-core and browser detection in one place for install, check, verify and doctor.
+- **Less shipped:** the lint rules' tests and the unused `examples/theme.tsx` stay out of projects; `detect-theme.mjs` prints JSON only (`context.mjs` is the summary).
+- **Repo:** README is a quick start; the reference moved to `docs/REFERENCE.md`; the 2026-10 test transcripts, scorecard and Figma notes moved to `docs/history/`, marked as not current. Reading-cost budgets lowered to lock in the savings.
+
+### Also in 1.6.0 (earlier unreleased work)
 - `check.mjs --finish` ignores `--no-verify` when the change touches a size, spacing, width or layout setting, adds or removes a component (icons excepted), or adds or deletes a UI file. It says so in its summary line and runs the browser check. Text, colour and icon edits still skip it.
 - Installer `--ci` writes `.github/workflows/fluent-kit.yml`, a pull-request check that runs the rules whether or not the agent ran its own.
 - `doctor.mjs`: `node .fluent-kit/scripts/doctor.mjs` checks an install and its environment and prints one line per finding (ok, warn or FIX) with the command that fixes it: kit and skill files present and unedited, one copy of the skill, the always-on block pointing at the right folder, Fluent v9, TypeScript, Playwright, axe-core and Chromium, the package manager on PATH, a `dev` script, git history, valid local JSON, and `.verify-profile` kept out of git. Exit code 1 when something needs fixing.

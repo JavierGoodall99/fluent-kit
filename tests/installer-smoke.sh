@@ -12,6 +12,11 @@ test -f "$target/.claude/skills/fluent-ui/tasks/new-page.md"
 test ! -e "$target/.github/skills/fluent-ui"
 grep -q ".claude/skills/fluent-ui/SKILL.md" "$target/AGENTS.md"
 grep -qx "@AGENTS.md" "$target/CLAUDE.md"
+# With AGENTS.md, copilot-instructions.md holds a pointer, not a second copy of the block (Copilot reads both files).
+grep -q 'block in `AGENTS.md`' "$target/.github/copilot-instructions.md" && ! grep -q "Hard rules\|Finish every UI change" "$target/.github/copilot-instructions.md"
+# Repo-only files stay out of projects.
+test -z "$(ls "$target/.fluent-kit/eslint" | grep '\.test\.')" && test ! -e "$target/.fluent-kit/scripts/login.mjs" && test ! -e "$target/.claude/skills/fluent-ui/examples/theme.tsx" && test -f "$target/.fluent-kit/scripts/lib.mjs"
+grep -qx "deps/" "$target/.fluent-kit/.gitignore"
 claude_only="$RUNNER_TEMP/claude-only" && mkdir -p "$claude_only" && node install.mjs "$claude_only" --claude
 grep -q ".claude/skills/fluent-ui/SKILL.md" "$claude_only/CLAUDE.md"
 plain="$RUNNER_TEMP/plain" && mkdir -p "$plain" && node install.mjs "$plain"
@@ -23,4 +28,8 @@ stale="$RUNNER_TEMP/stale" && mkdir -p "$stale/.github/skills/fluent-ui" "$stale
 node install.mjs "$stale" --claude | grep -q "removed .github/skills/fluent-ui/"
 test ! -e "$stale/.github/skills/fluent-ui" && test -f "$stale/.github/skills/other/SKILL.md" && test -f "$stale/.claude/skills/fluent-ui/SKILL.md"
 ci="$RUNNER_TEMP/ci" && mkdir -p "$ci" && node install.mjs "$ci" --ci && grep -q "check.mjs" "$ci/.github/workflows/fluent-kit.yml" && node install.mjs "$ci" --ci | grep -q "kept .github/workflows/fluent-kit.yml"
+# An update removes files older versions shipped (login.mjs, theme.tsx, lint tests).
+old="$RUNNER_TEMP/old" && mkdir -p "$old/.fluent-kit/scripts" "$old/.github/skills/fluent-ui/examples" && printf '#!/usr/bin/env node\n// Fluent kit login helper: sign in once\n' > "$old/.fluent-kit/scripts/login.mjs" && printf '// PLACEHOLDER theme\n' > "$old/.github/skills/fluent-ui/examples/theme.tsx"
+node install.mjs "$old" | grep -q "removed .fluent-kit/scripts/login.mjs"
+test ! -e "$old/.fluent-kit/scripts/login.mjs" && test ! -e "$old/.github/skills/fluent-ui/examples/theme.tsx"
 echo "installer smoke test: ok"

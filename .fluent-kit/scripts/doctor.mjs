@@ -8,6 +8,7 @@ import { join, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
+import { DEPS_DIR, SETUP_CMD, axeSourcePath, loadPlaywright, packageManager, systemBrowser } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const root = resolve(args.find((a) => !a.startsWith("--")) || ".");
@@ -80,9 +81,9 @@ for (const f of files) {
   const paths = new Set([...block.matchAll(/(\.(?:github|claude|agents)\/skills\/fluent-ui)\//g)].map((m) => m[1]));
   const wrong = [...paths].filter((p) => skill && p !== skill);
   if (wrong.length) fix(`${f} points to ${wrong.join(", ")}, but the skill is in ${skill}/`, `Run ${INSTALL} again (it rewrites the block)`);
-  else if (/^@AGENTS\.md\s*$/m.test(block)) {
-    if (!(read("AGENTS.md") || "").includes(START)) fix("CLAUDE.md imports AGENTS.md, but AGENTS.md has no Fluent kit block", `Run ${INSTALL} --agents`);
-    else ok("CLAUDE.md imports AGENTS.md");
+  else if (/^@AGENTS\.md\s*$/m.test(block) || /block in `AGENTS\.md`/.test(block)) {
+    if (!(read("AGENTS.md") || "").includes(START)) fix(`${f} points to AGENTS.md, but AGENTS.md has no Fluent kit block`, `Run ${INSTALL} --agents`);
+    else ok(`${f} points to the block in AGENTS.md`);
   } else ok(`${f} carries the kit block`);
 }
 if (!withBlock.length) fix("No instruction file carries the kit block (.github/copilot-instructions.md, AGENTS.md or CLAUDE.md): the agent is never told to use the skill", `Run ${INSTALL} again`);
@@ -105,7 +106,7 @@ if (existsSync(join(root, "tsconfig.json"))) {
   if (has("typescript")) ok("TypeScript is installed (check.mjs --finish runs tsc)");
   else warn("tsconfig.json exists but TypeScript is not installed: --finish skips the type check", "npm install -D typescript");
 }
-const pm = existsSync(join(root, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(root, "yarn.lock")) ? "yarn" : (existsSync(join(root, "bun.lockb")) || existsSync(join(root, "bun.lock"))) ? "bun" : "npm";
+const pm = packageManager(root);
 const onPath = (cmd) => { const r = spawnSync(cmd, ["--version"], { encoding: "utf8", shell: process.platform === "win32" }); return !r.error && r.status === 0; };
 if (hasPkgJson) {
   if (pm === "npm") ok(onPath("npm") ? "npm is available" : "npm is not on this shell's PATH");
@@ -115,20 +116,17 @@ if (hasPkgJson) {
   if (pkg?.scripts?.dev) ok('package.json has a "dev" script (verify --start runs it)');
   else warn('package.json has no "dev" script: verify --start cannot start the app on its own', 'Add a "dev" script, or run verify.mjs with --cmd "<your dev command>"');
 }
-const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some(has);
-if (!hasPlaywright) warn("Playwright is not installed: the browser check (verify) cannot run, and --finish says the UI was not verified", `${pm === "npm" ? "npm install -D" : `${pm} add -D`} playwright axe-core && npx playwright install chromium`);
+const loaded = loadPlaywright(root);
+if (!loaded) warn("Playwright is not set up: the browser check (verify) cannot run, and --finish says the UI was not verified", `${SETUP_CMD}  (installs into ${DEPS_DIR}; your package.json is not touched)`);
 else {
-  ok("Playwright is installed");
-  if (!has("axe-core") && !has("@axe-core/playwright")) warn("axe-core is not installed: verify skips the accessibility scan", `${pm === "npm" ? "npm install -D" : `${pm} add -D`} axe-core`);
+  ok(`Playwright (${loaded.name}) is available`);
+  if (!axeSourcePath(root)) warn("axe-core is not installed: verify skips the accessibility scan", SETUP_CMD);
   let chromium = null;
-  try { const pw = req("playwright"); chromium = pw.chromium?.executablePath?.() ?? null; } catch { /* playwright-core only, or unusual layout */ }
-  const systemBrowser = (process.platform === "win32"
-    ? [process.env["ProgramFiles(x86)"], process.env.ProgramFiles].filter(Boolean).map((p) => `${p}\\Microsoft\\Edge\\Application\\msedge.exe`).concat([process.env.ProgramFiles, process.env.LOCALAPPDATA].filter(Boolean).map((p) => `${p}\\Google\\Chrome\\Application\\chrome.exe`))
-    : process.platform === "darwin" ? ["/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
-    : ["/usr/bin/microsoft-edge", "/usr/bin/microsoft-edge-stable", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"]).find((p) => existsSync(p));
+  try { chromium = loaded.pw.chromium?.executablePath?.() ?? null; } catch { /* unusual layout */ }
+  const browser = systemBrowser();
   if (chromium && existsSync(chromium)) ok("Chromium for Playwright is downloaded");
-  else if (systemBrowser) ok(`verify uses the browser on this machine (${systemBrowser}); no Chromium download needed`);
-  else if (chromium) warn("No browser for verify: Playwright's Chromium is not downloaded and Edge or Chrome is not installed", "npx playwright install chromium (or install Microsoft Edge)");
+  else if (browser) ok(`verify uses the browser on this machine (${browser}); no Chromium download needed`);
+  else warn("No browser for verify: Playwright's Chromium is not downloaded and Edge or Chrome is not installed", `Install Microsoft Edge or Google Chrome, or run ${SETUP_CMD}`);
 }
 
 // Local files the kit reads: valid JSON, and the signed-in profile kept out of git

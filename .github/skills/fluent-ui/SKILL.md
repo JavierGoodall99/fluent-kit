@@ -15,11 +15,9 @@ Pick one route and read only what it names. Paths are relative to this folder.
 | New app | empty folder, fresh scaffold, Fluent v8 or another UI library | `tasks/new-app.md`, then the new-page route |
 | Migrate | move an app or screen from Fluent v8 to v9 | `tasks/migrate-v8.md` + the screen's pattern card |
 
-Every route ends with one command: `node .fluent-kit/scripts/check.mjs --finish --page /path` (new page or app: add `--full`). `/path` is the URL that shows the page, with its `#hash` if the app routes by hash. It runs the rules, `tsc`, and `verify` only when something visible changed, and stops at the first failure.
+Every route ends with `node .fluent-kit/scripts/check.mjs --finish --page /path` (the page's URL, with its `#hash` if the app routes by hash). It sizes the checks to the change. Fix errors, and warnings your change caused; advisory lines go in your note.
 
 ## Pattern cards
-
-Each card holds the layout, the measurements and the narrow-screen rules, and names its example. Copy the example's structure, not its placeholder data.
 
 | The person needs to... | Card |
 |---|---|
@@ -37,9 +35,11 @@ No card fits: `tasks/new-page.md`, "No card fits".
 ## Every page
 
 - Page `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`; 16px under 640px). Sections and cards on `colorNeutralBackground1`.
-- Header: the `h1` page title, an optional one-line description 4px under it.
-- Controls keep the 4px theme radius. Dashboard, board and gallery cards: `borderRadiusXLarge` (8px) and `shadow4`.
-- One `primary` button per view.
+- Header: the `h1` page title, an optional one-line section description 4px under it.
+- Controls keep the 4px theme radius. **Cards** (dashboard, board, gallery cards and settings groups): `borderRadiusXLarge` (8px, not the 6px `borderRadiusLarge`) and `shadow4`.
+- One `primary` button per view. Never set Fluent's own sizes, paddings, shadows or dialog and drawer titles by hand.
+
+Type roles the cards name:
 
 | Role | Type (semibold for emphasis, never bold) |
 |---|---|
@@ -47,10 +47,10 @@ No card fits: `tasks/new-page.md`, "No card fits".
 | Section title `h2`, empty-state title | `fontSizeBase400`, semibold |
 | Card title, board column header | `fontSizeBase300`, semibold |
 | Group label (form section, choice group) | `fontSizeBase200`, semibold |
-| Body | `fontSizeBase300` |
-| Caption, description | `fontSizeBase200`, `colorNeutralForeground3` |
-| Dialog and drawer titles | Fluent's own; never set by hand |
+| Body, table text | `fontSizeBase300` |
+| Section description (under a page or section title) | `fontSizeBase300`, `colorNeutralForeground3` |
+| Caption (card description, metadata, footers) | `fontSizeBase200`, `colorNeutralForeground3` |
 
 ## Only when needed
 
-`deviations.md`: icons, styling rules, overflowing tabs and toolbars, companion package names.
+`deviations.md`: icons, styling rules, overflowing tabs and toolbars, companion packages.

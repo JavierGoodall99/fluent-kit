@@ -4,7 +4,7 @@ Create or edit something with many fields or sections, on its own page (a few fi
 
 **Layout** (1440px)
 - One centred column, about 480px wide.
-- Blocks 20px apart (`spacingVerticalXL`). Section header 12px semibold (the group label) with a 14px `colorNeutralForeground3` description, 4px apart.
+- Blocks 20px apart (`spacingVerticalXL`). Each section: a group label with a section description under it, 4px apart.
 - Fields 12px apart (`spacingVerticalM`); label above the input, 8px between. Two short fields may share a row (12px gap).
 - Inputs on the tinted page use `appearance="filled-lighter"`; on a white surface the default outline.
 - Footer: thin `colorNeutralStroke2` divider above; Discard (secondary) then Save (primary), right-aligned, 8px apart; sticky at the bottom.
@@ -20,7 +20,7 @@ Create or edit something with many fields or sections, on its own page (a few fi
 | applies immediately | `Switch`; a choice saved with the form: `Checkbox` |
 | precise number | `SpinButton`; an imprecise range: `Slider` |
 
-Every input sits in a `Field` with a visible label (`required`, `hint`, `validationMessage`). A placeholder is never the label.
+Every input, in a form or a drawer, sits in a `Field` with a visible label (`required`, `hint`, `validationMessage`). A placeholder is never the label.
 
 **Behaviour**
 - Validate when a field is left or on submit, not on every keystroke; the message sits under its field and says what to do.

@@ -8,7 +8,7 @@
 - `makeStyles` with `tokens`; combine with `mergeClasses`, never string concatenation. Inline `style` only for values computed at runtime (a bar width).
 - Never override `.fui-*` classes or the theme's font, radii, shadows or motion.
 - Brand colour only through `tokens.colorBrand*`, status through `tokens.colorStatus*`. `colorPalette*` tokens carry status and data meaning, never decoration.
-- `<div>` and `<span>` are fine for layout. Every input sits in a `Field`.
+- `<div>` and `<span>` are fine for layout. Every input sits in a `Field` (`patterns/form.md`).
 
 ## Tabs and toolbars
 They never clip: wrap them in `Overflow` / `OverflowItem` with a `useOverflowMenu` "..." menu. No sideways scrolling to hide it.

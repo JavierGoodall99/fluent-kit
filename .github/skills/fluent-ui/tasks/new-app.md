@@ -10,19 +10,12 @@
 | `other-ui-library` | Ask: migrate to Fluent v9, or keep that library for this task. |
 | `fluent-v9-*` | Not a new app: the new-page route. To brand it: steps 2 and 3, keeping any existing ramp. |
 
-**2. Brand and language, in one message.** Follow its Brand line:
-- a colour found: use it and name it (say "a guess" at medium confidence).
-- several candidates: ask which.
-- nothing, or a fresh scaffold (its colours are not a brand): ask for a hex or "stock". Never invent one.
-- Save the answer in `.fluent-kit/brand.json` (`{ "mode": "stock" }` or `{ "hex": "#rrggbb" }`); a saved file is a decision.
-- Language: its Language line; no signal, ask once, default English. Set `lang` on `<html>`.
+**2. Brand and language, in one message.** Follow its Brand line: it says whether to use a colour it found, ask which of several, or ask for a hex or "stock" (a fresh scaffold's colours are not a brand; never invent one). Save the answer in `.fluent-kit/brand.json` (`{ "mode": "stock" }` or `{ "hex": "#rrggbb" }`); a saved file is a decision. Language: its Language line; no signal, ask once, default English. Set `lang` on `<html>`.
 
-**3. Install and theme.** Run the install command its Setup line gives, then `node .fluent-kit/scripts/make-theme.mjs <#hex|stock> --out src/theme.tsx` (Next.js: `--next --out app/theme.tsx`). It stops on a colour that fails contrast: offer the darker shade it prints; never `--force` without the design owner's approval. That file is the only place raw hex is allowed.
+**3. Install and theme.** Run the install command its Setup line gives, then the one command its Brand line names. It stops on a colour that fails contrast: offer the darker shade it prints; never `--force` without the design owner's approval. The theme file is the only place raw hex is allowed.
 
 **4. Wrap the app** in its `AppProvider` (`src/main.tsx`, or `app/layout.tsx`). Remove the scaffold's styling: Vite's `index.css`, `App.css` and demo markup; Next.js's font imports, `page.module.css` and all of `globals.css` but `body { margin: 0; }`. Next.js files using `makeStyles` or hooks need `"use client"`.
 
 **5. First screen**: `tasks/new-page.md`, from its step 2. The primary button should show the brand colour.
 
-**Migrating from v8**: `tasks/migrate-v8.md`.
-
-**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page / --full`.
+**Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /`.

@@ -3,15 +3,15 @@
 The person asked to move to v9. v8 and v9 run side by side, so migrate screen by screen; the app keeps working between steps.
 
 **Once, at the start** (skip what is done):
-1. `node .fluent-kit/scripts/context.mjs new-app`. Brand: the v8 theme's `themePrimary` is the brand; name it.
+1. `node .fluent-kit/scripts/context.mjs migrate`. Its Brand line reads the v8 theme's `themePrimary`; name the colour.
 2. `node .fluent-kit/scripts/check.mjs --baseline`: today's v8 imports are tolerated, new ones fail.
-3. Install `@fluentui/react-components @fluentui/react-icons` next to `@fluentui/react`; `make-theme.mjs <themePrimary> --out src/theme.tsx`.
+3. Install `@fluentui/react-components @fluentui/react-icons` next to `@fluentui/react` (its Setup line), then run the command its Brand line names.
 4. Wrap the root in `AppProvider` **outside** the v8 `ThemeProvider`; keep v8's provider and `initializeIcons` until the last v8 screen. Nothing should look different yet.
 
 **Each screen** (the one the person names first; the app shell is its own step):
 - Swap every v8 component in its files, keeping behaviour, data and order. Then follow its pattern card for layout.
 - `mergeStyles`, `styles` props, `getTheme().palette`/`semanticColors` → `makeStyles` + `tokens` (`themePrimary` → `colorBrandBackground`, `neutralPrimary` → `colorNeutralForeground1`, `white` → `colorNeutralBackground1`).
-- Done: no `@fluentui/react` import left in its files; delete those files' lines from `.fluent-kit/baseline.json`. Finish with `--page` for that screen.
+- Done: no `@fluentui/react` import left in its files; delete those files' lines from `.fluent-kit/baseline.json`. Finish: `node .fluent-kit/scripts/check.mjs --finish --page /that-screen`.
 
 | v8 | v9 |
 |---|---|
@@ -34,6 +34,6 @@ The person asked to move to v9. v8 and v9 run side by side, so migrate screen by
 
 No v9 equivalent: keep the v8 component, mark it `// fluent-kit-ignore -- no v9 equivalent yet`, list it.
 
-**Last**: no `@fluentui/react` import anywhere: remove the v8 `ThemeProvider`, `initializeIcons` and the package; `--full`.
+**Last**: no `@fluentui/react` import anywhere: remove the v8 `ThemeProvider`, `initializeIcons` and the package; finish with `--full`.
 
 **Reply**: what moved, what is still v8 (screens and why), and the next screen to do.

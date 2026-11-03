@@ -30,8 +30,8 @@ try {
   assert.match(r.out, /Language: +nl: write UI text in it/);
   assert.match(r.out, /Profile: +\.fluent-kit\/PROFILE\.md[\s\S]*Address the user formally/);
   assert.doesNotMatch(r.out, /Copy this file/, "template boilerplate is left out");
-  assert.match(r.out, /Cards: +standard style radius=borderRadiusXLarge.*\(2x\)[\s\S]*also radius=borderRadiusMedium.*Log\.tsx[\s\S]*leave them(?![\s\S]*shared component)/);
-  assert.match(r.out, /Next: +read \.github\/skills\/fluent-ui\/tasks\/restyle\.md/);
+  assert.match(r.out, /Cards: +standard style radius=borderRadiusXLarge.*\(2x\)[\s\S]*also radius=borderRadiusMedium.*Log\.tsx[\s\S]*Leave other pages as they are(?![\s\S]*shared component)/);
+  assert.doesNotMatch(r.out, /^Next:/m, "the card that ran this is what the agent reads next: no second routing");
   assert.ok(existsSync(join(dir, ".fluent-kit/context.json")));
   assert.match(readFileSync(join(dir, ".fluent-kit/.gitignore"), "utf8"), /context\.json/);
 
@@ -47,11 +47,31 @@ try {
   r = ctx("new-app");
   assert.match(r.out, /Result: +fluent-v9-stock-theme/);
   assert.doesNotMatch(r.out, /^Cards:/m);
-  assert.match(r.out, /tasks\/new-app\.md \(start at step 2/);
+  assert.doesNotMatch(r.out, /start at step 2/);
 
-  // The skill path follows the install.
-  writeFileSync(join(dir, ".fluent-kit/manifest.json"), JSON.stringify({ skill: ".claude/skills/fluent-ui", files: [] }));
-  assert.match(ctx("small-fix").out, /Next: +read \.claude\/skills\/fluent-ui\/tasks\/small-fix\.md/);
+  // The migrate route on a v9 app says there is nothing to migrate.
+  assert.match(ctx("migrate").out, /Note: +this project is fluent-v9-stock-theme, not Fluent v8: there is nothing to migrate/);
+
+  // No route: says which routes exist (a small fix has none).
+  assert.match(ctx().out, /Route: +run with the task's route: restyle \| new-page \| new-app \| migrate/);
+
+  // On a Fluent v8 app the migrate route does not ask whether this is a migration, and themePrimary is the brand.
+  const v8 = mkdtempSync(join(tmpdir(), "fk-context-v8-"));
+  try {
+    mkdirSync(join(v8, "src"));
+    writeFileSync(join(v8, "package.json"), JSON.stringify({ dependencies: { "@fluentui/react": "^8" } }));
+    writeFileSync(join(v8, "src/theme.ts"), 'import { createTheme } from "@fluentui/react";\nexport const t = createTheme({ palette: { themePrimary: "#0f6cbd" } });\n');
+    const m = spawnSync(process.execPath, [join(kit, "context.mjs"), "migrate"], { cwd: v8, encoding: "utf8" }).stdout;
+    assert.match(m, /Theme: +Fluent v8, migrating to v9 screen by screen/);
+    assert.doesNotMatch(m, /Ask the user whether this task is a migration/);
+    assert.match(m, /Brand: +Brand color #0f6cbd found \(Fluent v8 themePrimary/);
+    assert.match(m, /make-theme\.mjs #0f6cbd --out src\/theme\.tsx/);
+  } finally { rmSync(v8, { recursive: true, force: true }); }
+
+  // --no-cache reads but never writes (the installer's dry run).
+  rmSync(join(dir, ".fluent-kit/context.json"));
+  ctx("restyle", "--no-cache");
+  assert.ok(!existsSync(join(dir, ".fluent-kit/context.json")));
 
   console.log("context: all tests passed");
 } finally {
