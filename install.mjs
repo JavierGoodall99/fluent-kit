@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
+import { createInterface } from "node:readline/promises";
 
 const HELP = `Usage: npx github:JavierGoodall99/fluent-kit [target-repo] [options]
 Target defaults to the current folder.
@@ -23,7 +24,8 @@ Options:
   --agents               also write the rules block to AGENTS.md (Codex, Cursor, Copilot's coding agent and others;
                          done automatically when AGENTS.md already exists)
   --with-deps            also install what verify.mjs needs: playwright and axe-core as dev dependencies, and the
-                         Chromium browser (about 150 MB download). Without it the installer only tells you.
+                         Chromium browser (about 150 MB) when Edge or Chrome is not on the machine. In a terminal
+                         the installer asks; without a terminal (CI, scripts) it only tells you.
   --hooks                also install a git pre-commit hook that runs check.mjs --changed
   --ci                   also write .github/workflows/fluent-kit.yml: a pull-request check that fails on rule errors,
                          whether or not the agent ran its own check
@@ -202,14 +204,28 @@ const hasAxe = canResolve("axe-core") || canResolve("@axe-core/playwright");
 const pm = existsSync(join(dest, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(dest, "yarn.lock")) ? "yarn" : (existsSync(join(dest, "bun.lockb")) || existsSync(join(dest, "bun.lock"))) ? "bun" : "npm";
 const addDev = (pkgs) => (pm === "npm" ? ["install", "-D", ...pkgs] : pm === "yarn" ? ["add", "-D", ...pkgs] : ["add", "-D", ...pkgs]);
 const missing = [!hasPlaywright && "playwright", !hasAxe && "axe-core"].filter(Boolean);
+// verify falls back to Edge or Chrome on the machine, so the Chromium download (often blocked by company proxies) is only needed without them.
+const systemBrowser = (process.platform === "win32"
+  ? [process.env["ProgramFiles(x86)"], process.env.ProgramFiles].filter(Boolean).map((p) => `${p}\\Microsoft\\Edge\\Application\\msedge.exe`).concat([process.env.ProgramFiles, process.env.LOCALAPPDATA].filter(Boolean).map((p) => `${p}\\Google\\Chrome\\Application\\chrome.exe`))
+  : process.platform === "darwin" ? ["/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+  : ["/usr/bin/microsoft-edge", "/usr/bin/microsoft-edge-stable", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"]).find((p) => existsSync(p));
+const chromiumStep = systemBrowser ? "" : " && npx playwright install chromium (about 150 MB)";
+let withDeps = flag("--with-deps");
+if (missing.length && !withDeps && !dry && existsSync(pj) && process.stdin.isTTY && !process.env.CI) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const a = (await rl.question(`\nThe browser check (verify.mjs) needs ${missing.join(" and ")}. Install now as dev dependencies${systemBrowser ? "" : ", plus the Chromium browser (about 150 MB)"}? [Y/n] `)).trim().toLowerCase();
+  rl.close();
+  withDeps = a === "" || a.startsWith("y") || a.startsWith("j");
+}
 let depsNote;
 if (!missing.length) depsNote = "verify.mjs dependencies: installed.";
-else if (flag("--with-deps") && !dry && existsSync(pj)) {
-  console.log(`\nInstalling for verify.mjs: ${missing.join(", ")} (dev dependencies), then the Chromium browser (about 150 MB)...`);
+else if (withDeps && !dry && existsSync(pj)) {
+  console.log(`\nInstalling for verify.mjs: ${missing.join(", ")} (dev dependencies)${systemBrowser ? `; no browser download, verify uses ${systemBrowser}` : ", then the Chromium browser (about 150 MB)"}...`);
   const a = spawnSync(pm, addDev(missing), { cwd: dest, stdio: "inherit", shell: process.platform === "win32" });
-  const b = a.status === 0 ? spawnSync("npx", ["playwright", "install", "chromium"], { cwd: dest, stdio: "inherit", shell: process.platform === "win32" }) : null;
-  depsNote = a.status === 0 && b?.status === 0 ? "verify.mjs dependencies: installed." : "verify.mjs dependencies: install failed (see above). verify will say NOT RUN until they are installed.";
-} else depsNote = `verify.mjs needs ${missing.join(" and ")} (not installed). Install once: ${pm} ${addDev(missing).join(" ")} && npx playwright install chromium (about 150 MB), or re-run this installer with --with-deps.`;
+  const b = a.status === 0 && !systemBrowser ? spawnSync("npx", ["playwright", "install", "chromium"], { cwd: dest, stdio: "inherit", shell: process.platform === "win32" }) : null;
+  depsNote = a.status === 0 && (systemBrowser || b?.status === 0) ? "verify.mjs dependencies: installed." : "verify.mjs dependencies: install failed (see above). verify will say NOT RUN until they are installed.";
+} else depsNote = `verify.mjs needs ${missing.join(" and ")} (not installed). Install once: ${pm} ${addDev(missing).join(" ")}${chromiumStep}, or re-run this installer with --with-deps.`;
+depsNote += " Pages behind a login: the first verify run opens Edge for you to sign in once.";
 
 // 9. optional: npm script
 if (flag("--wire") && !dry) {

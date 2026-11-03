@@ -12,6 +12,8 @@
 - verify recognises a Fluent v8 page (`ms-` component classes): no FluentProvider is a warning that says not to convert the app, and the non-Fluent control count says how many are v8.
 - verify reports MSAL `interaction_in_progress` as a warning with the app-side fix, not as a console error the agent chases in a UI task.
 - New route `tasks/migrate-v8.md` for moving an app from Fluent v8 to v9 screen by screen: baseline the existing v8 imports, put the v9 provider around the v8 one, a v8-to-v9 component table, when a screen counts as done, and the final removal of v8. The router, `new-app.md`, theme detection and verify point to it.
+- Sign-in without a separate step: when verify lands on a sign-in page (not in CI, not with `--no-login`), it opens a visible Edge on `.verify-profile` (added to `.gitignore`), waits for the person to sign in, and checks again; later runs reuse the session. `login.mjs` stays as the manual way.
+- The installer asks, in a terminal, whether to install Playwright and axe-core, and skips the 150 MB Chromium download when Edge or Chrome is on the machine (verify uses them). doctor no longer flags a missing Chromium in that case.
 
 ## 1.5.1
 - The finish command applies to every change, even a one-line change or a removal, and the agent says so when it could not run it. Removing something also removes the import it leaves behind.

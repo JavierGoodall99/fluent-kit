@@ -8,6 +8,7 @@
 //                                            then opened on it. Use it from agent terminals, where a long-running server blocks the terminal.
 //          [--storage auth.json]   a Playwright storage state (saved with: npx playwright codegen --save-storage=auth.json <url>) so pages behind a login can be checked.
 //          [--profile .verify-profile]   use the real Microsoft Edge with this profile folder (kept between runs). For apps whose login needs Edge, a work device policy or an SSO extension: sign in once in that Edge profile (see below) and it stays signed in. Add --headed to watch it.
+//          Pages behind a login: when verify lands on a sign-in page it opens a visible Edge on .verify-profile, waits for you to sign in, and checks again. [--no-login] turns that off (it is off in CI).
 //          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
 //                                            Use it for drawers, dialogs, menus and pickers: the page alone never shows them.
 // Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
@@ -71,8 +72,11 @@ const waitFor = opt("--wait", null);
 const clickSteps = (opt("--click", "") || "").split(";").map((x) => x.trim()).filter(Boolean);
 const useAxe = !args.includes("--no-axe");
 const storagePath = opt("--storage", null);
-const profileDir = opt("--profile", null) ? resolve(opt("--profile")) : (!storagePath && existsSync(resolve(".verify-profile"))) ? resolve(".verify-profile") : null; // a .verify-profile folder in the project is used automatically
+let profileDir = opt("--profile", null) ? resolve(opt("--profile")) : (!storagePath && existsSync(resolve(".verify-profile"))) ? resolve(".verify-profile") : null; // a .verify-profile folder in the project is used automatically
 if (profileDir && !opt("--profile", null)) console.log("Using the signed-in Edge profile .verify-profile");
+// On a sign-in page, open a visible Edge so the person can sign in, then check again. Not in CI (no one to sign in).
+const canLogin = !storagePath && !args.includes("--no-login") && !process.env.CI;
+const isSignIn = (title, u) => /sign in|log ?in|inloggen|aanmelden/i.test(title) || /login\.microsoftonline|login\.live/.test(u);
 
 const req = createRequire(join(process.cwd(), "package.json"));
 let pw = null;
@@ -181,7 +185,7 @@ function profileLockPid() {
   try { process.kill(pid, 0); return pid; } catch (e) { return e.code === "EPERM" ? pid : 0; }
 }
 const launchProfile = (o) => pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ignoreDefaultArgs: keychainArgs, ...o });
-if (profileDir) browser = { newContext: async (o) => {
+const profileBrowser = () => ({ newContext: async (o) => {
   try { return await launchProfile(o); } catch (e) {
     let err = e;
     const pid = /ProcessSingleton/.test(String(e)) && process.platform !== "win32" ? profileLockPid() : null;
@@ -194,7 +198,38 @@ if (profileDir) browser = { newContext: async (o) => {
     else console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (" + killHint + ") and run again.\nIf it still fails, try --headed.\n" + String(err).split("\n")[0]);
     process.exit(2);
   }
-}, close: async () => {} };
+}, close: async () => {} });
+if (profileDir) browser = profileBrowser();
+
+// Opens a visible Edge on the project's profile at the page, waits until the person is past the sign-in, and keeps the session there.
+async function interactiveLogin(url) {
+  const dir = profileDir || resolve(".verify-profile");
+  try {
+    const gi = resolve(".gitignore"), cur = existsSync(gi) ? readFileSync(gi, "utf8") : "";
+    if (!cur.split(/\r?\n/).some((l) => /^\/?\.verify-profile\/?$/.test(l.trim()))) appendFileSync(gi, (cur && !cur.endsWith("\n") ? "\n" : "") + ".verify-profile/\n");
+  } catch { console.log("Add .verify-profile/ to your .gitignore: it holds your session."); }
+  console.log(`\nSign-in needed. An Edge window opens at ${url}: sign in until your app shows (answer Yes to "Stay signed in?"). The check then continues by itself. Waiting up to 5 minutes.`);
+  let ctx;
+  try { ctx = await pw.chromium.launchPersistentContext(dir, { channel: "msedge", headless: false, ignoreDefaultArgs: keychainArgs, viewport: null }); }
+  catch (e) { console.log("Could not open Edge to sign in: " + String(e).split("\n")[0]); return false; }
+  const page = ctx.pages()[0] || await ctx.newPage();
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  let inApp = 0;
+  try {
+    await page.goto(url).catch(() => {});
+    // The app can flash its own title before it redirects to the sign-in page: count it as signed in after 3 steady seconds.
+    for (const end = Date.now() + 5 * 60000; Date.now() < end && inApp < 3 && !page.isClosed(); await sleep(1000)) {
+      inApp = page.url().startsWith(new URL(url).origin) && !isSignIn(await page.title().catch(() => "sign in"), page.url()) ? inApp + 1 : 0;
+    }
+    if (inApp >= 3) {
+      console.log("Signed in. If the page needs a tenant, stage or customer with real data, pick it in that window now (it is remembered). The check continues when you close the window, or in 30 seconds.");
+      await Promise.race([page.waitForEvent("close", { timeout: 30000 }).catch(() => {}), ctx.waitForEvent("close", { timeout: 30000 }).catch(() => {})]);
+    }
+  } finally { await ctx.close().catch(() => {}); }
+  if (inApp < 3) { console.log("Sign-in did not finish in time."); return false; }
+  if (!profileDir) { await browser.close().catch(() => {}); profileDir = dir; browser = profileBrowser(); }
+  return true;
+}
 for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome" }]) {
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
@@ -212,6 +247,9 @@ async function runAxe(page, where) {
   } catch (e) { note("warn", where, `axe could not run: ${String(e).split("\n")[0]}`); }
 }
 
+let loginTried = false, retry;
+do {
+retry = false;
 renders: for (const url of urls) {
   for (const scheme of schemes) {
     for (const width of widths) {
@@ -238,17 +276,21 @@ renders: for (const url of urls) {
       // The tab title is often fixed in index.html and says nothing about the view: also print the page's own heading and URL.
       const heading = await page.evaluate(() => (document.querySelector("h1, [role=heading][aria-level='1']") || document.querySelector("h2"))?.textContent?.trim().slice(0, 60) || "");
       console.log(`  ${where}: heading "${heading}"  (tab title "${pageTitle.slice(0, 40)}")`);
-      if (/sign in|log ?in|inloggen|aanmelden/i.test(pageTitle) || /login\.microsoftonline|login\.live/.test(page.url())) {
+      if (isSignIn(pageTitle, page.url())) {
         // Every other finding would be about the identity provider's page, not the app: report only this and stop.
         const origin = new URL(url).origin;
-        note("error", where, (profileDir
-          ? `This is a sign-in page, not your app: the Edge profile ${profileDir} is not signed in for ${origin} (session expired, signed in at another address or port, or "Stay signed in?" was answered No).`
-          : "This is a sign-in page, not your app.")
-          + ` Nothing was checked and the other renders were skipped; do not change the app because of this run. Run: node .fluent-kit/scripts/login.mjs ${origin} , sign in, answer Yes to "Stay signed in?", ${process.platform === "darwin" ? "quit that Edge with Cmd+Q" : "close that Edge window"}, then run verify again (README: Pages behind a login).`);
         const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
-        await page.screenshot({ path: file });
-        shots.push(file); shotFor.set(where, file); firstShots.push([where, file]);
+        await page.screenshot({ path: file, timeout: 10000 }).catch(() => {}); // a sign-in page may redirect while it is photographed
         await ctx.close();
+        if (canLogin && !loginTried) { loginTried = true; if (await interactiveLogin(url)) { retry = true; break renders; } }
+        note("error", where, (profileDir
+          ? `This is a sign-in page, not your app: the Edge profile ${profileDir} is not signed in for ${origin}.`
+          : "This is a sign-in page, not your app.")
+          + ` Nothing was checked and the other renders were skipped; do not change the app because of this run. ${canLogin
+            ? "Run verify again and sign in in the Edge window it opens (answer Yes to \"Stay signed in?\")."
+            : `Sign in once on this machine: node .fluent-kit/scripts/login.mjs ${origin} (README: Apps that need a sign-in).`}`
+          + " If sign-in itself is refused (company policy), say in your reply that the UI was not verified.");
+        shots.push(file); shotFor.set(where, file); firstShots.push([where, file]);
         break renders;
       }
       const info = await page.evaluate(() => {
@@ -387,6 +429,8 @@ renders: for (const url of urls) {
     }
   }
 }
+if (retry) { problems.length = 0; shots.length = 0; shotFor.clear(); firstShots.length = 0; rawErrors.length = 0; loaded = 0; console.log("Checking again, signed in:"); }
+} while (retry);
 // One contact sheet of every first screen, so one image shows all renders.
 let sheet = null;
 if (firstShots.length) {

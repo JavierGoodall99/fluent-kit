@@ -122,8 +122,13 @@ else {
   if (!has("axe-core") && !has("@axe-core/playwright")) warn("axe-core is not installed: verify skips the accessibility scan", `${pm === "npm" ? "npm install -D" : `${pm} add -D`} axe-core`);
   let chromium = null;
   try { const pw = req("playwright"); chromium = pw.chromium?.executablePath?.() ?? null; } catch { /* playwright-core only, or unusual layout */ }
-  if (chromium && !existsSync(chromium) && !existsSync(join(root, ".verify-profile"))) warn("Playwright's Chromium browser is not downloaded", "npx playwright install chromium");
-  else if (chromium && existsSync(chromium)) ok("Chromium for Playwright is downloaded");
+  const systemBrowser = (process.platform === "win32"
+    ? [process.env["ProgramFiles(x86)"], process.env.ProgramFiles].filter(Boolean).map((p) => `${p}\\Microsoft\\Edge\\Application\\msedge.exe`).concat([process.env.ProgramFiles, process.env.LOCALAPPDATA].filter(Boolean).map((p) => `${p}\\Google\\Chrome\\Application\\chrome.exe`))
+    : process.platform === "darwin" ? ["/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+    : ["/usr/bin/microsoft-edge", "/usr/bin/microsoft-edge-stable", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"]).find((p) => existsSync(p));
+  if (chromium && existsSync(chromium)) ok("Chromium for Playwright is downloaded");
+  else if (systemBrowser) ok(`verify uses the browser on this machine (${systemBrowser}); no Chromium download needed`);
+  else if (chromium) warn("No browser for verify: Playwright's Chromium is not downloaded and Edge or Chrome is not installed", "npx playwright install chromium (or install Microsoft Edge)");
 }
 
 // Local files the kit reads: valid JSON, and the signed-in profile kept out of git
