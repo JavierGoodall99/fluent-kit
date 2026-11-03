@@ -135,7 +135,7 @@ These catch what the agent ignores, not what nobody wrote a rule for. They do no
 1. Start your app in one terminal (`npm run dev`).
 2. In a second terminal, in the project folder: `node .fluent-kit/scripts/login.mjs`
    (another address? `node .fluent-kit/scripts/login.mjs http://localhost:3001`).
-3. Edge opens. Sign in until your app shows. If Microsoft asks "Stay signed in?", answer **Yes**: otherwise the sign-in is gone when the window closes. If the page you will change depends on a choice you make in the app (a tenant, a stage, a customer), pick one that has real data now: the profile remembers it, so `verify` sees the real page and not an empty one. Then close that Edge window.
+3. Edge opens. Sign in until your app shows. If Microsoft asks "Stay signed in?", answer **Yes**: otherwise the sign-in is gone when the window closes. If the page you will change depends on a choice you make in the app (a tenant, a stage, a customer), pick one that has real data now: the profile remembers it, so `verify` sees the real page and not an empty one. Then close that Edge window (on a Mac, quit it with Cmd+Q: closing the window leaves Edge running on the profile).
 4. Stop the dev server. Done.
 
 From then on `node .fluent-kit/scripts/verify.mjs --start /` and Copilot's own checks use that signed-in Edge by themselves. Nothing to install, no extension, no flags.

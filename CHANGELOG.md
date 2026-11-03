@@ -5,6 +5,12 @@
 - Installer `--ci` writes `.github/workflows/fluent-kit.yml`, a pull-request check that runs the rules whether or not the agent ran its own.
 - `doctor.mjs`: `node .fluent-kit/scripts/doctor.mjs` checks an install and its environment and prints one line per finding (ok, warn or FIX) with the command that fixes it: kit and skill files present and unedited, one copy of the skill, the always-on block pointing at the right folder, Fluent v9, TypeScript, Playwright, axe-core and Chromium, the package manager on PATH, a `dev` script, git history, valid local JSON, and `.verify-profile` kept out of git. Exit code 1 when something needs fixing.
 - The always-on block no longer says `--no-verify` is for a "prop" change (a size is a prop); it is for a small fix to only an icon, text or colour, and any size, spacing, width or layout change gets the browser check.
+- verify on a sign-in page reports only that, skips the other renders and checks (they described the identity provider's page, not the app), and prints the `login.mjs` command with the dev server's address.
+- verify keeps the real keychain (macOS) and password store (Linux) for `.verify-profile`, so the session `login.mjs` saved is readable and the profile no longer looks signed out.
+- verify on macOS and Linux removes a stale profile lock left by a crashed or killed Edge and retries; when another Edge still holds the profile, it names the process and says to quit it (Cmd+Q on a Mac, where closing the window leaves Edge running).
+- `login.mjs` and the README say to answer Yes to "Stay signed in?" and, on a Mac, to quit Edge with Cmd+Q.
+- verify recognises a Fluent v8 page (`ms-` component classes): no FluentProvider is a warning that says not to convert the app, and the non-Fluent control count says how many are v8.
+- verify reports MSAL `interaction_in_progress` as a warning with the app-side fix, not as a console error the agent chases in a UI task.
 
 ## 1.5.1
 - The finish command applies to every change, even a one-line change or a removal, and the agent says so when it could not run it. Removing something also removes the import it leaves behind.

@@ -38,6 +38,6 @@ console.log(`
 Edge is opening ${url}.
 1. Sign in until your app shows. If Microsoft asks "Stay signed in?", answer Yes (otherwise the sign-in is gone when the window closes).
    Then pick the tenant, stage or customer that has real data (it is remembered, so verify sees the real page).
-2. Close that Edge window (all of it).
+2. ${process.platform === "darwin" ? "Quit that Edge with Cmd+Q (closing the window is not enough on a Mac: Edge keeps running and holds the profile)." : "Close that Edge window (all of it)."}
 Then run:  node .fluent-kit/scripts/verify.mjs --start /
 It uses the signed-in profile by itself.`);

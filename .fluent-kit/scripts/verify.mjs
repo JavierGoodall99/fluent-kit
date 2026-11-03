@@ -15,7 +15,7 @@
 // next to each problem, so look at the contact sheet once and open other files only when a problem points to them.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
 import { createRequire } from "node:module";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
@@ -173,7 +173,28 @@ const launchErrors = [];
 // Playwright swaps the OS keychain for a mock one (macOS) or a plain store (Linux); then Edge cannot decrypt the cookies login.mjs saved and the profile looks signed out.
 const keychainArgs = ["--use-mock-keychain", "--password-store=basic"];
 const killHint = process.platform === "win32" ? "PowerShell: Get-CimInstance Win32_Process -Filter \"name='msedge.exe'\" | Where-Object CommandLine -match 'verify-profile' | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" : "pkill -f verify-profile";
-if (profileDir) browser = { newContext: async (o) => { try { return await pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ignoreDefaultArgs: keychainArgs, ...o }); } catch (e) { console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (" + killHint + ") and run again.\nIf it still fails, try --headed.\n" + String(e).split("\n")[0]); process.exit(2); } }, close: async () => {} };
+// macOS/Linux: SingletonLock is a symlink to "<host>-<pid>" of the Edge that holds the profile. Returns that pid if it still runs, 0 if the lock is stale.
+function profileLockPid() {
+  let pid;
+  try { pid = Number(readlinkSync(join(profileDir, "SingletonLock")).split("-").pop()); } catch { return null; }
+  if (!pid) return null;
+  try { process.kill(pid, 0); return pid; } catch (e) { return e.code === "EPERM" ? pid : 0; }
+}
+const launchProfile = (o) => pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ignoreDefaultArgs: keychainArgs, ...o });
+if (profileDir) browser = { newContext: async (o) => {
+  try { return await launchProfile(o); } catch (e) {
+    let err = e;
+    const pid = /ProcessSingleton/.test(String(e)) && process.platform !== "win32" ? profileLockPid() : null;
+    if (pid === 0) {
+      // Left behind by an Edge that crashed or was killed: remove the lock and try once more.
+      for (const f of ["SingletonLock", "SingletonSocket", "SingletonCookie"]) rmSync(join(profileDir, f), { force: true });
+      try { return await launchProfile(o); } catch (e2) { err = e2; }
+    }
+    if (pid > 0) console.error(`Edge could not start with the profile ${profileDir}: another Edge (process ${pid}) still has it open.` + (process.platform === "darwin" ? "\nOn a Mac, closing the Edge window does not quit Edge: switch to the Edge window that login.mjs opened and press Cmd+Q," : "\nClose that Edge window,") + ` or run: kill ${pid}\nThen run verify again.`);
+    else console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (" + killHint + ") and run again.\nIf it still fails, try --headed.\n" + String(err).split("\n")[0]);
+    process.exit(2);
+  }
+}, close: async () => {} };
 for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome" }]) {
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
@@ -223,7 +244,7 @@ renders: for (const url of urls) {
         note("error", where, (profileDir
           ? `This is a sign-in page, not your app: the Edge profile ${profileDir} is not signed in for ${origin} (session expired, signed in at another address or port, or "Stay signed in?" was answered No).`
           : "This is a sign-in page, not your app.")
-          + ` Nothing was checked and the other renders were skipped; do not change the app because of this run. Run: node .fluent-kit/scripts/login.mjs ${origin} , sign in, answer Yes to "Stay signed in?", close that Edge window, then run verify again (README: Pages behind a login).`);
+          + ` Nothing was checked and the other renders were skipped; do not change the app because of this run. Run: node .fluent-kit/scripts/login.mjs ${origin} , sign in, answer Yes to "Stay signed in?", ${process.platform === "darwin" ? "quit that Edge with Cmd+Q" : "close that Edge window"}, then run verify again (README: Pages behind a login).`);
         const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
         await page.screenshot({ path: file });
         shots.push(file); shotFor.set(where, file); firstShots.push([where, file]);
@@ -238,6 +259,8 @@ renders: for (const url of urls) {
         const tiny = [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Checkbox, .fui-Switch, .fui-Radio")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24); }).map((el) => { const r = el.getBoundingClientRect(); return `<${el.tagName.toLowerCase()}> "${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}" ${Math.round(r.width)}x${Math.round(r.height)}px`; });
         return {
           provider: !!prov,
+          v8: [...document.querySelectorAll("[class*='ms-']")].some((el) => /(^|\s)ms-[A-Z]/.test(el.getAttribute("class"))),
+          strayV8: stray.filter((el) => { for (let a = el; a; a = a.parentElement) if (/(^|\s)ms-[A-Z]/.test(a.getAttribute("class") || "")) return true; return false; }).length,
           font: cs?.fontFamily || null,
           bgLum: lum(cs?.backgroundColor),
           bodyBgLum: lum(getComputedStyle(document.body).backgroundColor),
@@ -303,7 +326,8 @@ renders: for (const url of urls) {
           }).slice(0, 4).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}`),
         };
       });
-      if (!info.provider) note("error", where, "No FluentProvider on the page. Fluent components will be unstyled. Wrap the app in FluentProvider with the project theme.");
+      if (!info.provider && info.v8) note("warn", where, "This page is Fluent UI v8 (ms- classes) with no v9 FluentProvider. Expected if the app has not moved to v9; do not convert the app for this. Any v9 component you add needs a FluentProvider with the project theme around the app root (the v8 ThemeProvider can stay inside it). See tasks/new-app.md: never mix v8 and v9 in new code without asking whether this is a migration.");
+      else if (!info.provider) note("error", where, "No FluentProvider on the page. Fluent components will be unstyled. Wrap the app in FluentProvider with the project theme.");
       if (info.provider && info.font && !/Segoe UI/i.test(info.font)) note("warn", where, `Page font is '${info.font.slice(0, 50)}', not Segoe UI. Use the theme's font (tokens.fontFamilyBase).`);
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);
       if (info.longlines.length) note("warn", where, `Text lines are too long to read comfortably (over about 100 characters across): ${info.longlines.join("; ")}. Cap the text width (max-width around 70 to 80ch, tokens for spacing) and let the card or page be wider than the text.`);
@@ -314,16 +338,19 @@ renders: for (const url of urls) {
       if (info.flatCards) note("warn", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and tokens.borderRadiusXLarge (8px), see deviations.md "Surfaces".`);
       if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
       if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
-      if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent components: ${info.stray.join("; ")}`);
+      if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent v9 components${info.strayV8 ? ` (${info.strayV8} of them Fluent v8)` : ""}: ${info.stray.join("; ")}`);
       if (info.tiny.length) note("warn", where, `${info.tiny.length} Fluent control(s) smaller than 24px: ${info.tiny.slice(0, 4).join("; ")}. Make them at least 24px (32px on touch) or use a larger size.`);
       if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("warn", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
       // Fluent's focus helper (tabster) can insert hidden <i data-tabster-dummy> elements before React hydrates a
       // page chunk. React then reports a mismatch whose only server-side difference is those helpers. It is a known
       // Fluent + Next.js timing issue, not a mistake in the page, so it is a warning, not an error.
       const isTabsterOnly = tabsterOnly;
-      const real = errors.filter((e) => !isTabsterOnly(e));
+      // Each render opens the signed-in profile afresh, so MSAL can still be finishing a silent sign-in when the app starts another one.
+      const isMsalRace = (e) => /interaction_in_progress/.test(e);
+      const real = errors.filter((e) => !isTabsterOnly(e) && !isMsalRace(e));
       const tab = errors.filter(isTabsterOnly);
       if (real.length) note("error", where, `Console errors: ${[...new Set(real)].slice(0, 3).join(" | ")}`);
+      if (errors.some(isMsalRace)) note("warn", where, "MSAL reported interaction_in_progress: the app started a sign-in while another was still running. Not caused by a UI change; do not chase it in this task. (App fix, separately: only call loginRedirect/acquireTokenRedirect when inProgress === InteractionStatus.None.)");
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
 
       await runAxe(page, where);
