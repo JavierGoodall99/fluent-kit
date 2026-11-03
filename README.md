@@ -130,13 +130,13 @@ These catch what the agent ignores, not what nobody wrote a rule for. They do no
 1. Start your app in one terminal (`npm run dev`).
 2. In a second terminal, in the project folder: `node .fluent-kit/scripts/login.mjs`
    (another address? `node .fluent-kit/scripts/login.mjs http://localhost:3001`).
-3. Edge opens. Sign in until your app shows. If the page you will change depends on a choice you make in the app (a tenant, a stage, a customer), pick one that has real data now: the profile remembers it, so `verify` sees the real page and not an empty one. Then close that Edge window.
+3. Edge opens. Sign in until your app shows. If Microsoft asks "Stay signed in?", answer **Yes**: otherwise the sign-in is gone when the window closes. If the page you will change depends on a choice you make in the app (a tenant, a stage, a customer), pick one that has real data now: the profile remembers it, so `verify` sees the real page and not an empty one. Then close that Edge window.
 4. Stop the dev server. Done.
 
 From then on `node .fluent-kit/scripts/verify.mjs --start /` and Copilot's own checks use that signed-in Edge by themselves. Nothing to install, no extension, no flags.
 
 - The sign-in lives in `.verify-profile/` in your project. It is your session, so the script adds it to `.gitignore`. Never commit or share it.
-- When the session expires and the title `verify` prints says "Sign in", run `login.mjs` again.
+- When the session expires, `verify` reports "This is a sign-in page" and stops without checking anything else: run `login.mjs` again with the address it prints (sign in at the same address and port your dev server uses, for example `http://localhost:5173` for Vite).
 - `verify` prints the page title for each screenshot. If it is not your app, the check looked at the wrong page.
 - If Edge says it cannot open the profile, a window is still open on it: close all Edge windows opened by `login.mjs` and retry.
 - **Known issues in your app shell** (for example a scrolling `<main>` that is not focusable) fail every page and make every `verify` exit with an error. List them once in `.fluent-kit/verify-ignore.json`, for example `["scrollable-region-focusable"]`, and fix them when you have time. `verify` then skips them, so Copilot stops chasing problems that are not in its page.

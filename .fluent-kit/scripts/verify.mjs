@@ -170,7 +170,10 @@ const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").r
 // Try the bundled Chromium, then Edge, then Chrome already installed on the machine.
 let browser = null;
 const launchErrors = [];
-if (profileDir) browser = { newContext: async (o) => { try { return await pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ...o }); } catch (e) { console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (PowerShell: Get-CimInstance Win32_Process -Filter \"name='msedge.exe'\" | Where-Object CommandLine -match 'verify-profile' | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }) and run again.\nIf it still fails, try --headed.\n" + String(e).split("\n")[0]); process.exit(2); } }, close: async () => {} };
+// Playwright swaps the OS keychain for a mock one (macOS) or a plain store (Linux); then Edge cannot decrypt the cookies login.mjs saved and the profile looks signed out.
+const keychainArgs = ["--use-mock-keychain", "--password-store=basic"];
+const killHint = process.platform === "win32" ? "PowerShell: Get-CimInstance Win32_Process -Filter \"name='msedge.exe'\" | Where-Object CommandLine -match 'verify-profile' | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" : "pkill -f verify-profile";
+if (profileDir) browser = { newContext: async (o) => { try { return await pw.chromium.launchPersistentContext(profileDir, { channel: "msedge", headless: !args.includes("--headed"), ignoreDefaultArgs: keychainArgs, ...o }); } catch (e) { console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (" + killHint + ") and run again.\nIf it still fails, try --headed.\n" + String(e).split("\n")[0]); process.exit(2); } }, close: async () => {} };
 for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome" }]) {
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
@@ -188,7 +191,7 @@ async function runAxe(page, where) {
   } catch (e) { note("warn", where, `axe could not run: ${String(e).split("\n")[0]}`); }
 }
 
-for (const url of urls) {
+renders: for (const url of urls) {
   for (const scheme of schemes) {
     for (const width of widths) {
       const where = `${url} [${scheme}, ${width}px]`;
@@ -214,7 +217,19 @@ for (const url of urls) {
       // The tab title is often fixed in index.html and says nothing about the view: also print the page's own heading and URL.
       const heading = await page.evaluate(() => (document.querySelector("h1, [role=heading][aria-level='1']") || document.querySelector("h2"))?.textContent?.trim().slice(0, 60) || "");
       console.log(`  ${where}: heading "${heading}"  (tab title "${pageTitle.slice(0, 40)}")`);
-      if (/sign in|log ?in|inloggen|aanmelden/i.test(pageTitle) || /login\.microsoftonline|login\.live/.test(page.url())) note("error", where, "This is a sign-in page, not your app, so nothing here was really checked. Run once: node .fluent-kit/scripts/login.mjs (README: Pages behind a login), then run verify again.");
+      if (/sign in|log ?in|inloggen|aanmelden/i.test(pageTitle) || /login\.microsoftonline|login\.live/.test(page.url())) {
+        // Every other finding would be about the identity provider's page, not the app: report only this and stop.
+        const origin = new URL(url).origin;
+        note("error", where, (profileDir
+          ? `This is a sign-in page, not your app: the Edge profile ${profileDir} is not signed in for ${origin} (session expired, signed in at another address or port, or "Stay signed in?" was answered No).`
+          : "This is a sign-in page, not your app.")
+          + ` Nothing was checked and the other renders were skipped; do not change the app because of this run. Run: node .fluent-kit/scripts/login.mjs ${origin} , sign in, answer Yes to "Stay signed in?", close that Edge window, then run verify again (README: Pages behind a login).`);
+        const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
+        await page.screenshot({ path: file });
+        shots.push(file); shotFor.set(where, file); firstShots.push([where, file]);
+        await ctx.close();
+        break renders;
+      }
       const info = await page.evaluate(() => {
         const prov = document.querySelector(".fui-FluentProvider");
         const cs = prov ? getComputedStyle(prov) : null;
