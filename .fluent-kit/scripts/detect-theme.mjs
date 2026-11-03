@@ -214,7 +214,7 @@ if (v9 && ramp) {
   advice = "Fluent v9 with the stock Microsoft theme. Keep it and build with it. Change the theme only when the user asks to brand the app.";
 } else if (v8) {
   kind = "fluent-v8";
-  advice = "Fluent v8 in use. Do not mix v8 and v9 in new code. Ask the user whether this task is a migration; if not, build new UI in v9 inside a FluentProvider alongside v8 only if the project already does so.";
+  advice = "Fluent v8 in use. Do not mix v8 and v9 in new code. Ask the user whether this task is a migration; if so, follow tasks/migrate-v8.md. If not, build new UI in v9 inside a FluentProvider alongside v8 only if the project already does so.";
 } else if (OTHER_UI.some(has)) {
   kind = "other-ui-library";
   advice = "Another UI library is in use. Ask the user: migrate to Fluent v9, or keep that library for this task. A brand color, if found below, still applies.";

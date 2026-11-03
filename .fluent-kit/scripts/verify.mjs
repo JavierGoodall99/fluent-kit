@@ -326,7 +326,7 @@ renders: for (const url of urls) {
           }).slice(0, 4).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}`),
         };
       });
-      if (!info.provider && info.v8) note("warn", where, "This page is Fluent UI v8 (ms- classes) with no v9 FluentProvider. Expected if the app has not moved to v9; do not convert the app for this. Any v9 component you add needs a FluentProvider with the project theme around the app root (the v8 ThemeProvider can stay inside it). See tasks/new-app.md: never mix v8 and v9 in new code without asking whether this is a migration.");
+      if (!info.provider && info.v8) note("warn", where, "This page is Fluent UI v8 (ms- classes) with no v9 FluentProvider. Expected until a v8-to-v9 migration starts; do not convert the app unless asked. Migrating: tasks/migrate-v8.md (its first step puts the v9 FluentProvider around the v8 ThemeProvider). Otherwise, never mix v8 and v9 in new code without asking.");
       else if (!info.provider) note("error", where, "No FluentProvider on the page. Fluent components will be unstyled. Wrap the app in FluentProvider with the project theme.");
       if (info.provider && info.font && !/Segoe UI/i.test(info.font)) note("warn", where, `Page font is '${info.font.slice(0, 50)}', not Segoe UI. Use the theme's font (tokens.fontFamilyBase).`);
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);

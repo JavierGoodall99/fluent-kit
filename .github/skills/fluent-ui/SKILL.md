@@ -13,6 +13,7 @@ Pick one route and read only what it names. Paths are relative to this folder.
 | Restyle | "make it better", "easier to understand", "update the UI/UX" of a page that exists | `tasks/restyle.md` + the page's pattern card |
 | New page | a new page, section, shell or overlay in an app on Fluent v9 | `tasks/new-page.md` + one pattern card and its example |
 | New app | empty folder, fresh scaffold, Fluent v8 or another UI library | `tasks/new-app.md`, then the new-page route |
+| Migrate | move an app or screen from Fluent v8 to v9 | `tasks/migrate-v8.md` + the screen's pattern card |
 
 Every route ends with one command: `node .fluent-kit/scripts/check.mjs --finish --page /path` (new page or app: add `--full`). `/path` is the URL that shows the page, with its `#hash` if the app routes by hash. It runs the rules, `tsc`, and `verify` only when something visible changed, and stops at the first failure.
 

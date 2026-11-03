@@ -6,7 +6,7 @@
 |---|---|
 | no `package.json` | `npm create vite@latest <name> -- --template react-ts`, and say so. Next.js only if asked: `npx create-next-app@latest <name> --ts --app --no-tailwind`. |
 | `new-project` | Steps 2 to 5. |
-| `fluent-v8` | Never mix v8 and v9 in new code. Ask whether this is a migration. |
+| `fluent-v8` | Never mix v8 and v9 in new code. Ask whether this is a migration; if so, `tasks/migrate-v8.md`. |
 | `other-ui-library` | Ask: migrate to Fluent v9, or keep that library for this task. |
 | `fluent-v9-*` | Not a new app: the new-page route. To brand it: steps 2 and 3, keeping any existing ramp. |
 
@@ -23,6 +23,6 @@
 
 **5. First screen**: `tasks/new-page.md`, from its step 2. The primary button should show the brand colour.
 
-**Migrating a screen** to v9: swap components one at a time, keeping behaviour; swap hard-coded values for tokens (ask if none fits); delete CSS Fluent now covers; list what is left.
+**Migrating from v8**: `tasks/migrate-v8.md`.
 
 **Finish**: `node .fluent-kit/scripts/check.mjs --finish --page / --full`.

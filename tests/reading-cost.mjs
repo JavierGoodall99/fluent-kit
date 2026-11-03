@@ -38,7 +38,7 @@ const cards = readdirSync(K + "patterns").filter((f) => f.endsWith(".md")).map((
 });
 
 // Budgets in tokens, and tool calls before the first edit (independent reads in one parallel call) and to finish.
-const BUDGET = { block: 460, smallFix: 1100, restyle: 3000, newPage: 5200, newApp: 5900 };
+const BUDGET = { block: 460, smallFix: 1100, restyle: 3000, newPage: 5200, newApp: 5900, migrate: 3600 };
 const rows = [];
 const add = (name, cost, budget, calls) => rows.push({ name, cost, budget, calls });
 add("always-on block", block, BUDGET.block, "-");
@@ -47,10 +47,12 @@ for (const c of cards) add(`restyle, ${c.name}: block, SKILL, context, tasks/res
 for (const c of cards) add(`new page, ${c.name}: block, SKILL, context, tasks/new-page + card + example`, block + router + ctx["new-page"] + task("new-page") + c.tokens + c.example, BUDGET.newPage, "3 + 1");
 const worst = cards.reduce((a, c) => (c.tokens + c.example > a.tokens + a.example ? c : a));
 add(`new app (first page ${worst.name}): block, SKILL, context, tasks/new-app, new-page + card + example`, block + router + ctx["new-app"] + task("new-app") + task("new-page") + worst.tokens + worst.example, BUDGET.newApp, "4 + 1");
+const biggest = cards.reduce((a, c) => (c.tokens > a.tokens ? c : a));
+add(`migrate (screen ${biggest.name}): block, SKILL, context, tasks/migrate-v8 + card`, block + router + ctx["new-app"] + task("migrate-v8") + biggest.tokens, BUDGET.migrate, "3 + 1");
 
 const limits = [
   ["SKILL.md", router, 850], ["deviations.md", deviations, 500],
-  ...["small-fix", "restyle", "new-page", "new-app"].map((n) => [`tasks/${n}.md`, task(n), n === "small-fix" ? 300 : 700]),
+  ...["small-fix", "restyle", "new-page", "new-app", "migrate-v8"].map((n) => [`tasks/${n}.md`, task(n), n === "small-fix" ? 300 : n === "migrate-v8" ? 1100 : 700]),
   ...cards.map((c) => [`patterns/${c.name}.md`, c.tokens, 650]),
   ...Object.entries(ctx).map(([r, n]) => [`context.mjs ${r} output`, n, 700]),
   ...readdirSync(K + "examples").map((e) => [`examples/${e}`, tok(K + "examples/" + e), 2200]),

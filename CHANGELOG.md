@@ -11,6 +11,7 @@
 - `login.mjs` and the README say to answer Yes to "Stay signed in?" and, on a Mac, to quit Edge with Cmd+Q.
 - verify recognises a Fluent v8 page (`ms-` component classes): no FluentProvider is a warning that says not to convert the app, and the non-Fluent control count says how many are v8.
 - verify reports MSAL `interaction_in_progress` as a warning with the app-side fix, not as a console error the agent chases in a UI task.
+- New route `tasks/migrate-v8.md` for moving an app from Fluent v8 to v9 screen by screen: baseline the existing v8 imports, put the v9 provider around the v8 one, a v8-to-v9 component table, when a screen counts as done, and the final removal of v8. The router, `new-app.md`, theme detection and verify point to it.
 
 ## 1.5.1
 - The finish command applies to every change, even a one-line change or a removal, and the agent says so when it could not run it. Removing something also removes the import it leaves behind.
