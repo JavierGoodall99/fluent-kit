@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 // Detects how a React project is themed (theme, brand color, UI language), so an agent (or you) can decide:
 // keep the existing theme, derive a brand ramp, migrate, or ask.
-// Usage: node detect-theme.mjs <project-dir> [--json]
+// Usage: node detect-theme.mjs <project-dir>   Prints JSON. Agents do not call it: context.mjs runs it and prints the summary.
 // No dependencies.
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join, extname, resolve, relative } from "node:path";
 import { generateRamp, checks } from "./generate-ramp.mjs";
 
 const root = resolve(process.argv[2] || ".");
-const asJson = process.argv.includes("--json");
 const EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 const STYLE_EXT = new Set([".css", ".scss", ".less"]);
 const SKIP = new Set(["node_modules", "dist", "build", ".git", ".github", ".claude", ".agents", ".fluent-kit", ".next", "coverage", "storybook-static"]);
@@ -87,6 +86,7 @@ if (!ramp && !freshScaffold) {
     const t = readFileSync(f, "utf8");
     const rel = relative(root, f);
     for (const m of t.matchAll(/\bcolorBrandBackground\s*:\s*["'](#[0-9a-fA-F]{6})["']/g)) direct.push({ hex: m[1].toLowerCase(), where: rel, why: "colorBrandBackground override" });
+    for (const m of t.matchAll(/\bthemePrimary\s*:\s*["'](#[0-9a-fA-F]{6})["']/g)) direct.push({ hex: m[1].toLowerCase(), where: rel, why: "Fluent v8 themePrimary" });
     for (const m of t.matchAll(/(?:brand|primary|accent)[\w$]*\s*:\s*\{[^{}]{0,80}?\b(?:main|DEFAULT|base|500)\s*:\s*["'](#[0-9a-fA-F]{6})["']/gi)) {
       const hex = m[1].toLowerCase();
       const e = named.get(hex) || { count: 0, where: rel };
@@ -223,16 +223,20 @@ if (v9 && ramp) {
   advice = "New project (nothing Fluent yet). Follow the fluent-ui skill's tasks/new-app.md: ask once for the brand hex or \"stock\", install Fluent, run .fluent-kit/scripts/make-theme.mjs, wrap the app.";
 }
 
+// One way to apply a brand, named in full, so the task cards never have to pick between two scripts.
+const applyBrand = (hex) => v9 && sig.providers.length
+  ? `node .fluent-kit/scripts/generate-ramp.mjs ${hex} --ts, and put the ramp where the app creates its theme (${sig.createTheme[0] || sig.providers[0]})`
+  : `node .fluent-kit/scripts/make-theme.mjs ${hex} --out src/theme.tsx (Next.js: --next --out app/theme.tsx), then wrap the app in its AppProvider`;
 let brandAdvice = null;
 if (decision && decision.mode === "stock" && !ramp) brandAdvice = "Saved decision (.fluent-kit/brand.json): this project uses the stock Microsoft theme. Do not ask for a brand color and do not generate a ramp.";
 else if (kind === "fluent-v9-stock-theme" && !(decision && decision.hex)) brandAdvice = `Stock theme: do not ask for a brand color and do not create brand.json.${brand && brand.confidence !== "ambiguous" ? ` (${brand.hex} looks like a brand color; mention it only if the user asks to brand the app.)` : ""}`;
 else if (ramp) brandAdvice = "Keep the existing ramp. Do not regenerate it.";
 else if (brand) {
-  if (brand.confidence === "ambiguous") brandAdvice = `Several possible brand colors (${brand.candidates.map((c) => c.hex).join(", ")}). Ask the user which one is the product brand, then run: node .fluent-kit/scripts/generate-ramp.mjs <hex> --ts`;
-  else if (brand.confidence === "high") brandAdvice = `Brand color ${brand.hex} found (${brand.source}). Use it without asking: ${sig.providers.length ? `run node .fluent-kit/scripts/generate-ramp.mjs ${brand.hex} --ts and put the result where the theme is created` : `run node .fluent-kit/scripts/make-theme.mjs ${brand.hex} --out <theme file> (add --next for Next.js) and wrap the app`}, and tell the user in one line which color was used.`;
-  else brandAdvice = `Probable brand color ${brand.hex} (${brand.source}). It is only a guess from usage counts. Run node .fluent-kit/scripts/generate-ramp.mjs ${brand.hex} --ts, use it, and say in one line which color you used and that it is a guess, so the user can correct it.`;
-} else if (freshScaffold) brandAdvice = "This looks like a fresh scaffold; its default colors are not a brand. Ask the user for the brand hex, or whether to use the stock Microsoft theme (then run make-theme.mjs).";
-else if (!ramp) brandAdvice = "No brand color found in this project. Ask the user for the brand hex, or whether to stay on the stock Microsoft theme; record the answer in .fluent-kit/brand.json.";
+  if (brand.confidence === "ambiguous") brandAdvice = `Several possible brand colors (${brand.candidates.map((c) => c.hex).join(", ")}). Ask the user which one is the product brand, then apply it: ${applyBrand("<hex>")}.`;
+  else if (brand.confidence === "high") brandAdvice = `Brand color ${brand.hex} found (${brand.source}). Apply it without asking: ${applyBrand(brand.hex)}. Tell the user in one line which color was used.`;
+  else brandAdvice = `Probable brand color ${brand.hex} (${brand.source}), a guess from usage counts. Apply it: ${applyBrand(brand.hex)}. Say in one line which color you used and that it is a guess, so the user can correct it.`;
+} else if (freshScaffold) brandAdvice = `This looks like a fresh scaffold; its default colors are not a brand. Ask the user for the brand hex or "stock", record it in .fluent-kit/brand.json, then apply it: ${applyBrand("<hex|stock>")}.`;
+else if (!ramp) brandAdvice = `No brand color found. Ask the user for the brand hex or "stock", record it in .fluent-kit/brand.json, then apply it: ${applyBrand("<hex|stock>")}.`;
 
 const out = {
   root, kind, advice,
@@ -258,28 +262,6 @@ const out = {
   generatedRamp: brand && !ramp && brand.confidence !== "ambiguous" && kind !== "fluent-v9-stock-theme" ? generateRamp(brand.hex) : null,
   possibleSharedPackages: sharedPackages,
 };
+out.rampContrastFailures = out.generatedRamp ? checks(out.generatedRamp).filter((r) => !r.ok).length : 0;
 
-if (asJson) console.log(JSON.stringify(out, null, 2));
-else {
-  console.log(`Project:  ${out.root}`);
-  console.log(`Result:   ${out.kind}`);
-  console.log(`Advice:   ${out.advice}`);
-  console.log(`Fluent v9: ${out.fluentVersion || "no"}   v8 files: ${out.v8Files}   fluent icons: ${out.hasFluentIcons ? "yes" : "no"}`);
-  if (out.otherUiLibraries.length) console.log(`Other UI libs:   ${out.otherUiLibraries.join(", ")}`);
-  if (out.otherIconLibraries.length) console.log(`Other icon libs: ${out.otherIconLibraries.join(", ")}`);
-  if (out.fluentProviderFiles.length) console.log(`FluentProvider:  ${out.fluentProviderFiles.join(", ")}`);
-  if (out.themeFiles.length) console.log(`Theme files:     ${out.themeFiles.join(", ")}`);
-  if (out.brandRamp) console.log(`Brand (80/100):  ${out.brandRamp[80]} / ${out.brandRamp[100]}`);
-  else if (out.brand) console.log(`Brand color:     ${out.brand.hex} (${out.brand.confidence}; ${out.brand.source})`);
-  if (out.brandAdvice) console.log(`Brand advice:    ${out.brandAdvice}`);
-  if (out.generatedRamp) { const c = checks(out.generatedRamp).filter((r) => !r.ok); if (c.length) console.log(`Warning:         generated ramp fails ${c.length} contrast check(s); run generate-ramp.mjs for details and ask the user.`); }
-  if (out.existingGuidance.length) console.log(`Existing guidance: ${out.existingGuidance.join(", ")}\n                   The repo already has its own rules. Follow them first where they conflict with the kit; use the kit to fill gaps.`);
-  if (out.framework === "next") console.log("Next.js:         files that use makeStyles or Fluent hooks need \"use client\". Do not pass icon components from Server to Client Components.");
-  if (out.tailwind) console.log("Tailwind:        in use. Keep the project's existing Tailwind usage for page layout; in new code take colors, type, radii and shadows from Fluent tokens, not Tailwind color utilities, unless the project's own guidance says otherwise.");
-  if (!out.setup.hasPackageJson) console.log("Setup:           no package.json here. Create a Vite + React + TypeScript app (say so in your first message; use Next.js only if the request asks for it), then follow the fluent-ui skill's tasks/new-app.md.");
-  else if (out.setup.installCmd && (out.kind === "new-project" || out.freshScaffold)) console.log(`Setup:           Fluent packages missing. Install: ${out.setup.installCmd}   (then follow the fluent-ui skill's tasks/new-app.md)${out.freshScaffold ? "\n                 Looks like a fresh scaffold." : ""}`);
-  else if (out.setup.installCmd) console.log(`Setup:           missing ${out.setup.missingDeps.join(", ")}. Install: ${out.setup.installCmd}   (existing app: change nothing else for this)`);
-  console.log(`UI language:     ${out.locale.uiLanguage || (out.locale.localeCodes.length ? "several: " + out.locale.localeCodes.join(", ") : "unknown")}${out.locale.i18nLibrary.length ? "   i18n: " + out.locale.i18nLibrary.join(", ") : ""}`);
-  console.log(`Language advice: ${out.localeAdvice}`);
-  if (out.possibleSharedPackages.length) console.log(`Possible shared UI packages (verify): ${out.possibleSharedPackages.join(", ")}`);
-}
+console.log(JSON.stringify(out, null, 2));

@@ -10,11 +10,11 @@ Find what is failing among many checks or jobs grouped under a parent (integrati
 
 **Rules**
 - One row design for every status. Status changes the icon, word and colour, never the layout. Design and sample every status the source documents (healthy, degraded, unhealthy, maintenance, unknown); show unknown ones, never hide them.
-- Status indicator: a 16px filled Fluent icon in `colorStatus*Foreground1` plus a 14px label in the normal text colour, 6px apart (`spacingHorizontalSNudge`). One fixed icon per status on every page. Never colour alone.
+- Status indicator: a 16px filled Fluent icon in `colorStatus*Foreground1` plus a body-text label in the normal text colour, 6px apart (`spacingHorizontalSNudge`). One fixed icon per status on every page. Never colour alone.
 - A failed row says why: the cause and when it happened, never a bare "Error" pill. Unknown cause: say so in the note.
 - Messages: wrap, capped at 75ch, on `colorNeutralBackground2` with a `colorNeutralStroke2` border, monospace 12px. Long ones clamp to 3 lines with "Show more"; never print every full message.
 - The same message on several rows of one table: show it once with the affected names. Separate cards keep their own message.
-- Placeholder values (`null`, "Empty") mean "not set up": show that state in words, and group them ("9 not set up").
+- "Not set up" items (`tasks/new-page.md`): group them ("9 not set up").
 
 **Measurements**: table on a `colorNeutralBackground1` surface; cells 8px top and bottom (`spacingVerticalS`); columns: name about 22%, status 132px, action 96px, message takes the rest. Problem rows may use `colorNeutralBackground1Hover`.
 

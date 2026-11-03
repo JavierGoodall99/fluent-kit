@@ -35,7 +35,7 @@ const cardText = readdirSync(K + "patterns").map((c) => text(K + "patterns/" + c
 for (const e of readdirSync(K + "examples").filter((n) => n.endsWith(".tsx"))) {
   const header = text(K + "examples/" + e).split("\n").filter((l) => l.startsWith("//")).join(" ");
   if (!/(patterns|tasks)\/[\w-]+\.md/.test(header)) problems.push(`examples/${e}: header does not name its pattern or task card`);
-  if (!cardText.includes(`examples/${e}`) && e !== "theme.tsx") problems.push(`examples/${e}: no pattern card names this example`);
+  if (!cardText.includes(`examples/${e}`)) problems.push(`examples/${e}: no pattern card names this example`);
 }
 
 function text(f) { return readFileSync(f, "utf8"); }

@@ -91,9 +91,10 @@ try {
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /\.verify-profile .* is ignored by git/);
 
-  // Dependencies: Playwright missing is a warning with the install command.
+  // Dependencies: Playwright missing is a warning with the one setup command (private deps, package.json untouched).
   r = doctor(project("deps"));
-  assert.match(r.out, /warn\s+Playwright is not installed[\s\S]*npm install -D playwright axe-core/);
+  assert.match(r.out, /warn\s+Playwright is not set up[\s\S]*node \.fluent-kit\/scripts\/verify\.mjs --setup  \(installs into \.fluent-kit\/deps; your package\.json is not touched\)/);
+  assert.doesNotMatch(r.out, /npm install -D playwright/);
 
   console.log("doctor: all tests passed");
 } finally {

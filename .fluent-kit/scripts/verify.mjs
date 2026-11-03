@@ -11,23 +11,27 @@
 //          Pages behind a login: when verify lands on a sign-in page it opens a visible Edge on .verify-profile, waits for you to sign in, and checks again. [--no-login] turns that off (it is off in CI).
 //          [--click "role=button[name='New task']"]   after the normal check, click this (several steps separated by ;), then check and screenshot that state too (-open.png).
 //                                            Use it for drawers, dialogs, menus and pickers: the page alone never shows them.
-// Needs Playwright in the project (npm i -D playwright; npx playwright install chromium). For accessibility checks also: npm i -D axe-core
-// (or @axe-core/playwright). Writes screenshots plus one contact-sheet.png of every first screen; it names the screenshot to open
+//          [--setup]   install what verify needs (playwright-core and axe-core) into .fluent-kit/deps, plus Chromium only when
+//                      no Edge or Chrome is on the machine. The project's package.json is not touched. Run it once, as a person.
+//          [--login <url>]   open Edge on .verify-profile at <url> to sign in once, without running a check.
+// Uses Playwright and axe-core from the project if it has them, otherwise from .fluent-kit/deps (see --setup). Writes screenshots plus one contact-sheet.png of every first screen; it names the screenshot to open
 // next to each problem, so look at the contact sheet once and open other files only when a problem points to them.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
-import { createRequire } from "node:module";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
+import { SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage", "--profile"]);
+const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage", "--profile", "--login"]);
 if (args.includes("--help") || args.includes("-h")) { console.log(readFileSync(new URL(import.meta.url), "utf8").split("\n").filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n")); process.exit(0); }
+if (args.includes("--setup")) process.exit(installVerifyDeps(process.cwd()) ? 0 : 2);
+const loginOnly = args.includes("--login") ? (opt("--login", "") || "http://localhost:3000") : null;
 const startServer = args.includes("--start") || args.includes("--cmd");
 let urls = args.filter((a, i) => !a.startsWith("--") && !valueFlags.has(args[i - 1]));
 if (startServer && !urls.length) urls = ["/"];
-if (!urls.length) { console.error("Usage: node .fluent-kit/scripts/verify.mjs --start /path   or   node .fluent-kit/scripts/verify.mjs <url>"); process.exit(2); }
+if (!urls.length && !loginOnly) { console.error("Usage: node .fluent-kit/scripts/verify.mjs --start /path   or   node .fluent-kit/scripts/verify.mjs <url>"); process.exit(2); }
 
 // Console errors, shortened. A React hydration error carries a long boilerplate list and then the part that
 // matters (the diff of server vs client markup); keep the first sentence and the diff lines, drop the list.
@@ -57,7 +61,7 @@ function shortError(text) {
   }
   return text.replace(/\s+/g, " ").slice(0, 600);
 }
-if (!startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
+if (!loginOnly && !startServer && urls.some((u) => u.startsWith("/"))) { console.error("A path like /invoices needs --start (to run the dev server) or a full URL like http://localhost:3000/invoices."); process.exit(2); }
 const full = args.includes("--full"); // default is the fast pass (1440 and 375, light); --full adds 768 and dark
 const widths = opt("--widths", full ? "1440,768,375" : "1440,375").split(",").map(Number);
 const schemes = opt("--schemes", full ? "light,dark" : "light").split(",");
@@ -78,11 +82,9 @@ if (profileDir && !opt("--profile", null)) console.log("Using the signed-in Edge
 const canLogin = !storagePath && !args.includes("--no-login") && !process.env.CI;
 const isSignIn = (title, u) => /sign in|log ?in|inloggen|aanmelden/i.test(title) || /login\.microsoftonline|login\.live/.test(u);
 
-const req = createRequire(join(process.cwd(), "package.json"));
-let pw = null;
-for (const name of ["playwright", "@playwright/test", "playwright-core"]) { try { pw = req(name); break; } catch { /* next */ } }
-if (!pw?.chromium) {
-  console.error("fluent-kit verify: NOT RUN, Playwright is not installed. Fix once: npm i -D playwright axe-core && npx playwright install chromium (or re-run the kit installer with --with-deps). Do not retry before that; say in your reply that the UI was not verified.");
+const pw = loadPlaywright(process.cwd())?.pw;
+if (!pw) {
+  console.error(`fluent-kit verify: NOT RUN, Playwright is not set up. Do not install packages yourself and do not retry: say in your reply that the UI was not verified, and that the person can enable the check once with: ${SETUP_CMD}`);
   process.exit(2);
 }
 // Optionally start the dev server, wait for its URL, and stop it when we are done.
@@ -100,7 +102,7 @@ if (startServer) {
   if (!cmd) {
     let dev = null; try { dev = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")).scripts?.dev; } catch { /* none */ }
     if (!dev) { console.error("No \"dev\" script in package.json. Pass the command with --cmd \"...\", or start the server yourself and pass a full URL."); process.exit(2); }
-    cmd = existsSync(join(cwd, "pnpm-lock.yaml")) ? "pnpm run dev" : existsSync(join(cwd, "yarn.lock")) ? "yarn dev" : (existsSync(join(cwd, "bun.lockb")) || existsSync(join(cwd, "bun.lock"))) ? "bun run dev" : "npm run dev";
+    cmd = { pnpm: "pnpm run dev", yarn: "yarn dev", bun: "bun run dev", npm: "npm run dev" }[packageManager(cwd)];
     // The agent's shell may not have the package manager the lockfile points to (bun on a Windows PATH, say): fall back to npm, which runs the same "dev" script.
     const pm = cmd.split(" ")[0];
     if (pm !== "npm" && spawnSync(pm, ["--version"], { shell: true, stdio: "ignore" }).status !== 0) {
@@ -153,8 +155,8 @@ if (startServer) {
 }
 let axeSource = null;
 if (useAxe) {
-  try { axeSource = readFileSync(req.resolve("axe-core/axe.min.js"), "utf8"); }
-  catch { try { axeSource = readFileSync(createRequire(req.resolve("@axe-core/playwright")).resolve("axe-core/axe.min.js"), "utf8"); } catch { /* optional */ } }
+  const axePath = axeSourcePath(process.cwd());
+  if (axePath) { try { axeSource = readFileSync(axePath, "utf8"); } catch { /* optional */ } }
 }
 
 mkdirSync(outDir, { recursive: true });
@@ -174,7 +176,7 @@ const slug = (u) => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").r
 // Try the bundled Chromium, then Edge, then Chrome already installed on the machine.
 let browser = null;
 const launchErrors = [];
-// Playwright swaps the OS keychain for a mock one (macOS) or a plain store (Linux); then Edge cannot decrypt the cookies login.mjs saved and the profile looks signed out.
+// Playwright swaps the OS keychain for a mock one (macOS) or a plain store (Linux); then Edge cannot decrypt the cookies a sign-in saved and the profile looks signed out.
 const keychainArgs = ["--use-mock-keychain", "--password-store=basic"];
 const killHint = process.platform === "win32" ? "PowerShell: Get-CimInstance Win32_Process -Filter \"name='msedge.exe'\" | Where-Object CommandLine -match 'verify-profile' | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" : "pkill -f verify-profile";
 // macOS/Linux: SingletonLock is a symlink to "<host>-<pid>" of the Edge that holds the profile. Returns that pid if it still runs, 0 if the lock is stale.
@@ -194,7 +196,7 @@ const profileBrowser = () => ({ newContext: async (o) => {
       for (const f of ["SingletonLock", "SingletonSocket", "SingletonCookie"]) rmSync(join(profileDir, f), { force: true });
       try { return await launchProfile(o); } catch (e2) { err = e2; }
     }
-    if (pid > 0) console.error(`Edge could not start with the profile ${profileDir}: another Edge (process ${pid}) still has it open.` + (process.platform === "darwin" ? "\nOn a Mac, closing the Edge window does not quit Edge: switch to the Edge window that login.mjs opened and press Cmd+Q," : "\nClose that Edge window,") + ` or run: kill ${pid}\nThen run verify again.`);
+    if (pid > 0) console.error(`Edge could not start with the profile ${profileDir}: another Edge (process ${pid}) still has it open.` + (process.platform === "darwin" ? "\nOn a Mac, closing the Edge window does not quit Edge: switch to the Edge window the sign-in opened and press Cmd+Q," : "\nClose that Edge window,") + ` or run: kill ${pid}\nThen run verify again.`);
     else console.error("Edge could not start with the profile " + profileDir + ".\nMost likely an Edge window is still open on that profile: close it (" + killHint + ") and run again.\nIf it still fails, try --headed.\n" + String(err).split("\n")[0]);
     process.exit(2);
   }
@@ -230,11 +232,19 @@ async function interactiveLogin(url) {
   if (!profileDir) { await browser.close().catch(() => {}); profileDir = dir; browser = profileBrowser(); }
   return true;
 }
+if (loginOnly) {
+  try { await fetch(loginOnly, { signal: AbortSignal.timeout(5000) }); }
+  catch { console.error(`Nothing answers at ${loginOnly}. Start the dev server first, then run: node .fluent-kit/scripts/verify.mjs --login <its URL>`); process.exit(2); }
+  profileDir = profileDir || resolve(".verify-profile");
+  const okLogin = await interactiveLogin(loginOnly);
+  console.log(okLogin ? "Signed in. verify uses this profile from now on." : "Not signed in. Run it again when you are ready.");
+  process.exit(okLogin ? 0 : 2);
+}
 for (const o of profileDir ? [] : [{}, { channel: "msedge" }, { channel: "chrome" }]) {
   try { browser = await pw.chromium.launch(o); break; } catch (e) { launchErrors.push(String(e).split("\n")[0]); }
 }
 if (!browser) {
-  console.error("fluent-kit verify: NOT RUN, no browser could start (" + (launchErrors[0] || "unknown error").slice(0, 160) + "). Fix once: npx playwright install chromium (Edge or Chrome on this machine also works). Do not retry before that; say in your reply that the UI was not verified.");
+  console.error(`fluent-kit verify: NOT RUN, no browser could start (${(launchErrors[0] || "unknown error").slice(0, 160)}). Do not retry: say in your reply that the UI was not verified. The person fixes it once by installing Microsoft Edge or Google Chrome, or with: ${SETUP_CMD}`);
   process.exit(2);
 }
 let loaded = 0;
@@ -258,7 +268,8 @@ renders: for (const url of urls) {
       const page = await ctx.newPage();
       const errors = [];
       page.on("pageerror", (e) => errors.push(shortError(String(e))));
-      page.on("console", (m) => { if (m.type() === "error") errors.push(shortError(m.text())); });
+      // A missing favicon is the browser's own request, not the page's: reporting it as an error sends the agent after nothing.
+      page.on("console", (m) => { if (m.type() === "error" && !(/Failed to load resource/.test(m.text()) && /\/favicon\.ico(\?|$)/.test(m.location()?.url || ""))) errors.push(shortError(m.text())); });
       try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
       } catch (e) {
@@ -288,7 +299,7 @@ renders: for (const url of urls) {
           : "This is a sign-in page, not your app.")
           + ` Nothing was checked and the other renders were skipped; do not change the app because of this run. ${canLogin
             ? "Run verify again and sign in in the Edge window it opens (answer Yes to \"Stay signed in?\")."
-            : `Sign in once on this machine: node .fluent-kit/scripts/login.mjs ${origin} (README: Apps that need a sign-in).`}`
+            : `Sign in once on this machine: node .fluent-kit/scripts/verify.mjs --login ${origin}`}`
           + " If sign-in itself is refused (company policy), say in your reply that the UI was not verified.");
         shots.push(file); shotFor.set(where, file); firstShots.push([where, file]);
         break renders;
@@ -372,17 +383,17 @@ renders: for (const url of urls) {
       else if (!info.provider) note("error", where, "No FluentProvider on the page. Fluent components will be unstyled. Wrap the app in FluentProvider with the project theme.");
       if (info.provider && info.font && !/Segoe UI/i.test(info.font)) note("warn", where, `Page font is '${info.font.slice(0, 50)}', not Segoe UI. Use the theme's font (tokens.fontFamilyBase).`);
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);
-      if (info.longlines.length) note("warn", where, `Text lines are too long to read comfortably (over about 100 characters across): ${info.longlines.join("; ")}. Cap the text width (max-width around 70 to 80ch, tokens for spacing) and let the card or page be wider than the text.`);
+      if (info.longlines.length) note("advice", where, `Text lines are too long to read comfortably (over about 100 characters across): ${info.longlines.join("; ")}. Cap the text width (max-width around 70 to 80ch, tokens for spacing) and let the card or page be wider than the text.`);
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
       if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
-      if (info.bottomGap !== null && info.bottomGap < 8) note("warn", where, `The last content ends ${Math.max(info.bottomGap, 0)}px from the bottom of the scrolling area, so cards look cut off at the end. Add space below the page content (padding-bottom: tokens.spacingVerticalXL, or the page wrapper's bottom padding).`);
-      if (info.flatCards) note("warn", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and tokens.borderRadiusXLarge (8px), see deviations.md "Surfaces".`);
-      if (info.firstWords > 220) note("warn", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
-      if (info.repeated.length) note("warn", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
+      if (info.bottomGap !== null && info.bottomGap < 8) note("advice", where, `The last content ends ${Math.max(info.bottomGap, 0)}px from the bottom of the scrolling area, so cards look cut off at the end. Add space below the page content (padding-bottom: tokens.spacingVerticalXL, or the page wrapper's bottom padding).`);
+      if (info.flatCards) note("advice", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and tokens.borderRadiusXLarge (8px), see the skill's SKILL.md, "Every page".`);
+      if (info.firstWords > 220) note("advice", where, `The first screen holds about ${info.firstWords} words. Someone should grasp the page in five seconds: put a one-line verdict and the key numbers first, and move detail behind a click or below the fold.`);
+      if (info.repeated.length) note("advice", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent v9 components${info.strayV8 ? ` (${info.strayV8} of them Fluent v8)` : ""}: ${info.stray.join("; ")}`);
       if (info.tiny.length) note("warn", where, `${info.tiny.length} Fluent control(s) smaller than 24px: ${info.tiny.slice(0, 4).join("; ")}. Make them at least 24px (32px on touch) or use a larger size.`);
-      if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("warn", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
+      if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("advice", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
       // Fluent's focus helper (tabster) can insert hidden <i data-tabster-dummy> elements before React hydrates a
       // page chunk. React then reports a mismatch whose only server-side difference is those helpers. It is a known
       // Fluent + Next.js timing issue, not a mistake in the page, so it is a warning, not an error.
@@ -408,7 +419,7 @@ renders: for (const url of urls) {
       } catch { /* screenshot as is */ }
       await page.screenshot({ path: file, fullPage: true });
       shots.push(file, firstFile);
-      shotFor.set(where, file);
+      shotFor.set(where, firstFile); // the first screen is readable; a full-page shot of a long page shrinks to illegible
       if (scheme === schemes[0]) firstShots.push([where, firstFile]); // the sheet shows one scheme; problems in others still name their file
       // --click: open what is behind a button (drawer, dialog, menu, picker) and check that state too.
       if (clickSteps.length) {
@@ -446,7 +457,7 @@ if (firstShots.length) {
 }
 await browser.close();
 
-if (!axeSource && useAxe) problems.push({ level: "warn", where: "setup", msg: "axe-core is not installed, so accessibility was not checked. npm i -D axe-core" });
+if (!axeSource && useAxe) problems.push({ level: "warn", where: "setup", msg: `axe-core is not installed, so accessibility was not checked. Do not install it yourself; the person can run: ${SETUP_CMD}` });
 // Same problem at several widths or schemes is reported once, with the list of places and the screenshot to open.
 const groups = new Map();
 for (const p of problems) {
@@ -454,24 +465,29 @@ for (const p of problems) {
   if (!groups.has(k)) groups.set(k, { level: p.level, msg: p.msg, where: [] });
   groups.get(k).where.push(p.where);
 }
-const uniq = [...groups.values()];
+const all = [...groups.values()];
+const uniq = all.filter((g) => g.level !== "advice");
+const advice = all.filter((g) => g.level === "advice");
+const placeOf = (g) => (g.where.length > 3 ? `${g.where.length} checks across ${loaded} renders` : g.where.join(", "));
 for (const g of uniq) {
-  const w = g.where.length > 3 ? `${g.where.length} checks across ${loaded} renders` : g.where.join(", ");
   const shot = g.where.map((x) => shotFor.get(x)).find(Boolean);
-  console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${w}${shot ? `\n       open: ${shot}` : ""}`);
+  console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
+}
+if (advice.length) {
+  console.log("\nAdvisory (judgement calls: change them only if they are part of what you were asked; otherwise name them in your note. Never re-run verify for these):");
+  for (const g of advice) console.log(`  - ${g.msg} (${placeOf(g)})`);
 }
 const errs = uniq.filter((p) => p.level === "error").length;
-Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs });
-try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, renders: loaded, errors: errs, warnings: uniq.length - errs, problems: uniq, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
-console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s), ${uniq.length - errs} warning(s).`);
+Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length });
+try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
+console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s) (must fix), ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${advice.length ? `, ${advice.length} advisory` : ""}.`);
 if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
 else console.log(`Screenshots: ${outDir}. Open the 1440px *-first.png once, and other files only where a problem above says "open:".`);
-console.log(`Critique before you report (one line each in your head, fix what fails):
-  1. Five seconds: what is this page, is anything wrong, what do I do next? (verdict and key numbers on the first screen)
+console.log(`Critique, once, from the contact sheet (change the page only where an answer is no and the fix is within what was asked):
+  1. Five seconds: what is this page, is anything wrong, what do I do next?
   2. Squint: is the main thing still obvious, with a clear second level?
-  3. Remove one: does any element do nothing? Leave it out.
-  4. Stranger: does every label make sense without knowing the code?
-  5. Same as the rest: does it match the nearest existing page (cards, header, spacing, wording)?`);
+  3. Stranger: does every label make sense without knowing the code?
+  4. Same as the rest: does it match the nearest existing page (cards, header, spacing, wording)?`);
 if (rawErrors.length) {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "console-errors.txt"), [...new Set(rawErrors)].join("\n\n----\n\n"));

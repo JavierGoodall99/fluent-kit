@@ -14,22 +14,13 @@
  * checked. Exempt the brand ramp file with an ESLint override (see README).
  */
 
-const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\s*\(/i;
-const HEX_FULL = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
-const HEX_INLINE = /(?:^|[\s,(])#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})(?![0-9a-z_-])/i;
+// What counts as hard-coded comes from rules.json, the same definitions check.mjs uses.
+const STYLES = require("../rules.json").styles;
+const COLOR_FN = new RegExp(STYLES.colorFunction, "i");
+const HEX_FULL = new RegExp(`^#${STYLES.hexDigits}$`, "i");
+const HEX_INLINE = new RegExp(`(?:^|[\\s,(])#${STYLES.hexDigits}(?![0-9a-z_-])`, "i");
 const LENGTH = /(?:^|[\s(,])-?\d*\.?\d+(?:px|rem|em)\b/i;
-
-const SPACING_KEYS = new Set([
-  "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
-  "paddingBlock", "paddingInline", "paddingBlockStart", "paddingBlockEnd",
-  "paddingInlineStart", "paddingInlineEnd",
-  "margin", "marginTop", "marginRight", "marginBottom", "marginLeft",
-  "marginBlock", "marginInline", "marginBlockStart", "marginBlockEnd",
-  "marginInlineStart", "marginInlineEnd",
-  "gap", "rowGap", "columnGap",
-  "borderRadius", "borderTopLeftRadius", "borderTopRightRadius",
-  "borderBottomLeftRadius", "borderBottomRightRadius",
-]);
+const SPACING_KEYS = new Set(STYLES.spacingProperties);
 
 function keyName(prop) {
   if (prop.computed) return null;

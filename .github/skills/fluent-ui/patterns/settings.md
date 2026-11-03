@@ -4,8 +4,8 @@ A few preferences, changed now and then, saved once for the whole page. Not for 
 
 **Layout** (1440px)
 - One centred column, max 480px; blocks 20px apart.
-- Section: `h2` title (16px semibold) with a 14px `colorNeutralForeground3` description, 4px apart, 12px above its group.
-- Group: one surface, `colorNeutralBackground1`, `borderRadiusXLarge`, `shadow4`, thin `colorNeutralStroke2` border; rows separated by a `colorNeutralStroke2` divider, no shadow per row.
+- Section: a section title (`h2`) with a section description, 4px apart, 12px above its group.
+- Group: one surface in the standard card style (`SKILL.md`) with a thin `colorNeutralStroke2` border; rows separated by a `colorNeutralStroke2` divider, no shadow per row.
 
 **Rows** (48px minimum, 12px side padding)
 | Setting | Row |

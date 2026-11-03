@@ -7,9 +7,9 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync
 import { join, resolve, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
 import { createInterface } from "node:readline/promises";
+import { SETUP_CMD, axeSourcePath, hasPlaywright, installVerifyDeps, systemBrowser } from "./.fluent-kit/scripts/lib.mjs";
 
 const HELP = `Usage: npx github:JavierGoodall99/fluent-kit [target-repo] [options]
 Target defaults to the current folder.
@@ -22,10 +22,11 @@ Options:
                          Done automatically when the repo already has CLAUDE.md or a .claude/ folder.
   --skills-dir <dir>     put the skill in <dir>/fluent-ui/ instead (for example .github/skills or .agents/skills)
   --agents               also write the rules block to AGENTS.md (Codex, Cursor, Copilot's coding agent and others;
-                         done automatically when AGENTS.md already exists)
-  --with-deps            also install what verify.mjs needs: playwright and axe-core as dev dependencies, and the
-                         Chromium browser (about 150 MB) when Edge or Chrome is not on the machine. In a terminal
-                         the installer asks; without a terminal (CI, scripts) it only tells you.
+                         done automatically when AGENTS.md already exists). copilot-instructions.md then points to it
+                         instead of holding a second copy, so Copilot never loads the block twice.
+  --with-deps            also install what verify.mjs needs (playwright-core, axe-core) into .fluent-kit/deps, plus
+                         the Chromium browser (about 150 MB) only when Edge or Chrome is not on the machine. Your
+                         package.json is not touched. In a terminal the installer asks; in CI or a script it only tells you.
   --hooks                also install a git pre-commit hook that runs check.mjs --changed
   --ci                   also write .github/workflows/fluent-kit.yml: a pull-request check that fails on rule errors,
                          whether or not the agent ran its own check
@@ -64,6 +65,8 @@ const LEGACY = [
   { path: SK + "references/migrating.md", marker: "# Migrating an existing screen" },
   { path: ".fluent-kit/scripts/scan-colors.mjs", marker: "// Lists every distinct color value used in one or more repos" },
   { path: ".fluent-kit/brands/_template.md", marker: "# Brand: <product name>" },
+  { path: ".fluent-kit/scripts/login.mjs", marker: "// Fluent kit login helper" },
+  { path: SK + "examples/theme.tsx", marker: "// PLACEHOLDER theme" },
 ];
 
 const installed = []; // relative paths of every kit file this run writes
@@ -83,10 +86,11 @@ const agents = flag("--agents") || existsSync(join(dest, "AGENTS.md"));
 
 // 1. .fluent-kit/ (scripts, rules, lint rules). Only the profile template ships; the user's brand files are theirs.
 // Never ship files a run of the kit's own scripts may have left in this checkout.
-const LOCAL_ONLY = new Set(["out", "context.json", "manifest.json", "brand.json", "baseline.json", "config.json", "verify-ignore.json", "PROFILE.md"]);
+const LOCAL_ONLY = new Set(["out", "deps", "node_modules", "context.json", "manifest.json", "brand.json", "baseline.json", "config.json", "verify-ignore.json", "PROFILE.md"]);
 copyDir(join(here, ".fluent-kit"), join(dest, ".fluent-kit"), (a, n) =>
   (dirname(a) === join(here, ".fluent-kit") && LOCAL_ONLY.has(n)) ||
-  a.includes(join(".fluent-kit", "profiles")));
+  a.includes(join(".fluent-kit", "profiles")) ||
+  /\.test\.[cm]?js$/.test(n)); // the lint rules' own tests stay in the kit repo
 installed.push(".fluent-kit/profiles/_template.md");
 if (!dry) { mkdirSync(join(dest, ".fluent-kit", "profiles"), { recursive: true }); cpSync(join(here, ".fluent-kit", "profiles", "_template.md"), join(dest, ".fluent-kit", "profiles", "_template.md")); }
 log("copied .fluent-kit/ (scripts, eslint, templates)");
@@ -146,8 +150,10 @@ function putBlock(file, title, content = block) {
   if (!dry) { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, text); }
   log(`${action} ${rel(file)}`);
 }
-putBlock(join(dest, ".github", "copilot-instructions.md"), "Copilot instructions");
+// With AGENTS.md in use, Copilot (which reads AGENTS.md too) would load the block twice: copilot-instructions.md gets a
+// one-line pointer for the Copilot surfaces that read only that file.
 if (agents) putBlock(join(dest, "AGENTS.md"), "Agent instructions");
+putBlock(join(dest, ".github", "copilot-instructions.md"), "Copilot instructions", agents ? `${START}\nUI work: follow the Fluent kit block in \`AGENTS.md\` (read it first if it is not already in your instructions).\n${END}` : block);
 // With AGENTS.md in use, CLAUDE.md imports it (Claude Code reads @path imports) instead of holding a second copy of the
 // block; if CLAUDE.md already imports AGENTS.md outside the kit block, the kit block is left out of it altogether.
 if (claude) {
@@ -187,7 +193,7 @@ if (!dry) writeFileSync(MANIFEST, JSON.stringify({ note: "Files installed by flu
 
 // 6. look at the project
 console.log("\nWhat the kit found in this project:\n");
-spawnSync(process.execPath, [join(dry ? here : dest, ".fluent-kit", "scripts", dry ? "detect-theme.mjs" : "context.mjs"), ...(dry ? [dest] : [])], { cwd: dest, stdio: "inherit" }); // context.mjs also primes its cache
+spawnSync(process.execPath, [join(dry ? here : dest, ".fluent-kit", "scripts", "context.mjs"), ...(dry ? ["--no-cache"] : [])], { cwd: dest, stdio: "inherit" }); // a real run also primes its cache
 
 // 7. how much old code already breaks the rules
 const checkScript = join(dry ? here : dest, ".fluent-kit", "scripts", "check.mjs");
@@ -195,36 +201,21 @@ const chk = spawnSync(process.execPath, [checkScript, dest, "--json"], { encodin
 let existingErrors = 0;
 try { const r = JSON.parse(chk.stdout); existingErrors = r.errors; console.log(`Existing code: ${r.filesChecked} files checked, ${r.errors} rule violation(s), ${r.warnings} warning(s).`); } catch { /* no report */ }
 
-// 8. what verify.mjs needs
+// 8. what verify.mjs needs: Playwright and axe-core (from the project or .fluent-kit/deps) and a browser
 const pj = join(dest, "package.json");
-const req = createRequire(join(dest, "package.json"));
-const canResolve = (n) => { try { req.resolve(n); return true; } catch { return false; } };
-const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some(canResolve);
-const hasAxe = canResolve("axe-core") || canResolve("@axe-core/playwright");
-const pm = existsSync(join(dest, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(dest, "yarn.lock")) ? "yarn" : (existsSync(join(dest, "bun.lockb")) || existsSync(join(dest, "bun.lock"))) ? "bun" : "npm";
-const addDev = (pkgs) => (pm === "npm" ? ["install", "-D", ...pkgs] : pm === "yarn" ? ["add", "-D", ...pkgs] : ["add", "-D", ...pkgs]);
-const missing = [!hasPlaywright && "playwright", !hasAxe && "axe-core"].filter(Boolean);
-// verify falls back to Edge or Chrome on the machine, so the Chromium download (often blocked by company proxies) is only needed without them.
-const systemBrowser = (process.platform === "win32"
-  ? [process.env["ProgramFiles(x86)"], process.env.ProgramFiles].filter(Boolean).map((p) => `${p}\\Microsoft\\Edge\\Application\\msedge.exe`).concat([process.env.ProgramFiles, process.env.LOCALAPPDATA].filter(Boolean).map((p) => `${p}\\Google\\Chrome\\Application\\chrome.exe`))
-  : process.platform === "darwin" ? ["/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
-  : ["/usr/bin/microsoft-edge", "/usr/bin/microsoft-edge-stable", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"]).find((p) => existsSync(p));
-const chromiumStep = systemBrowser ? "" : " && npx playwright install chromium (about 150 MB)";
+const missing = [!hasPlaywright(dest) && "playwright-core", !axeSourcePath(dest) && "axe-core"].filter(Boolean);
+const browser = systemBrowser();
 let withDeps = flag("--with-deps");
-if (missing.length && !withDeps && !dry && existsSync(pj) && process.stdin.isTTY && !process.env.CI) {
+if (missing.length && !withDeps && !dry && process.stdin.isTTY && !process.env.CI) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  const a = (await rl.question(`\nThe browser check (verify.mjs) needs ${missing.join(" and ")}. Install now as dev dependencies${systemBrowser ? "" : ", plus the Chromium browser (about 150 MB)"}? [Y/n] `)).trim().toLowerCase();
+  const a = (await rl.question(`\nThe browser check (verify.mjs) needs ${missing.join(" and ")}. Install them into .fluent-kit/deps (your package.json is not touched)${browser ? "" : ", plus the Chromium browser (about 150 MB)"}? [Y/n] `)).trim().toLowerCase();
   rl.close();
   withDeps = a === "" || a.startsWith("y") || a.startsWith("j");
 }
 let depsNote;
 if (!missing.length) depsNote = "verify.mjs dependencies: installed.";
-else if (withDeps && !dry && existsSync(pj)) {
-  console.log(`\nInstalling for verify.mjs: ${missing.join(", ")} (dev dependencies)${systemBrowser ? `; no browser download, verify uses ${systemBrowser}` : ", then the Chromium browser (about 150 MB)"}...`);
-  const a = spawnSync(pm, addDev(missing), { cwd: dest, stdio: "inherit", shell: process.platform === "win32" });
-  const b = a.status === 0 && !systemBrowser ? spawnSync("npx", ["playwright", "install", "chromium"], { cwd: dest, stdio: "inherit", shell: process.platform === "win32" }) : null;
-  depsNote = a.status === 0 && (systemBrowser || b?.status === 0) ? "verify.mjs dependencies: installed." : "verify.mjs dependencies: install failed (see above). verify will say NOT RUN until they are installed.";
-} else depsNote = `verify.mjs needs ${missing.join(" and ")} (not installed). Install once: ${pm} ${addDev(missing).join(" ")}${chromiumStep}, or re-run this installer with --with-deps.`;
+else if (withDeps && !dry) depsNote = installVerifyDeps(dest) ? "verify.mjs dependencies: installed in .fluent-kit/deps." : `verify.mjs dependencies: install failed (see above). verify says NOT RUN until they are installed: ${SETUP_CMD}`;
+else depsNote = `The browser check is not set up (needs ${missing.join(" and ")}). Once, as a person: ${SETUP_CMD}  (installs into .fluent-kit/deps; your package.json is not touched).`;
 depsNote += " Pages behind a login: the first verify run opens Edge for you to sign in once.";
 
 // 9. optional: npm script
@@ -280,5 +271,4 @@ Next steps:
   - Commit ${[".fluent-kit/", ".github/", ...(claude ? [".claude/", "CLAUDE.md"] : []), ...(agents ? ["AGENTS.md"] : [])].join(", ")}. ${claude ? "Copilot and Claude Code read them on their own." : "Copilot reads .github/ on its own."}${claude ? "" : " Using Claude Code? Re-run with --claude."}
   - ${depsNote}
   - The agent ends each task with \`node .fluent-kit/scripts/check.mjs --finish --page /path\`. For CI, run \`node .fluent-kit/scripts/check.mjs\` (--ci writes a GitHub Actions workflow for it, --hooks adds a pre-commit hook). Something wrong later? Run \`node .fluent-kit/scripts/doctor.mjs\`.
-${existingErrors ? `  - This repo already has ${existingErrors} violation(s) in old code. To fail only on NEW ones, run once: node .fluent-kit/scripts/check.mjs --baseline  (then commit .fluent-kit/baseline.json)\n` : ""}  - Optional lint: see "Lint setup" in the kit README (needs ESLint v9).
-`);
+${existingErrors ? `  - This repo already has ${existingErrors} violation(s) in old code. To fail only on NEW ones, run once: node .fluent-kit/scripts/check.mjs --baseline  (then commit .fluent-kit/baseline.json)\n` : ""}`);

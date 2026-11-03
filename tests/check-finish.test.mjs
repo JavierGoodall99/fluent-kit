@@ -1,5 +1,6 @@
 // Tests `check.mjs --finish` in throwaway git repos: each step stops the run when it fails, verify only runs when
-// something visible changed and Playwright is there, and the page is required (or read from a Next.js route).
+// something visible changed and Playwright is there, the command sizes the check itself (text-only edits skip the
+// browser, new UI files get the full check), and the page is required (or read from a Next.js route).
 // Run: node tests/check-finish.test.mjs
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
@@ -61,14 +62,15 @@ try {
 
   // Visible change, no Playwright: not available, says so, exit 0 (no loop).
   d = project("noplaywright");
-  writeFileSync(join(d, "src/Page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport const Page = () => <Button>Opslaan</Button>;\n');
+  writeFileSync(join(d, "src/Page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport const Page = () => <Button size="large">Opslaan</Button>;\n');
   r = finish(d, "--page", "/");
   assert.equal(r.code, 0, r.out);
-  assert.match(r.out, /verify not available \(Playwright is not installed\): say in your reply that the UI was not verified/);
+  assert.match(r.out, /verify not available \(Playwright is not installed\): say in your reply that the UI was not verified\. Do not install packages yourself; the person can enable the check once with: node \.fluent-kit\/scripts\/verify\.mjs --setup/);
+  assert.doesNotMatch(r.out, /npm i/);
 
   // Visible change, Playwright present, no page and no route to read it from: asks for --page.
   d = project("nopage", { ts: true, playwright: true });
-  writeFileSync(join(d, "src/Page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport const Page = () => <Button>Opslaan</Button>;\n');
+  writeFileSync(join(d, "src/Page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport const Page = () => <Button appearance="primary">Opslaan</Button>;\n');
   r = finish(d);
   assert.equal(r.code, 2, r.out);
   assert.match(r.out, /rules ok, tsc ok, verify needed \(src\/Page\.tsx changed visibly\): run again with --page/);
@@ -109,12 +111,35 @@ try {
     assert.match(r.out, /--no-verify ignored \(size, spacing, width or layout changed in src\/Page\.tsx\)/, name);
     assert.match(r.out, /verify needed/, name);
   }
+  // Without any flag the command sizes the check itself: text or icon edits skip the browser (and say so),
+  // a colour or layout edit needs verify.
+  for (const [name, body] of [
+    ["text", { jsx: base.jsx.replace("Hello", "Hallo") }],
+    ["icon", { jsx: base.jsx.replace("icon={<Add20Regular />} ", "") }],
+  ]) {
+    r = finish(edit(`auto-skip-${name}`, body));
+    assert.equal(r.code, 0, `${name}: ${r.out}`);
+    assert.match(r.out, /verify not needed \(only text or icons changed, \d+ line\(s\)\): say in your reply that it was not checked in a browser/, name);
+  }
+  for (const [name, body] of [
+    ["colour", { style: base.style.replace("colorNeutralForeground1", "colorBrandForeground1") }],
+    ["padding", { style: base.style.replace("spacingVerticalM", "spacingVerticalXXL") }],
+  ]) {
+    r = finish(edit(`auto-run-${name}`, body));
+    assert.equal(r.code, 2, `${name}: ${r.out}`);
+    assert.match(r.out, /verify needed/, name);
+  }
+
   // A new UI file counts as layout too.
   d = edit("ignore-newfile", {});
   writeFileSync(join(d, "src/Page.tsx"), page(base));
   writeFileSync(join(d, "src/Extra.tsx"), page(base));
   r = finish(d, "--no-verify");
   assert.match(r.out, /--no-verify ignored/);
+  // ... and gets the full check without being asked (verify then fails to start here: no dev script).
+  r = finish(d, "--page", "/");
+  assert.match(r.out, /full check \(a new UI file\)/);
+  assert.match(r.out, /\$ node \.fluent-kit\/scripts\/verify\.mjs --start \/ --full/);
 
   // A Next.js route is read from the file path (verify then fails to start here, which is reported, not hidden).
   d = project("next", { playwright: true });

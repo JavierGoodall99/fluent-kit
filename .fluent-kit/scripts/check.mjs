@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // Fluent kit checker. No dependencies, no ESLint needed.
 // Usage: node .fluent-kit/scripts/check.mjs [dir] [--changed] [--json] [--baseline] [--allow pkg,pkg] [--no-next]
-//        node .fluent-kit/scripts/check.mjs --finish --page /path [--full] [--click "role=button[name='...']"] [--no-verify]
-//   --finish    the one command to end a task: the rules on changed files, then tsc, then verify only if something
-//               visible changed (and Playwright is installed). Stops at the first step that fails.
-//               --page is the page you changed; --full and --click are passed to verify; --no-verify when the person
-//               asked to skip checks (the rules and tsc still run). --no-verify is ignored, with a note,
-//               when the change touches size, spacing, width or layout: only looking at the page catches those.
+//        node .fluent-kit/scripts/check.mjs --finish --page /path [--click "role=button[name='...']"]
+//   --finish    the one command to end a task: the rules on changed files, then tsc, then verify sized to the change.
+//               It decides by itself: nothing visible changed, or only text or icons in a few lines -> no browser check;
+//               a new UI file -> the full check (three widths, light and dark); anything else -> 1440 and 375px, light.
+//               Stops at the first step that fails. --page is the page you changed; --click is passed to verify.
+//               [--full] forces the full check. [--no-verify] only when the person asked to skip checks: the rules and
+//               tsc still run, and it is ignored, with a note, when size, spacing, width or layout changed.
 //   --changed   only files changed in git (staged, unstaged, untracked). Use this while working.
 //   --baseline  record today's findings in .fluent-kit/baseline.json; later runs fail only on NEW findings.
 //               Use it once when adopting the kit in a repo that already has old violations.
@@ -20,6 +21,7 @@ import { join, relative, resolve, sep, extname, basename, dirname } from "node:p
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
+import { SETUP_CMD, hasPlaywright, packageManager, skillPath } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -41,9 +43,9 @@ const RULES = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url
 const matcher = (patterns) => (pkg) => patterns.some((p) => (p.endsWith("*") ? pkg.startsWith(p.slice(0, -1)) : pkg === p));
 const isIcon = matcher(RULES.iconLibraries), isUi = matcher([...RULES.uiLibraries, ...RULES.fluentV8]), isStyleLib = matcher(RULES.styleLibrariesWarn);
 const NATIVE = new RegExp(`<(${Object.keys(RULES.native).join("|")})(?=[\\s>/])`, "g");
-const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\s*\(/i;
-const HEX = /(?<![\w&])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})(?![0-9a-z_-])/gi;
-const SPACING = "padding|paddingTop|paddingRight|paddingBottom|paddingLeft|paddingBlock|paddingInline|margin|marginTop|marginRight|marginBottom|marginLeft|marginBlock|marginInline|gap|rowGap|columnGap|borderRadius|borderTopLeftRadius|borderTopRightRadius|borderBottomLeftRadius|borderBottomRightRadius";
+const COLOR_FN = new RegExp(RULES.styles.colorFunction, "i");
+const HEX = new RegExp(`(?<![\\w&])#${RULES.styles.hexDigits}(?![0-9a-z_-])`, "gi");
+const SPACING = RULES.styles.spacingProperties.join("|");
 const SPACING_JS = new RegExp(`(?:^|[\\s{,])(?:${SPACING})\\s*:\\s*(?:["'\`]\\s*)?-?\\d*\\.?\\d+(?:px|rem|em)\\b|(?:^|[\\s{,])(?:${SPACING})\\s*:\\s*-?[1-9]\\d*(?:\\.\\d+)?\\s*(?:,|}|$)`);
 const SPACING_CSS = new RegExp(`(?:^|[;{\\s])(?:${SPACING.replace(/([A-Z])/g, "-$1").toLowerCase()})\\s*:\\s*[^;]*?-?\\d*\\.?\\d+(?:px|rem|em)\\b`);
 const FONT_FAMILY = /(?:fontFamily|font-family)\s*:\s*["'`]?[^"'`;,}]+/i;
@@ -198,7 +200,7 @@ if (json) {
 } else {
   for (const f of reported) console.log(`${f.severity === "error" ? "ERROR" : "warn "}  ${f.file}:${f.line}  [${f.rule}]  ${f.message}`);
   console.log(`\nfluent-kit check: ${files.length} files, ${errors.length} error(s), ${warns.length} warning(s)${tolerated ? `, ${tolerated} tolerated by baseline` : ""}.`);
-  if (errors.length) console.log("Fix the errors before presenting the work. Use tokens and Fluent components; details in .github/skills/fluent-ui/deviations.md.");
+  if (errors.length) console.log(`Fix the errors before presenting the work. Use tokens and Fluent components; details in ${skillPath(root)}/deviations.md.`);
   // This check passing is not the end of the job. Say what is still missing, sized to the change.
   if (flag("--changed") && !flag("--finish") && !flag("--no-next") && files.length) {
     const c = assessChange(files);
@@ -236,19 +238,15 @@ function assessChange(changed) {
   const overlays = visible.filter((f) => /\.(tsx|jsx)$/.test(f)).filter((f) => { try { return OVERLAY.test(readFileSync(f, "utf8")); } catch { return false; } });
   // Does the change touch size, spacing, width or layout? New and deleted files always do. Otherwise compare the
   // lines the diff adds with the lines it removes: a text, colour or icon edit leaves these sets equal.
-  const layout = visible.filter((f) => {
-    if (untracked.has(f) || !existsSync(f)) return true;
-    return touchesLayout(git(["diff", "-U0", "HEAD", "--", f]).stdout);
-  });
-  return { visible, layout, lines, newFiles, small: !newFiles && lines <= 20, overlays };
+  const diffs = new Map(visible.filter((f) => !untracked.has(f) && existsSync(f)).map((f) => [f, git(["diff", "-U0", "HEAD", "--", f]).stdout]));
+  const layout = visible.filter((f) => !diffs.has(f) || touchesLayout(diffs.get(f)));
+  // Colour, border, shadow, weight or a component's appearance: axe's contrast check and a look are needed for these too.
+  const styled = visible.filter((f) => diffs.has(f) && touchesStyle(diffs.get(f)));
+  return { visible, layout, styled, lines, newFiles, small: !newFiles && lines <= 20, overlays };
 }
 
-// (The patterns live inside the function: this file calls it before the end of the module body is reached.)
-function touchesLayout(diff) {
-  // The size, spacing, width and layout settings on a line, each with its value: `size="large"`, `gap: tokens.spacingVerticalM`.
-  const NAME = "\\b(?:\\w*(?:width|height|size|padding|margin|gap|spacing|inset)\\w*|display|flex\\w*|grid\\w*|position|overflow\\w*|top|left|right|bottom|zIndex|align\\w*|justify\\w*|float|transform|lineHeight|textOverflow|whiteSpace|aspectRatio|order)";
-  const LAYOUT = new RegExp(`${NAME}\\s*[:=]\\s*(?:"[^"]*"|'[^']*'|\x60[^\x60]*\x60|\\{[^}]*\\}|[^,;}\\s]+)|\\btokens\\.(?:spacing|fontSize|lineHeight|strokeWidth)\\w*|@(?:media|container)[^{]*`, "gi");
-  const ICON_TAG = /^(?:\w+Icon|[A-Z]\w*\d+(?:Regular|Filled|Color))$/;
+// Lines a diff adds and removes, without imports, comments and blank lines, whitespace collapsed.
+function diffLines(diff) {
   const added = [], removed = [];
   for (const l of diff.split("\n")) {
     if (l.startsWith("+++") || l.startsWith("---") || !/^[+-]/.test(l)) continue;
@@ -256,12 +254,30 @@ function touchesLayout(diff) {
     if (!text || /^(?:import\b|\/\/|\/\*|\*)/.test(text)) continue;
     (l[0] === "+" ? added : removed).push(text.replace(/\s+/g, " "));
   }
-  // Compare as multisets, so a line that only moved, or an edited label on a line that also has `size="small"`, does not count.
-  const minus = (a, b) => { const m = new Map(); for (const x of b) m.set(x, (m.get(x) || 0) + 1); return a.filter((x) => { const n = m.get(x) || 0; if (n) { m.set(x, n - 1); return false; } return true; }); };
+  return { added, removed };
+}
+// Compare as multisets, so a line that only moved, or an edited label on a line that also has `size="small"`, does not count.
+function minus(a, b) { const m = new Map(); for (const x of b) m.set(x, (m.get(x) || 0) + 1); return a.filter((x) => { const n = m.get(x) || 0; if (n) { m.set(x, n - 1); return false; } return true; }); }
+function settingsChanged(diff, re) {
+  const { added, removed } = diffLines(diff);
   const onlyAdded = minus(added, removed), onlyRemoved = minus(removed, added);
-  const settings = (list) => list.flatMap((t) => [...t.matchAll(LAYOUT)].map((m) => m[0].replace(/\s+/g, "")));
+  const settings = (list) => list.flatMap((t) => [...t.matchAll(re)].map((m) => m[0].replace(/\s+/g, "")));
   const sa = settings(onlyAdded), sr = settings(onlyRemoved);
-  if (minus(sa, sr).length || minus(sr, sa).length) return true;
+  return { changed: minus(sa, sr).length > 0 || minus(sr, sa).length > 0, onlyAdded, onlyRemoved };
+}
+function touchesStyle(diff) {
+  const NAME = "\\b(?:\\w*(?:color|colour|background|border|shadow|opacity|fontWeight)\\w*|appearance|intent|shape|variant)";
+  const STYLE = new RegExp(`${NAME}\\s*[:=]\\s*(?:"[^"]*"|'[^']*'|\x60[^\x60]*\x60|\\{[^}]*\\}|[^,;}\\s]+)|\\btokens\\.(?:color|shadow|fontWeight|borderRadius)\\w*`, "gi");
+  return settingsChanged(diff, STYLE).changed;
+}
+// (The patterns live inside the function: this file calls it before the end of the module body is reached.)
+function touchesLayout(diff) {
+  // The size, spacing, width and layout settings on a line, each with its value: `size="large"`, `gap: tokens.spacingVerticalM`.
+  const NAME = "\\b(?:\\w*(?:width|height|size|padding|margin|gap|spacing|inset)\\w*|display|flex\\w*|grid\\w*|position|overflow\\w*|top|left|right|bottom|zIndex|align\\w*|justify\\w*|float|transform|lineHeight|textOverflow|whiteSpace|aspectRatio|order)";
+  const LAYOUT = new RegExp(`${NAME}\\s*[:=]\\s*(?:"[^"]*"|'[^']*'|\x60[^\x60]*\x60|\\{[^}]*\\}|[^,;}\\s]+)|\\btokens\\.(?:spacing|fontSize|lineHeight|strokeWidth)\\w*|@(?:media|container)[^{]*`, "gi");
+  const ICON_TAG = /^(?:\w+Icon|[A-Z]\w*\d+(?:Regular|Filled|Color))$/;
+  const { changed, onlyAdded, onlyRemoved } = settingsChanged(diff, LAYOUT);
+  if (changed) return true;
   // A JSX element added or removed (other than an icon) changes the layout; an edited label does not.
   const tags = (list) => list.flatMap((t) => [...t.matchAll(/<([A-Za-z][\w.]*)(?=[\s>/])/g)].map((m) => m[1])).filter((n) => !ICON_TAG.test(n));
   const a = tags(onlyAdded), r = tags(onlyRemoved);
@@ -284,13 +300,16 @@ function finish(ruleErrors) {
   if (flag("--no-verify") && !change.layout.length) return done([...steps, "verify skipped at the person's request: say in your reply that the UI was not verified"], 0);
   if (flag("--no-verify")) steps.push(`--no-verify ignored (size, spacing, width or layout changed in ${change.layout.slice(0, 3).map((f) => shown(f)).join(", ")}): the browser check runs`);
   if (!change.visible.length) return done([...steps, "verify not needed (nothing visible changed)"], 0);
-  const req = createRequire(join(root, "package.json"));
-  const hasPlaywright = ["playwright", "@playwright/test", "playwright-core"].some((n) => { try { req.resolve(n); return true; } catch { return false; } });
-  if (!hasPlaywright) return done([...steps, "verify not available (Playwright is not installed): say in your reply that the UI was not verified. To enable it once: npm i -D playwright axe-core && npx playwright install chromium"], 0);
+  // Only text or icons changed, in a few lines, in files that already existed: a browser run adds little. Say so instead.
+  if (!flag("--no-verify") && !flag("--full") && change.small && !change.layout.length && !change.styled.length && !opt("--click"))
+    return done([...steps, `verify not needed (only text or icons changed, ${change.lines} line(s)): say in your reply that it was not checked in a browser`], 0);
+  if (!hasPlaywright(root)) return done([...steps, `verify not available (Playwright is not installed): say in your reply that the UI was not verified. Do not install packages yourself; the person can enable the check once with: ${SETUP_CMD}`], 0);
   const page = opt("--page") || inferPage(change.visible);
   if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => shown(f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
 
-  const vArgs = ["--start", page, ...(flag("--full") ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
+  const full = flag("--full") || change.newFiles > 0;
+  if (full && !flag("--full")) steps.push("full check (a new UI file)");
+  const vArgs = ["--start", page, ...(full ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
   console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
   const v = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), ...vArgs], { cwd: root, stdio: "inherit" });
   const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => shown(f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
@@ -305,7 +324,7 @@ function typecheck() {
   let pkg = {}; try { pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")); } catch { /* none */ }
   const run = (cmd, argv, shown) => { const r = spawnSync(cmd, argv, { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, shell: process.platform === "win32" && cmd !== process.execPath }); return { ran: true, code: r.status ?? 1, cmd: shown, output: `${r.stdout || ""}${r.stderr || ""}`.trim().split("\n").slice(0, 40).join("\n") }; };
   if (pkg.scripts?.typecheck) {
-    const pm = existsSync(join(root, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(root, "yarn.lock")) ? "yarn" : (existsSync(join(root, "bun.lockb")) || existsSync(join(root, "bun.lock"))) ? "bun" : "npm";
+    const pm = packageManager(root);
     return run(pm, ["run", "typecheck"], `${pm} run typecheck`);
   }
   if (!existsSync(join(root, "tsconfig.json"))) return { ran: false, why: "no tsconfig.json" };

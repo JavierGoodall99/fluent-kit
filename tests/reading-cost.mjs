@@ -31,14 +31,14 @@ const ci = text(".github/copilot-instructions.md");
 const block = tokens(ci.slice(ci.indexOf("<!-- fluent-kit:start -->"), ci.indexOf("<!-- fluent-kit:end -->")));
 const router = tok(K + "SKILL.md"), deviations = tok(K + "deviations.md");
 const task = (n) => tok(`${K}tasks/${n}.md`);
-const ctx = Object.fromEntries(["restyle", "new-page", "new-app"].map((r) => [r, tokens(contextOutput(r))]));
+const ctx = Object.fromEntries(["restyle", "new-page", "new-app", "migrate"].map((r) => [r, tokens(contextOutput(r))]));
 const cards = readdirSync(K + "patterns").filter((f) => f.endsWith(".md")).map((f) => {
   const examples = [...new Set(text(K + "patterns/" + f).match(/examples\/[\w-]+\.tsx/g) || [])];
   return { name: f.replace(/\.md$/, ""), tokens: tok(K + "patterns/" + f), example: Math.max(0, ...examples.map((e) => tok(K + e))) }; // the agent opens the one that fits: count the largest
 });
 
 // Budgets in tokens, and tool calls before the first edit (independent reads in one parallel call) and to finish.
-const BUDGET = { block: 460, smallFix: 1100, restyle: 3000, newPage: 5200, newApp: 5900, migrate: 3600 };
+const BUDGET = { block: 260, smallFix: 800, restyle: 2750, newPage: 4900, newApp: 5400, migrate: 3300 };
 const rows = [];
 const add = (name, cost, budget, calls) => rows.push({ name, cost, budget, calls });
 add("always-on block", block, BUDGET.block, "-");
@@ -48,7 +48,7 @@ for (const c of cards) add(`new page, ${c.name}: block, SKILL, context, tasks/ne
 const worst = cards.reduce((a, c) => (c.tokens + c.example > a.tokens + a.example ? c : a));
 add(`new app (first page ${worst.name}): block, SKILL, context, tasks/new-app, new-page + card + example`, block + router + ctx["new-app"] + task("new-app") + task("new-page") + worst.tokens + worst.example, BUDGET.newApp, "4 + 1");
 const biggest = cards.reduce((a, c) => (c.tokens > a.tokens ? c : a));
-add(`migrate (screen ${biggest.name}): block, SKILL, context, tasks/migrate-v8 + card`, block + router + ctx["new-app"] + task("migrate-v8") + biggest.tokens, BUDGET.migrate, "3 + 1");
+add(`migrate (screen ${biggest.name}): block, SKILL, context, tasks/migrate-v8 + card`, block + router + ctx.migrate + task("migrate-v8") + biggest.tokens, BUDGET.migrate, "3 + 1");
 
 const limits = [
   ["SKILL.md", router, 850], ["deviations.md", deviations, 500],

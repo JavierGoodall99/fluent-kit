@@ -8,7 +8,7 @@ Move between the main sections of the app. Example: `examples/app-nav.tsx`.
 - Breadcrumbs only inside nested pages, never as the main navigation. `TabList` for a few closely related views of one page.
 
 **Nav measurements**
-- 260px wide expanded, 56px icon rail collapsed. Items 40px high, 2px apart, 20px icon, 14px text.
+- 260px wide expanded, 56px icon rail collapsed. Items 40px high, 2px apart, 20px icon, body text.
 - Selected item: a 4px by 20px rounded brand bar at the left edge, a filled icon (`bundleIcon(XFilled, XRegular)`), semibold text.
 - Stock `NavItem` is near-black when selected. Override: `colorSubtleBackground` at rest, `colorSubtleBackgroundHover` on hover, `colorSubtleBackgroundSelected` when selected.
 - One level of nesting (`NavCategory` with `NavSubItem`); deeper hierarchies use a `Tree` in the page.
