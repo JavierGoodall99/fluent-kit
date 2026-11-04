@@ -1,6 +1,6 @@
 # Pattern: status page
 
-Find what is failing among many checks or jobs grouped under a parent (integrations, services), and why. Example: `examples/status-grid.tsx`.
+Checks or jobs grouped under a parent (integrations, services, APIs). Example: `examples/status-grid.tsx`.
 
 **Structure**
 1. **Verdict first**, one line with a status indicator: "3 of 6 need attention". Tabs and counts do not replace it.

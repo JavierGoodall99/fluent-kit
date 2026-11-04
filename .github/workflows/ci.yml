@@ -33,6 +33,12 @@ jobs:
       - name: Reading-cost budgets (per route)
         run: node tests/reading-cost.mjs
 
+      - name: Audit checks (docs/AUDIT.md, AUD-01 to AUD-08)
+        run: node tests/audit.mjs
+
+      - name: Every example renders clean (AUD-09)
+        run: node tests/render-examples.mjs
+
       - name: Links in shipped files
         run: node tests/links.mjs
 
@@ -93,6 +99,7 @@ jobs:
           t node tests/context.test.mjs
           t node tests/doctor.test.mjs
           t bash tests/installer-smoke.sh
+          t bash tests/scaffold-smoke.sh
           exit $failed
       - name: Script syntax
         run: for f in install.mjs .fluent-kit/scripts/*.mjs tests/*.mjs; do node --check "$f"; done

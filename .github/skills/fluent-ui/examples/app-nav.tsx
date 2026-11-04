@@ -96,10 +96,14 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
 const HomeIcon = bundleIcon(Home20Filled, Home20Regular);
 const SettingsIcon = bundleIcon(Settings20Filled, Settings20Regular);
 
-const useShell = makeStyles({ shell: { display: "flex", minHeight: "100vh" }, main: { flexGrow: 1, minWidth: 0 } });
+const useShell = makeStyles({
+  shell: { display: "flex", minHeight: "100vh" },
+  main: { flexGrow: 1, minWidth: 0 },
+  // Under 1024px the nav is hidden: this bar is the only way to open it. Hidden on wide screens, where the nav shows.
+  topBar: { display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalS, padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, "@media (min-width: 1024px)": { display: "none" } },
+});
 
-// The page owns the state because the content sits beside the nav. On narrow screens put a top bar with a
-// Hamburger (setMobileOpen(true)) inside a <header> in <main>.
+// The page owns the state because the content sits beside the nav.
 export function AppNavExample() {
   const s = useShell();
   const [collapsed, setCollapsed] = useState(false);
@@ -113,7 +117,13 @@ export function AppNavExample() {
     <div className={s.shell}>
       <AppNav items={items} selectedValue={selected} onNavigate={setSelected} title="My app" collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
-      <main className={s.main}>{/* page content */}</main>
+      <main className={s.main}>
+        <header className={s.topBar}>
+          <Hamburger onClick={() => setMobileOpen(true)} aria-label="Open navigation" />
+          <Text weight="semibold">My app</Text>
+        </header>
+        {/* page content: its title and command bar first */}
+      </main>
     </div>
   );
 }

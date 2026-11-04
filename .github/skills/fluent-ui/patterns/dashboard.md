@@ -15,7 +15,7 @@
 - 12px (`spacingHorizontalM`) between cards; `repeat(auto-fit, minmax(min(100%, 340px), 1fr))`; about 6 cards at most.
 - One idea per card: a title, one chart or number, a one-sentence summary (the chart's text alternative), a "View details" link. Never a sentence repeating the chart.
 - A time-range switch (7, 30, 60 days, small `TabList`) sits inside the card it changes.
-- Charts: `@fluentui/react-charts` (a companion package), theme colours, `LineChart` not `AreaChart`.
+- Charts: `@fluentui/react-charts` (a companion package), theme colours, `LineChart` not `AreaChart`. It touches `document` when it loads, so in Next.js import the chart component with `next/dynamic` and `{ ssr: false }`.
 
 **Gallery**
 - Page title, then sections 20px apart. Section title row 32px high: a section title, "See more" link at the right, 8px above its cards.

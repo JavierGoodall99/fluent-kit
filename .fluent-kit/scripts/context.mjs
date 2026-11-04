@@ -71,13 +71,14 @@ if (noPackage) {
   lines.push("Result:    no package.json");
   lines.push(`Brand:     ${detect.brandDecision ? `saved decision (.fluent-kit/brand.json): ${detect.brandDecision.mode === "stock" ? "stock" : detect.brandDecision.hex}.` : 'none yet: ask for the brand hex or "stock" (never invent one); scaffold.mjs takes the answer.'}`);
 } else if (route === "new-app" || route === "migrate" || !/^fluent-v9/.test(detect.kind)) {
-  lines.push(`Result:    ${detect.kind}`);
+  lines.push(`Result:    ${detect.kind}${detect.otherUiLibraries?.length ? ` (${detect.otherUiLibraries.slice(0, 3).join(", ")})` : ""}`);
   if (detect.brandAdvice) lines.push(`Brand:     ${detect.brandAdvice}`);
   if (detect.rampContrastFailures) lines.push(`Contrast:  a ramp from that colour fails ${detect.rampContrastFailures} contrast check(s); make-theme.mjs stops and prints a darker shade to offer.`);
 }
 lines.push(`Language:  ${out.language ? `${out.language}: write UI text in it.` : detect.localeAdvice}`);
 if (out.guidance.length) lines.push(`Guidance:  ${out.guidance.join(", ")}: the repo's own rules win over the kit where they conflict.`);
-if (detect.framework === "next") lines.push("Next.js:   files with makeStyles, hooks or handlers need \"use client\"; pass strings, not icons, from Server to Client Components; mount a virtualized DataGrid on the client only; a hydration diff made only of <i data-tabster-dummy> is a known Fluent issue (mention it, do not restructure the page).");
+if (detect.possibleSharedPackages?.length) lines.push(`Shared UI: ${detect.possibleSharedPackages.slice(0, 3).join(", ")} may be the company's shared UI package (a guess from the name): check it, and use its components first.`);
+if (detect.framework === "next") lines.push("Next.js:   files with makeStyles, hooks or handlers need \"use client\"; pass strings, not icons, from Server to Client Components; mount a virtualized DataGrid and @fluentui/react-charts on the client only (next/dynamic with ssr: false); a hydration diff made only of <i data-tabster-dummy> is a known Fluent issue (mention it, do not restructure the page).");
 if (detect.tailwind) lines.push("Tailwind:  keep it for page layout; colours, type, radii and shadows come from Fluent tokens.");
 if (noPackage) lines.push("Setup:     no app yet. Create it in this folder with: node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> --lang <code> (add --next only if Next.js was asked for).");
 else if (detect.setup?.installCmd) lines.push(`Setup:     missing ${detect.setup.missingDeps.join(", ")}. Install: ${detect.setup.installCmd}`);

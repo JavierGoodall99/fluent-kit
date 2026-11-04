@@ -1,9 +1,7 @@
 # Restyle an existing page
 
-"Make it better", "easier to understand", "update the UI/UX", "make it pop".
-
 **Before you change anything**
-1. `node .fluent-kit/scripts/context.mjs restyle`: the theme, language, the repo's own guidance, `PROFILE.md` and the app's standard card style, in one call. Keep the theme and language; match the standard card.
+1. `node .fluent-kit/scripts/context.mjs restyle`. Keep its theme and language; match its standard card.
 2. Brief, three lines: who uses the page, the job, what they must see in five seconds.
 
 **Rules**

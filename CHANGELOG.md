@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.6.2
+A repeatable audit, and the fixes from the first Copilot run.
+
+- **The audit is now a checklist with stable IDs** (`docs/AUDIT.md`) and a log of every finding so far (41: 33 fixed, 8 open). `npm run audit` runs the automated half: `tests/audit.mjs` (AUD-01 to AUD-08) and every example rendered in a browser (AUD-09). CI runs both.
+- **Every example renders in CI** at 1440 and 375px, its click-to-open state included. The first run found three example bugs, now fixed: the app-nav example had no way to open the nav on a phone; status-grid showed "Unknown" next to "All checks fine"; its collapsed rows were too tall on phones.
+- **The block's rule matches what is checked:** "no hard-coded colours, spacing, radii or fonts" (it said "sizes", which nothing checked and the examples use).
+- **From the first Copilot run** (Windows, Next.js, 2 turns, 18 minutes, 94.6 credits):
+  - `scaffold.mjs` installs everything in one `npm install` (it ran two), says it takes 1 to 3 minutes, and the card tells the agent to wait for `Done:` instead of ending its turn.
+  - `@fluentui/react-charts` breaks server rendering in Next.js: the dashboard card and the context Next.js line say to load it with `next/dynamic` and `ssr: false`.
+  - `verify` records the dev server it starts and stops one an interrupted run left on the port.
+  - The block says `--finish` runs the rules, `tsc` and the browser check, so the agent stops running `tsc` on its own.
+- `scaffold.mjs --title "App name"` names the app (it used the folder name).
+- `context.mjs` shows another UI library by name and a likely shared UI package; `detect-theme.mjs` returns only what `context.mjs` shows.
+- `list.md` no longer sets sizes Fluent sets (selection column, row heights). `restyle.md`, `new-page.md` and `status-page.md` lose sentences the router already says.
+- `AGENTS.md` and `CLAUDE.md` in the kit repo say the `.github/` block is what the kit installs, not the rules for work here.
+
 ## 1.6.1
 From a backtest: an empty folder, the kit from `main`, the prompt "build an api monitor dashboard", and only the files the kit routes to. The agent got a correct dashboard, but these gaps cost it extra runs or would have shipped defects:
 
