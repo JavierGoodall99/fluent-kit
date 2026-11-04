@@ -21,7 +21,7 @@ import { join, relative, resolve, sep, extname, basename, dirname } from "node:p
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { SETUP_CMD, hasPlaywright, packageManager, skillPath } from "./lib.mjs";
+import { SETUP_CMD, hasPlaywright, packageManager, skillPath, tscPath } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -328,7 +328,8 @@ function typecheck() {
     return run(pm, ["run", "typecheck"], `${pm} run typecheck`);
   }
   if (!existsSync(join(root, "tsconfig.json"))) return { ran: false, why: "no tsconfig.json" };
-  let tsc; try { tsc = createRequire(join(root, "package.json")).resolve("typescript/bin/tsc"); } catch { return { ran: false, why: "TypeScript is not installed" }; }
+  const tsc = tscPath(root);
+  if (!tsc) return { ran: false, why: "TypeScript is not installed" };
   const refs = /"references"\s*:/.test(readFileSync(join(root, "tsconfig.json"), "utf8"));
   return refs ? run(process.execPath, [tsc, "-b"], "tsc -b") : run(process.execPath, [tsc, "--noEmit", "-p", "tsconfig.json"], "tsc --noEmit");
 }

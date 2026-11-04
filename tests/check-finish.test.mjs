@@ -60,6 +60,18 @@ try {
   assert.equal(r.code, 1, r.out);
   assert.match(r.out, /\$ tsc --noEmit[\s\S]*TS2322[\s\S]*stopped at tsc/);
 
+  // TypeScript 7 exports only its API, not "typescript/bin/tsc": tsc is found through package.json "bin" and still runs.
+  d = project("ts7");
+  mkdirSync(join(d, "node_modules/typescript/bin"), { recursive: true });
+  writeFileSync(join(d, "node_modules/typescript/package.json"), JSON.stringify({ name: "typescript", version: "7.0.2", bin: { tsc: "./bin/tsc" }, exports: { "./package.json": "./package.json", ".": "./lib/version.cjs" } }));
+  writeFileSync(join(d, "node_modules/typescript/bin/tsc"), '#!/usr/bin/env node\nconsole.log("src/plain.ts(1,14): error TS2322: fake TypeScript 7 error"); process.exit(2);\n');
+  writeFileSync(join(d, "tsconfig.json"), JSON.stringify({ compilerOptions: { noEmit: true }, include: ["src"] }));
+  writeFileSync(join(d, "src/plain.ts"), "export const n: number = 1;\n");
+  r = finish(d, "--page", "/");
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /\$ tsc --noEmit[\s\S]*fake TypeScript 7 error[\s\S]*stopped at tsc/);
+  assert.doesNotMatch(r.out, /TypeScript is not installed/);
+
   // Visible change, no Playwright: not available, says so, exit 0 (no loop).
   d = project("noplaywright");
   writeFileSync(join(d, "src/Page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport const Page = () => <Button size="large">Opslaan</Button>;\n');

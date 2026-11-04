@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.1
+From a backtest: an empty folder, the kit from `main`, the prompt "build an api monitor dashboard", and only the files the kit routes to. The agent got a correct dashboard, but these gaps cost it extra runs or would have shipped defects:
+
+- **TypeScript 7 was never type-checked.** It no longer exports `typescript/bin/tsc`, so `--finish` said "TypeScript is not installed" for every new Vite app and a wrong icon import surfaced only as a crash in 6 browser renders. `tsc` is now found through the package's `bin`: the same mistake stops at `tsc` in about a second.
+- **An empty folder was told to install Fluent into nothing.** `context.mjs` now says `Result: no package.json` and names one command: `node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> --lang <code> [--next]`. It creates the app next to the kit's files (starters refuse a non-empty folder, and their `--overwrite` would delete the kit), installs Fluent, writes the theme, wraps the app and leaves out the demo styling. Tested with Vite and Next.js; `tests/scaffold-smoke.sh` runs in CI.
+- **White frame around every new app.** The browser's default 8px body margin stayed after the starter's CSS was removed. The generated `AppProvider` now resets it.
+- **The status-page example overlapped on phones.** Fluent fixes a `TableCell` at 44px; stacked as blocks, the Re-run button covered the error text. The example and the card now set `height: "auto"`.
+- **verify did not see overlaps.** New warning when a control is drawn over text, also in the state `--click` opens (an open drawer or menu over the page does not count).
+- **One crash, five findings.** An app that crashes on load is now one error, the console error, instead of also "no FluentProvider", "the page is empty" and accessibility landmarks.
+
 ## 1.6.0
 Plug-and-play and cost pass, from a full audit of the kit.
 

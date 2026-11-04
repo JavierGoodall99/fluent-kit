@@ -61,11 +61,16 @@ if (args.includes("--json")) { console.log(JSON.stringify(out, null, 2)); proces
 const lines = [`Fluent kit context${route ? ` for ${route}` : ""}${fromCache ? " (cached; --refresh to rescan)" : ""}`];
 const theme = { "fluent-v9-custom-brand": "Fluent v9 with its own brand ramp: keep it.", "fluent-v9-custom-brand-unparsed": "Fluent v9 with its own theme: keep it as it is.",
   "fluent-v9-stock-theme": "Fluent v9 on the stock Microsoft theme: keep it; do not ask for a brand colour." }[detect.kind] || detect.advice;
+// An empty folder (or one holding only the kit): there is nothing to install Fluent into yet.
+const noPackage = detect.setup && !detect.setup.hasPackageJson;
 // The person already asked for the migration: do not tell the agent to ask whether this is one.
 const migrating = route === "migrate" && detect.kind === "fluent-v8";
-lines.push(`Theme:     ${migrating ? "Fluent v8, migrating to v9 screen by screen: v9 goes around v8, v8 stays until the last screen." : theme}${detect.themeFiles?.length ? ` (${detect.themeFiles.slice(0, 2).join(", ")})` : ""}`);
+lines.push(`Theme:     ${noPackage ? "none yet (no app in this folder)." : migrating ? "Fluent v8, migrating to v9 screen by screen: v9 goes around v8, v8 stays until the last screen." : theme}${!noPackage && detect.themeFiles?.length ? ` (${detect.themeFiles.slice(0, 2).join(", ")})` : ""}`);
 if (route === "migrate" && detect.kind !== "fluent-v8") lines.push(`Note:      this project is ${detect.kind}, not Fluent v8: there is nothing to migrate. Tell the person, and use the new-page or restyle route.`);
-if (route === "new-app" || route === "migrate" || !/^fluent-v9/.test(detect.kind)) {
+if (noPackage) {
+  lines.push("Result:    no package.json");
+  lines.push(`Brand:     ${detect.brandDecision ? `saved decision (.fluent-kit/brand.json): ${detect.brandDecision.mode === "stock" ? "stock" : detect.brandDecision.hex}.` : 'none yet: ask for the brand hex or "stock" (never invent one); scaffold.mjs takes the answer.'}`);
+} else if (route === "new-app" || route === "migrate" || !/^fluent-v9/.test(detect.kind)) {
   lines.push(`Result:    ${detect.kind}`);
   if (detect.brandAdvice) lines.push(`Brand:     ${detect.brandAdvice}`);
   if (detect.rampContrastFailures) lines.push(`Contrast:  a ramp from that colour fails ${detect.rampContrastFailures} contrast check(s); make-theme.mjs stops and prints a darker shade to offer.`);
@@ -74,8 +79,8 @@ lines.push(`Language:  ${out.language ? `${out.language}: write UI text in it.` 
 if (out.guidance.length) lines.push(`Guidance:  ${out.guidance.join(", ")}: the repo's own rules win over the kit where they conflict.`);
 if (detect.framework === "next") lines.push("Next.js:   files with makeStyles, hooks or handlers need \"use client\"; pass strings, not icons, from Server to Client Components; mount a virtualized DataGrid on the client only; a hydration diff made only of <i data-tabster-dummy> is a known Fluent issue (mention it, do not restructure the page).");
 if (detect.tailwind) lines.push("Tailwind:  keep it for page layout; colours, type, radii and shadows come from Fluent tokens.");
-if (detect.setup?.installCmd) lines.push(`Setup:     missing ${detect.setup.missingDeps.join(", ")}. Install: ${detect.setup.installCmd}`);
-else if (detect.setup && !detect.setup.hasPackageJson) lines.push("Setup:     no package.json: create the app first (tasks/new-app.md).");
+if (noPackage) lines.push("Setup:     no app yet. Create it in this folder with: node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> --lang <code> (add --next only if Next.js was asked for).");
+else if (detect.setup?.installCmd) lines.push(`Setup:     missing ${detect.setup.missingDeps.join(", ")}. Install: ${detect.setup.installCmd}`);
 
 if (profile) {
   const body = profile.split("\n").filter((l) => l.trim() && !/^Copy this file/.test(l)).slice(0, 60);

@@ -2,7 +2,7 @@
 // (Playwright, axe-core, a browser). One copy, so install, check, verify and doctor always agree.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 // verify's own dependencies live here, inside the kit folder, so the project's package.json and lockfile stay untouched.
@@ -45,6 +45,18 @@ export function axeSourcePath(root) {
   const wrapper = resolveFrom(root, "@axe-core/playwright");
   if (wrapper) { try { return createRequire(wrapper.path).resolve("axe-core/axe.min.js"); } catch { /* none */ } }
   return null;
+}
+
+// The project's tsc launcher, through package.json "bin" (TypeScript 7 no longer exports "typescript/bin/tsc").
+export function tscPath(root) {
+  const hit = resolveFrom(root, "typescript/package.json");
+  if (!hit) return null;
+  try {
+    const pkg = JSON.parse(readFileSync(hit.path, "utf8"));
+    const bin = typeof pkg.bin === "string" ? pkg.bin : pkg.bin?.tsc;
+    const p = bin && join(dirname(hit.path), bin);
+    return p && existsSync(p) ? p : null;
+  } catch { return null; }
 }
 
 // Edge or Chrome already on this machine: verify launches it through Playwright, so no browser download is needed.
