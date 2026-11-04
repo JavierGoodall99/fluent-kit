@@ -238,18 +238,12 @@ else if (brand) {
 } else if (freshScaffold) brandAdvice = `This looks like a fresh scaffold; its default colors are not a brand. Ask the user for the brand hex or "stock", record it in .fluent-kit/brand.json, then apply it: ${applyBrand("<hex|stock>")}.`;
 else if (!ramp) brandAdvice = `No brand color found. Ask the user for the brand hex or "stock", record it in .fluent-kit/brand.json, then apply it: ${applyBrand("<hex|stock>")}.`;
 
+// Only what context.mjs shows the agent (tests/audit.mjs AUD-02 fails on a field nothing reads).
+const generatedRamp = brand && !ramp && brand.confidence !== "ambiguous" && kind !== "fluent-v9-stock-theme" ? generateRamp(brand.hex) : null;
 const out = {
-  root, kind, advice,
-  fluentVersion: v9 || null,
-  fluentV8: !!v8,
+  kind, advice, brandAdvice,
   otherUiLibraries: OTHER_UI.filter(has),
-  otherIconLibraries: OTHER_ICONS.filter(has),
-  hasFluentIcons: !!has("@fluentui/react-icons"),
-  fluentProviderFiles: sig.providers.slice(0, 5),
   themeFiles: [...new Set([...sig.createTheme, ...sig.stockTheme])].slice(0, 5),
-  v8Files: sig.v8.length,
-  brandRamp: ramp,
-  freshScaffold,
   setup: { hasPackageJson, packageManager: pm, missingDeps, installCmd },
   existingGuidance,
   framework,
@@ -257,11 +251,7 @@ const out = {
   brandDecision: decision,
   locale: { htmlLang, uiLanguage, localeCodes: codes, i18nLibrary },
   localeAdvice,
-  brand,
-  brandAdvice,
-  generatedRamp: brand && !ramp && brand.confidence !== "ambiguous" && kind !== "fluent-v9-stock-theme" ? generateRamp(brand.hex) : null,
+  rampContrastFailures: generatedRamp ? checks(generatedRamp).filter((r) => !r.ok).length : 0,
   possibleSharedPackages: sharedPackages,
 };
-out.rampContrastFailures = out.generatedRamp ? checks(out.generatedRamp).filter((r) => !r.ok).length : 0;
-
 console.log(JSON.stringify(out, null, 2));

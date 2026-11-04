@@ -19,7 +19,7 @@
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
 
 const args = process.argv.slice(2);
@@ -89,13 +89,19 @@ if (!pw) {
 }
 // Optionally start the dev server, wait for its URL, and stop it when we are done.
 let server = null;
+// The dev server verify starts is recorded here, so a run an agent's terminal cut off does not leave it on the port.
+const serverFile = resolve(".fluent-kit/out/dev-server.json");
+const killTree = (pid) => { try { if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" }); else process.kill(-pid); } catch { /* already gone */ } };
 const stopServer = () => {
   if (!server) return;
-  try { if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(server.pid), "/T", "/F"]); else process.kill(-server.pid); } catch { /* already gone */ }
+  killTree(server.pid);
+  rmSync(serverFile, { force: true });
   server = null;
 };
 process.on("exit", stopServer);
 process.on("SIGINT", () => process.exit(130));
+process.on("SIGTERM", () => process.exit(143));
+process.on("SIGHUP", () => process.exit(129));
 if (startServer) {
   const cwd = process.cwd();
   let cmd = opt("--cmd", null);
@@ -111,10 +117,16 @@ if (startServer) {
       cmd = "npm run dev";
     }
   }
+  try {
+    const old = JSON.parse(readFileSync(serverFile, "utf8"));
+    if (old.pid && old.cwd === cwd) { killTree(old.pid); console.log(`Stopped the dev server an earlier verify run left running (process ${old.pid}).`); }
+  } catch { /* none left */ }
+  rmSync(serverFile, { force: true });
   console.log(`Starting dev server: ${cmd}`);
   let log = "";
   let exited = false;
   server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
+  try { mkdirSync(dirname(serverFile), { recursive: true }); writeFileSync(serverFile, JSON.stringify({ pid: server.pid, cwd, at: new Date().toISOString() })); } catch { /* best effort */ }
   const ready = new Promise((resolveUrl) => {
     let timer = null, noted = null; // the busy-port note is printed once per URL, not once per chunk of server output
     const onData = (d) => {
@@ -260,8 +272,17 @@ function overlapProbe() {
     const el = t.parentElement;
     if (!el || !t.textContent.trim() || el.closest(CTRL) || el.closest("[aria-hidden=true]")) continue;
     const cs = getComputedStyle(el); if (cs.visibility === "hidden" || cs.opacity === "0") continue;
+    // Only the part of the text a reader can see: a container that clips (a line clamp, overflow hidden) hides the rest.
+    let clip = null;
+    for (let a = el; a && a !== document.body; a = a.parentElement) {
+      const o = getComputedStyle(a);
+      if (/(hidden|clip|auto|scroll)/.test(o.overflowX + o.overflowY)) { const c = a.getBoundingClientRect(); clip = clip ? { left: Math.max(clip.left, c.left), top: Math.max(clip.top, c.top), right: Math.min(clip.right, c.right), bottom: Math.min(clip.bottom, c.bottom) } : { left: c.left, top: c.top, right: c.right, bottom: c.bottom }; }
+    }
     const range = document.createRange(); range.selectNodeContents(t);
-    for (const r of range.getClientRects()) if (r.width && r.height) texts.push({ r, el, t: t.textContent.trim() });
+    for (const raw of range.getClientRects()) {
+      const r = clip ? { left: Math.max(raw.left, clip.left), top: Math.max(raw.top, clip.top), right: Math.min(raw.right, clip.right), bottom: Math.min(raw.bottom, clip.bottom) } : raw;
+      if (r.right - r.left > 1 && r.bottom - r.top > 1) texts.push({ r: { ...r, width: r.right - r.left, height: r.bottom - r.top }, el, t: t.textContent.trim() });
+    }
   }
   const out = [];
   for (const c of ctrls) {

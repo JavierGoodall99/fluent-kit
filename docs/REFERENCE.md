@@ -67,7 +67,7 @@ For other CI systems (Azure DevOps, GitLab), run `node .fluent-kit/scripts/check
 
 `context.mjs` runs `detect-theme.mjs` (cached in `.fluent-kit/context.json`) and reports the theme (existing v9 ramp, stock theme, v8, another UI library, or nothing), a brand colour when there is no ramp (`colorBrandBackground` override, v8 `themePrimary`, variables named brand/primary/accent, or the most-used saturated colour), the UI language (html `lang`, i18n library, locale files), the repo's own design guidance, and possible shared UI packages. It never invents a brand colour: several candidates or none, and the agent asks. An existing project's theme is never changed as a side effect.
 
-An empty folder (or one holding only the kit): `node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> --lang <code> [--next]` creates a Vite (or Next.js App Router) + TypeScript app next to the kit's files, installs it with Fluent, writes the theme and wraps the app, without the starter's demo styling. Starters refuse a folder that is not empty (and their `--overwrite` would delete the kit), so it builds in a subfolder and moves the files up.
+An empty folder (or one holding only the kit): `node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> --lang <code> [--title "App name"] [--next]` creates a Vite (or Next.js App Router) + TypeScript app next to the kit's files, installs it with Fluent, writes the theme and wraps the app, without the starter's demo styling. Starters refuse a folder that is not empty (and their `--overwrite` would delete the kit), so it builds in a subfolder and moves the files up.
 
 `make-theme.mjs` writes a theme and provider for Vite or Next.js App Router (it also removes the browser's default body margin, which otherwise leaves a white frame around the page); `generate-ramp.mjs` builds the 16-step ramp (your colour at step 80, Microsoft's curve, contrast checks). For Microsoft's blue it reproduces the default ramp exactly. An official ramp from a designer always wins.
 
@@ -113,7 +113,7 @@ Named colours (`"red"`) and border widths like `"1px solid"` are not checked. A 
   profiles/_template.md               organisation profile template
 ```
 
-Repo only: `tests/` (CI checks, reading-cost budget, installer and scaffold smoke tests, benchmark protocol and recorder), `docs/` (this file, and `docs/history/`: earlier test rounds and source notes, not current guidance).
+Repo only: `tests/` (CI checks, reading-cost budget, the audit checks, every example rendered, installer and scaffold smoke tests, benchmark protocol and recorder), `docs/AUDIT.md` (the audit checklist and findings log), `AGENTS.md` (for work on the kit itself), `docs/` (this file, and `docs/history/`: earlier test rounds and source notes, not current guidance).
 
 ## Known limits
 

@@ -2,7 +2,7 @@
 // Creates a React + TypeScript app in this folder, next to the kit's own files, ready for the first Fluent screen:
 // the framework's starter (Vite, or Next.js App Router with --next), its dependencies plus Fluent, the theme from the
 // brand decision, the app wrapped in AppProvider, and none of the starter's demo styling.
-// Usage: node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> [--lang en] [--next]
+// Usage: node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> [--lang en] [--title "App name"] [--next]
 // The folder must not have a package.json yet. Starters refuse a folder that is not empty (and --overwrite would
 // delete the kit), so this one builds in a subfolder and moves the files up without replacing any.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -29,7 +29,7 @@ if (!/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(lang)) fail(`--lang must be a langu
 
 const folder = basename(root);
 const name = folder.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "app";
-const title = folder.replace(/[-_]+/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+const title = (opt("--title") || folder.replace(/[-_]+/g, " ").replace(/^\w/, (c) => c.toUpperCase())).replace(/[<>"]/g, "").trim(); // the product name; the folder name is a fallback
 const shell = process.platform === "win32";
 const run = (cmd, a, cwd = root) => {
   const r = spawnSync(cmd, a, { cwd, encoding: "utf8", shell, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, CI: "1", npm_config_yes: "true" } });
@@ -103,9 +103,9 @@ createRoot(document.getElementById("root")!).render(
   writeFileSync(join(root, "src/App.tsx"), `${firstScreen}export default function App() {\n  return <main />;\n}\n`);
 }
 
-// 4. Dependencies, then Fluent.
-console.log("Installing dependencies and Fluent UI...");
-run("npm", ["install", "--no-audit", "--no-fund", "--loglevel=error"]);
+// 4. The starter's dependencies and Fluent in one install (two installs in a row doubled the wait, long enough for an
+// agent's terminal to give up and end its turn).
+console.log("Installing dependencies and Fluent UI (1 to 3 minutes; wait for the Done line)...");
 run("npm", ["install", "--no-audit", "--no-fund", "--loglevel=error", "@fluentui/react-components", "@fluentui/react-icons"]);
 
 // 5. The brand decision and the theme.

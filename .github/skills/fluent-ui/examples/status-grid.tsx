@@ -10,7 +10,7 @@ interface Group { id: string; name: string; checks: Check[] }
 const STATUS: Record<Status, { label: string; icon: ReactElement; tone: "danger" | "warning" | "neutral" | "success"; problem: boolean }> = {
   unhealthy: { label: "Unhealthy", icon: <DismissCircle16Filled />, tone: "danger", problem: true },
   degraded: { label: "Degraded", icon: <Warning16Filled />, tone: "warning", problem: true },
-  unknown: { label: "Unknown", icon: <QuestionCircle16Regular />, tone: "neutral", problem: false },
+  unknown: { label: "Unknown", icon: <QuestionCircle16Regular />, tone: "warning", problem: true }, // no data is not "fine"
   healthy: { label: "Healthy", icon: <CheckmarkCircle16Filled />, tone: "success", problem: false },
 };
 const ORDER = Object.keys(STATUS) as Status[];
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
   wrap: { backgroundColor: tokens.colorNeutralBackground1, border: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, borderRadius: tokens.borderRadiusMedium },
   summary: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: tokens.spacingHorizontalM, padding: tokens.spacingHorizontalM },
   table: { tableLayout: "fixed", [NARROW]: { display: "block" } },
-  narrowBlock: { [NARROW]: { display: "block" } },
+  narrowBlock: { [NARROW]: { display: "block", height: "auto" } },
   head: { [NARROW]: { display: "none" } },
   // Narrow: each row stacks: name and status, then the message, then the action.
   row: { [NARROW]: { display: "flex", flexWrap: "wrap", columnGap: tokens.spacingHorizontalS, padding: tokens.spacingVerticalS } },

@@ -1,7 +1,7 @@
 # New page, section, shell or overlay
 
 **Before you build**
-1. `node .fluent-kit/scripts/context.mjs new-page` (skip it if you came from `tasks/new-app.md`): the theme, language, the repo's own guidance, `PROFILE.md` and the standard card style, in one call.
+1. `node .fluent-kit/scripts/context.mjs new-page` (skip it if you came from `tasks/new-app.md`).
 2. Reuse the project's existing component or page for the job, and the standard card style.
 3. Brief, three lines, first: who uses it, the job, how much data, what can go wrong, what they see in five seconds. Cannot answer who, job or how much: ask once.
 4. Open the pattern card and its example. Copy the structure, not the placeholder data.

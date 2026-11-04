@@ -9,7 +9,7 @@ app="$base/billing-portal"
 mkdir -p "$app" && cd "$app" && git init -q
 node "$OLDPWD/install.mjs" . </dev/null >/dev/null
 git add -A && git -c user.email=t@t -c user.name=t commit -qm kit
-node .fluent-kit/scripts/scaffold.mjs --brand "#0f6cbd" --lang nl | grep -q 'Done: Vite app "billing-portal"'
+node .fluent-kit/scripts/scaffold.mjs --brand "#0f6cbd" --lang nl --title "Billing portal" | grep -q 'Done: Vite app "billing-portal"'
 test -f .fluent-kit/scripts/check.mjs && test -f .github/skills/fluent-ui/SKILL.md     # the kit survived the starter
 test ! -e fluent-kit-scaffold && test ! -e src/index.css && test ! -e src/App.css
 grep -q '<html lang="nl">' index.html && grep -q '<title>Billing portal</title>' index.html

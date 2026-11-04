@@ -1,6 +1,6 @@
 {
   "name": "@javiergoodall99/fluent-kit",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Makes GitHub Copilot and other coding agents build React UI with Fluent UI v9, Fluent icons and design tokens only.",
   "license": "MIT",
   "author": "Javier Goodall",
@@ -47,7 +47,9 @@
     "test:finish": "node tests/check-finish.test.mjs",
     "test:doctor": "node tests/doctor.test.mjs",
     "test:context": "node tests/context.test.mjs",
-    "test:scaffold": "bash tests/scaffold-smoke.sh"
+    "test:scaffold": "bash tests/scaffold-smoke.sh",
+    "audit": "node tests/audit.mjs && node tests/reading-cost.mjs && node tests/links.mjs && node tests/render-examples.mjs",
+    "test:examples": "node tests/render-examples.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -58,9 +60,12 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.2.0",
     "@types/react-window": "^1.8.8",
+    "axe-core": "^4.14.0",
+    "esbuild": "^0.28.2",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",
     "js-tiktoken": "^1.0.21",
+    "playwright-core": "^1.64.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-window": "^1.8.11",
