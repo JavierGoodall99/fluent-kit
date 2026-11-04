@@ -5,7 +5,8 @@
 //   stock    no custom brand: uses Microsoft's webLightTheme / webDarkTheme
 //   --next   Next.js App Router: adds "use client" and the Griffel style registry needed for server rendering
 //   --out    file to write (default: print to stdout)
-// The provider follows the OS light/dark setting without causing a hydration mismatch.
+// The provider follows the OS light/dark setting without causing a hydration mismatch, and removes the browser's
+// default body margin (otherwise the page background stops 8px short of the window, a white frame in dark mode).
 // This generated file is the one place raw hex is allowed. No dependencies.
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
@@ -46,6 +47,13 @@ if (stock) {
 const nextImports = next ? "  RendererProvider,\n  SSRProvider,\n  createDOMRenderer,\n  renderToStyleElements,\n" : "";
 const reactImport = next ? 'import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";\nimport { useServerInsertedHTML } from "next/navigation";' : 'import { useSyncExternalStore, type ReactNode } from "react";';
 const body = `
+// The page background reaches the window edge: no browser default margin around the app.
+const useGlobalStyles = makeStaticStyles({ body: { margin: 0 } });
+function GlobalStyles() {
+  useGlobalStyles();
+  return null;
+}
+
 function subscribeDark(onChange: () => void) {
   const query = window.matchMedia("(prefers-color-scheme: dark)");
   query.addEventListener("change", onChange);
@@ -76,7 +84,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <RendererProvider renderer={renderer}>
       <SSRProvider>
-        <FluentProvider theme={dark ? darkTheme : lightTheme}>{children}</FluentProvider>
+        <FluentProvider theme={dark ? darkTheme : lightTheme}><GlobalStyles />{children}</FluentProvider>
       </SSRProvider>
     </RendererProvider>
   );
@@ -84,10 +92,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 ` : `
 export function AppProvider({ children }: { children: ReactNode }) {
   const dark = useSystemDark();
-  return <FluentProvider theme={dark ? darkTheme : lightTheme}>{children}</FluentProvider>;
+  return <FluentProvider theme={dark ? darkTheme : lightTheme}><GlobalStyles />{children}</FluentProvider>;
 }
 `}`;
 
-const file = `${next ? '"use client";\n\n' : ""}${header}// This file is the one place raw hex is allowed.\nimport {\n  ${imports}\n  FluentProvider,\n  type Theme,\n${nextImports}} from "@fluentui/react-components";\n${reactImport}\n\n${themes}${body}`;
+const file = `${next ? '"use client";\n\n' : ""}${header}// This file is the one place raw hex is allowed.\nimport {\n  ${imports}\n  FluentProvider,\n  makeStaticStyles,\n  type Theme,\n${nextImports}} from "@fluentui/react-components";\n${reactImport}\n\n${themes}${body}`;
 if (out) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, file); console.log(`wrote ${out}`); }
 else process.stdout.write(file);

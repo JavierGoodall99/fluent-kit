@@ -68,6 +68,16 @@ try {
     assert.match(m, /make-theme\.mjs #0f6cbd --out src\/theme\.tsx/);
   } finally { rmSync(v8, { recursive: true, force: true }); }
 
+  // An empty folder (only the kit): no package.json, and the one command that creates the app; never "install Fluent" into nothing.
+  const empty = mkdtempSync(join(tmpdir(), "fk-context-empty-"));
+  try {
+    const e = spawnSync(process.execPath, [join(kit, "context.mjs"), "new-app"], { cwd: empty, encoding: "utf8" }).stdout;
+    assert.match(e, /Result: +no package\.json/);
+    assert.match(e, /Setup: +no app yet\. Create it in this folder with: node \.fluent-kit\/scripts\/scaffold\.mjs --brand <#hex\|stock> --lang <code>/);
+    assert.doesNotMatch(e, /npm install @fluentui/);
+    assert.match(e, /Brand: +none yet: ask for the brand hex or "stock"/);
+  } finally { rmSync(empty, { recursive: true, force: true }); }
+
   // --no-cache reads but never writes (the installer's dry run).
   rmSync(join(dir, ".fluent-kit/context.json"));
   ctx("restyle", "--no-cache");

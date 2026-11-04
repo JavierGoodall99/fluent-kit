@@ -24,7 +24,8 @@ const useStyles = makeStyles({
   head: { [NARROW]: { display: "none" } },
   // Narrow: each row stacks: name and status, then the message, then the action.
   row: { [NARROW]: { display: "flex", flexWrap: "wrap", columnGap: tokens.spacingHorizontalS, padding: tokens.spacingVerticalS } },
-  cell: { verticalAlign: "top", paddingTop: tokens.spacingVerticalS, paddingBottom: tokens.spacingVerticalS, [NARROW]: { display: "block", width: "auto", padding: 0 } },
+  // Fluent fixes a cell at 44px high: as a block on a phone that cap makes the next cell cover the text, so let it grow.
+  cell: { verticalAlign: "top", paddingTop: tokens.spacingVerticalS, paddingBottom: tokens.spacingVerticalS, [NARROW]: { display: "block", width: "auto", height: "auto", padding: 0 } },
   full: { [NARROW]: { flexBasis: "100%" } },
   wName: { width: "22%" }, wStatus: { width: "132px" }, wAction: { width: "96px" },
   group: { backgroundColor: tokens.colorNeutralBackground2 },

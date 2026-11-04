@@ -247,6 +247,35 @@ if (!browser) {
   console.error(`fluent-kit verify: NOT RUN, no browser could start (${(launchErrors[0] || "unknown error").slice(0, 160)}). Do not retry: say in your reply that the UI was not verified. The person fixes it once by installing Microsoft Edge or Google Chrome, or with: ${SETUP_CMD}`);
   process.exit(2);
 }
+// A control drawn on top of text it does not belong to (a fixed height or an absolute position that does not fit this
+// width). Things in another layer (an open drawer, menu or tooltip over the page) are left out. Runs in the page.
+function overlapProbe() {
+  const CTRL = ".fui-Button, .fui-Link, .fui-Input, .fui-Dropdown, .fui-Combobox, .fui-Checkbox, .fui-Switch";
+  const layer = (el) => el.closest("[data-portal-node], [role=dialog], [role=menu], [role=listbox], [role=tooltip]");
+  const ctrls = [...document.querySelectorAll(CTRL)].filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== "hidden"; });
+  if (!ctrls.length || ctrls.length > 400) return [];
+  const texts = [];
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let t = w.nextNode(); t && texts.length < 3000; t = w.nextNode()) {
+    const el = t.parentElement;
+    if (!el || !t.textContent.trim() || el.closest(CTRL) || el.closest("[aria-hidden=true]")) continue;
+    const cs = getComputedStyle(el); if (cs.visibility === "hidden" || cs.opacity === "0") continue;
+    const range = document.createRange(); range.selectNodeContents(t);
+    for (const r of range.getClientRects()) if (r.width && r.height) texts.push({ r, el, t: t.textContent.trim() });
+  }
+  const out = [];
+  for (const c of ctrls) {
+    const a = c.getBoundingClientRect();
+    for (const x of texts) {
+      if (c.contains(x.el) || x.el.contains(c) || layer(c) !== layer(x.el)) continue;
+      const b = x.r, iw = Math.min(a.right, b.right) - Math.max(a.left, b.left), ih = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (iw > 4 && ih > 4 && iw * ih > 0.3 * Math.min(a.width * a.height, b.width * b.height)) { out.push(`"${(c.textContent || c.getAttribute("aria-label") || "").trim().slice(0, 20)}" covers "${x.t.slice(0, 30)}"`); break; }
+    }
+    if (out.length >= 4) break;
+  }
+  return out;
+          }
+const overlapMsg = (list) => `A control covers text: ${list.join("; ")}. Usually a fixed height or an absolute position that does not fit this width (a stacked Fluent TableCell needs height: "auto").`;
 let loaded = 0;
 async function runAxe(page, where) {
   if (!axeSource) return;
@@ -379,6 +408,10 @@ renders: for (const url of urls) {
           }).slice(0, 4).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}`),
         };
       });
+      // An app that crashes on load shows an empty page, so every other check would only repeat the crash: report the crash alone.
+      const crashed = info.emptyBody && errors.length > 0;
+      if (crashed) note("error", where, `The app crashed on load (the page is empty). Fix this console error first; nothing else was checked: ${[...new Set(errors)].slice(0, 2).join(" | ")}`);
+      else {
       if (!info.provider && info.v8) note("warn", where, "This page is Fluent UI v8 (ms- classes) with no v9 FluentProvider. Expected until a v8-to-v9 migration starts; do not convert the app unless asked. Migrating: tasks/migrate-v8.md (its first step puts the v9 FluentProvider around the v8 ThemeProvider). Otherwise, never mix v8 and v9 in new code without asking.");
       else if (!info.provider) note("error", where, "No FluentProvider on the page. Fluent components will be unstyled. Wrap the app in FluentProvider with the project theme.");
       if (info.provider && info.font && !/Segoe UI/i.test(info.font)) note("warn", where, `Page font is '${info.font.slice(0, 50)}', not Segoe UI. Use the theme's font (tokens.fontFamilyBase).`);
@@ -404,9 +437,12 @@ renders: for (const url of urls) {
       const tab = errors.filter(isTabsterOnly);
       if (real.length) note("error", where, `Console errors: ${[...new Set(real)].slice(0, 3).join(" | ")}`);
       if (errors.some(isMsalRace)) note("warn", where, "MSAL reported interaction_in_progress: the app started a sign-in while another was still running. Not caused by a UI change; do not chase it in this task. (App fix, separately: only call loginRedirect/acquireTokenRedirect when inProgress === InteractionStatus.None.)");
+      const overlaps = await page.evaluate(overlapProbe).catch(() => []);
+      if (overlaps.length) note("warn", where, overlapMsg(overlaps));
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
+      }
 
-      await runAxe(page, where);
+      if (!crashed) await runAxe(page, where);
 
       const file = join(outDir, `${slug(url)}-${scheme}-${width}.png`);
       const firstFile = file.replace(/\.png$/, "-first.png");
@@ -431,6 +467,8 @@ renders: for (const url of urls) {
         if (opened) {
           shotFor.set(`${where} after clicking ${clickSteps.join(" then ")}`, file.replace(/\.png$/, "-open.png"));
           await runAxe(page, `${where} after clicking ${clickSteps.join(" then ")}`);
+          const openOverlaps = await page.evaluate(overlapProbe).catch(() => []);
+          if (openOverlaps.length) note("warn", `${where} after clicking ${clickSteps.join(" then ")}`, overlapMsg(openOverlaps));
           await page.screenshot({ path: file.replace(/\.png$/, "-open.png") });
           shots.push(file.replace(/\.png$/, "-open.png"));
           if (scheme === schemes[0]) firstShots.push([`${where} after click`, file.replace(/\.png$/, "-open.png")]);
