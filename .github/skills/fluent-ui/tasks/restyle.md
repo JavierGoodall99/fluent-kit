@@ -12,7 +12,6 @@
 - One visual rank: one thing is biggest. Hierarchy from type size, weight and space before borders, boxes and colour.
 - A uniform card grid with scrolling cards stays uniform: fix problems inside it, not its size.
 - Muted is not invisible: "off" or "not set up" items use `colorNeutralForeground3` with the state in words, never `opacity`.
-- No dead ends: no greyed link to a page that does not exist.
 - Changing a shared component other pages use: say which pages it affects.
 
 **Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page`. Answer the critique `verify` prints from the contact sheet once; change the page only where an answer is no.

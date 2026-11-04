@@ -117,4 +117,4 @@ const t = spawnSync(process.execPath, [join(here, "make-theme.mjs"), brand, ...(
 if (t.status !== 0) fail(`the app is created, but the theme is not:\n${(t.stderr || t.stdout).trim()}\nOffer the person the darker shade, then run: node .fluent-kit/scripts/make-theme.mjs <#hex> ${next ? "--next " : ""}--out ${themeOut}`, 2);
 
 console.log(`Done: ${next ? "Next.js" : "Vite"} app "${name}" (lang ${lang}, ${brand === "stock" ? "stock theme" : `brand ${brand}`}), Fluent installed, ${themeOut} written and the app wrapped in AppProvider.
-Next: the first screen, from tasks/new-page.md step 2, in ${next ? "app/page.tsx" : "src/App.tsx"}. Finish with: node .fluent-kit/scripts/check.mjs --finish --page /`);
+Next: the first screen, from tasks/new-page.md step 2. ${next ? "app/page.tsx" : "src/App.tsx"} already exists: edit it. Finish with: node .fluent-kit/scripts/check.mjs --finish --page /`);
