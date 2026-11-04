@@ -56,6 +56,9 @@ jobs:
       - name: Installer smoke test
         run: bash tests/installer-smoke.sh
 
+      - name: Scaffold smoke test (empty folder to a type-checked Fluent app)
+        run: bash tests/scaffold-smoke.sh
+
   # The scripts spawn git, tsc and npm, build paths and read files: the parts that differ between systems.
   platform:
     strategy:
