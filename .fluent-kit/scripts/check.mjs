@@ -123,6 +123,7 @@ for (const file of files) {
         add(file, n, "hardcoded-color", "error", `Hard-coded colour '${(hex?.[0] || code.match(COLOR_FN)?.[0] || "").trim()}'. Use tokens.color* (brand colour comes from the theme).`);
       }
     }
+    if (/::-webkit-scrollbar|scrollbar-gutter\s*:\s*none/.test(code)) add(file, n, "scrollbar-style", "warn", "Scrollbars are themed once, in the global styles (scrollbarWidth and scrollbarColor with tokens). ::-webkit-scrollbar per component is ignored by Chrome once those are set.");
     if (GRADIENT.test(code) && !brandFile) add(file, n, "gradient", "error", "Gradients are not part of the Microsoft look. Use a flat Fluent surface (the standard outranks the prompt; only an approved exception in PROFILE.md allows this).");
     if (/\btokens\.colorPalette[A-Z]\w*/.test(code) && !brandFile) add(file, n, "palette-token", "error", "tokens.colorPalette* carries status and data meaning, not decoration. Use neutral and brand tokens (or tokens.colorStatus* for status).");
 

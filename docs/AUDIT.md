@@ -32,6 +32,7 @@ Then the manual checks below. Record each result in the log at the bottom: a new
 | AUD-15 | Empty folder to a type-checked Fluent app with one command (Linux, Windows, macOS) | `tests/scaffold-smoke.sh` |
 | AUD-16 | The companion versions `deviations.md` pins are the ones the kit installs and checks against | `tests/audit.mjs` |
 | AUD-17 | Examples size card grids with fixed rows; `check.mjs` flags an uncapped list-fed `Dropdown` and not a capped one | `tests/audit.mjs` |
+| AUD-18 | The scrollbar rule is identical in the generated provider, the line `context.mjs` prints and the demo the examples render with | `tests/audit.mjs` |
 
 ## Manual checks
 
@@ -103,6 +104,10 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-51 | verify took a scrolling card body for the page's scrolling area: it asked for space under the page and made screenshots taller | found while fixing F-48 | fixed 1.7.0 (page-sized scrolling areas only; AUD-09) |
 | F-52 | Reading cost grew: the router gained about 155 tokens on every route and pages that show data read the alignment card (list restyle 2566 to 3188 tokens, new status page 4668 to 5307) | 1.7.0 | open: measure quality against credits in MAN-01; F-39 (a path-scoped block) is the other lever |
 | F-53 | Numbers right-aligned and label and value pairs lined up are judged by a person only | 1.7.0 | open (MAN-06) |
+| F-54 | Scrollbars were the browser's default (thick, arrow buttons, a bright track in dark mode) in cards, lists and Fluent's dropdowns; the kit had no rule | Customer feedback 2 | fixed 1.7.1 (one global rule in the generated provider, a `context.mjs` line for an app without it, the `SKILL.md` rule, verify probe, `check.mjs` `scrollbar-style`; AUD-09, AUD-18) |
+| F-55 | The page's own scrollbar sits outside the provider and cannot read tokens | 1.7.1 | partly fixed: new apps follow the system scheme (`color-scheme` in the generated provider); an existing app keeps its page scrollbar |
+| F-56 | verify's screenshots hide scrollbars (Playwright's headless default), so the contact-sheet critique cannot see them | 1.7.1 | open: the probe checks the style instead; showing them would change layout widths |
+| F-57 | Content ran flush against the scrollbar (customer screenshot: status text touching the track) | Customer feedback 2 | fixed 1.7.1 (`scrollbarGutter: "stable"` in the card rule and examples); not machine-checked |
 
 ## Runs
 

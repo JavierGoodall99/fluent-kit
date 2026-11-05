@@ -21,7 +21,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSy
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
-import { gridProbe, overlapProbe, popupProbe } from "./probes.mjs";
+import { gridProbe, overlapProbe, popupProbe, scrollbarProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
@@ -261,6 +261,7 @@ if (!browser) {
   process.exit(2);
 }
 const overlapMsg = (list) => `A control covers text: ${list.join("; ")}. Usually a fixed height or an absolute position that does not fit this width (a stacked Fluent TableCell needs height: "auto").`;
+const scrollMsg = (list) => `Scrolling areas use the browser's default scrollbar: ${list.join("; ")}. Theme it once in the global styles, never per component: context.mjs prints the rule.`;
 const gridMsg = (list) => `Cards in a grid are not one size (${list.join("; ")}). Fixed rows, and the card body scrolls: SKILL.md, "Every page".`;
 const popupMsg = (list) => `An open list is too tall: ${list.join("; ")}. Cap it at 320px so it scrolls: SKILL.md, "Every page".`;
 let loaded = 0;
@@ -430,6 +431,8 @@ renders: for (const url of urls) {
       if (grids.length) note("warn", where, gridMsg(grids));
       const tall = await page.evaluate(popupProbe).catch(() => []);
       if (tall.length) note("warn", where, popupMsg(tall));
+      const bars = await page.evaluate(scrollbarProbe).catch(() => []);
+      if (bars.length) note("warn", where, scrollMsg(bars));
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
       }
 
@@ -462,6 +465,8 @@ renders: for (const url of urls) {
           if (openOverlaps.length) note("warn", `${where} after clicking ${clickSteps.join(" then ")}`, overlapMsg(openOverlaps));
           const openTall = await page.evaluate(popupProbe).catch(() => []);
           if (openTall.length) note("warn", `${where} after clicking ${clickSteps.join(" then ")}`, popupMsg(openTall));
+          const openBars = await page.evaluate(scrollbarProbe).catch(() => []);
+          if (openBars.length) note("warn", `${where} after clicking ${clickSteps.join(" then ")}`, scrollMsg(openBars));
           await page.screenshot({ path: file.replace(/\.png$/, "-open.png") });
           shots.push(file.replace(/\.png$/, "-open.png"));
           if (scheme === schemes[0]) firstShots.push([`${where} after click`, file.replace(/\.png$/, "-open.png")]);

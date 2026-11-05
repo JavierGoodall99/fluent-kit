@@ -17,7 +17,7 @@ const useStyles = makeStyles({
   card: { minWidth: 0, minHeight: 0, rowGap: tokens.spacingVerticalL, padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
   description: { color: tokens.colorNeutralForeground3 },
   // One grid for all rows, so every value lines up. The body scrolls when the rows do not fit; the card keeps its size.
-  rows: { flexGrow: 1, minHeight: 0, overflowY: "auto", display: "grid", gridTemplateColumns: "1fr auto", alignContent: "start", columnGap: tokens.spacingHorizontalM, rowGap: tokens.spacingVerticalS },
+  rows: { flexGrow: 1, minHeight: 0, overflowY: "auto", scrollbarGutter: "stable", display: "grid", gridTemplateColumns: "1fr auto", alignContent: "start", columnGap: tokens.spacingHorizontalM, rowGap: tokens.spacingVerticalS },
   label: { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   value: { justifySelf: "end", fontVariantNumeric: "tabular-nums" },
 });

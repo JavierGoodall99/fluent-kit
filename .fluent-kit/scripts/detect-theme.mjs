@@ -39,13 +39,14 @@ const OTHER_ICONS = Object.keys(deps).filter(matches(RULES.iconLibraries));
 const OTHER_UI = Object.keys(deps).filter((n) => !OTHER_ICONS.includes(n) && matches(RULES.uiLibraries)(n));
 
 // 2. source signals
-const sig = { providers: [], createTheme: [], stockTheme: [], v8: [], tokenOverrides: [] };
+const sig = { providers: [], createTheme: [], stockTheme: [], v8: [], tokenOverrides: [], scrollbars: false };
 const RAMP_KEYS = [10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160];
 let ramp = null, rampFile = null;
 for (const f of files) {
   const t = readFileSync(f, "utf8");
   const rel = relative(root, f);
   if (/<FluentProvider\b/.test(t)) sig.providers.push(rel);
+  if (/\bscrollbar(?:Width|Color)\b|scrollbar-(?:width|color)/.test(t)) sig.scrollbars = true;
   if (/\bcreate(Light|Dark)Theme\s*\(/.test(t)) sig.createTheme.push(rel);
   if (/\b(web|teams)(Light|Dark)Theme\b/.test(t)) sig.stockTheme.push(rel);
   if (/from\s+["']@fluentui\/react(\/|["'])/.test(t) || /from\s+["']office-ui-fabric-react/.test(t)) sig.v8.push(rel);
@@ -244,6 +245,8 @@ const out = {
   kind, advice, brandAdvice,
   otherUiLibraries: OTHER_UI.filter(has),
   themeFiles: [...new Set([...sig.createTheme, ...sig.stockTheme])].slice(0, 5),
+  scrollbars: sig.scrollbars,
+  providerFile: sig.providers[0] || null,
   setup: { hasPackageJson, packageManager: pm, missingDeps, installCmd },
   existingGuidance,
   framework,

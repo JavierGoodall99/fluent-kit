@@ -45,7 +45,9 @@ const extra = (c, example) => (DATA.has(c.name) && align ? align.tokens + (examp
 // Budgets in tokens, and tool calls before the first edit (independent reads in one parallel call) and to finish.
 // 1.7.0: restyle 2750 to 3250, new page 4900 to 5350, new app 5400 to 5950, SKILL.md 850 to 1000. The router gained the
 // card-grid and popup rules (about 155 tokens, every route) and pages that show data read patterns/alignment.md.
-const BUDGET = { block: 260, smallFix: 800, restyle: 3250, newPage: 5350, newApp: 5950, migrate: 3300 };
+// 1.7.1: restyle 3250 to 3350, new page 5350 to 5450, migrate 3300 to 3350, SKILL.md 1000 to 1050 (the scrollbar rule, about 40
+// tokens on every route; the context line for an app without it is counted in restyle and new page).
+const BUDGET = { block: 260, smallFix: 800, restyle: 3350, newPage: 5450, newApp: 5950, migrate: 3350 };
 const rows = [];
 const add = (name, cost, budget, calls) => rows.push({ name, cost, budget, calls });
 add("always-on block", block, BUDGET.block, "-");
@@ -58,7 +60,7 @@ const biggest = cards.reduce((a, c) => (c.tokens > a.tokens ? c : a));
 add(`migrate (screen ${biggest.name}): block, SKILL, context, tasks/migrate-v8 + card`, block + router + ctx.migrate + task("migrate-v8") + biggest.tokens, BUDGET.migrate, "3 + 1");
 
 const limits = [
-  ["SKILL.md", router, 1000], ["deviations.md", deviations, 500],
+  ["SKILL.md", router, 1050], ["deviations.md", deviations, 500],
   ...["small-fix", "restyle", "new-page", "new-app", "migrate-v8"].map((n) => [`tasks/${n}.md`, task(n), n === "small-fix" ? 300 : n === "migrate-v8" ? 1100 : 700]),
   ...cards.map((c) => [`patterns/${c.name}.md`, c.tokens, 650]),
   ...Object.entries(ctx).map(([r, n]) => [`context.mjs ${r} output`, n, 700]),
