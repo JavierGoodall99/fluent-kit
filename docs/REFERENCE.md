@@ -45,7 +45,7 @@ By hand: copy `.fluent-kit/` and `.github/skills/` into the repo root and paste 
 **`verify.mjs`** starts the dev server (`dev` script, or `--cmd`), opens the page in a real browser, saves screenshots and one `contact-sheet.png` to `.fluent-kit/out/`, and reports in three levels:
 
 - **ERROR** (must fix): no `FluentProvider`, sideways page scroll, controls cut off, console errors, serious accessibility problems, an empty page. An app that crashes on load is reported once, as the crash, with nothing else checked.
-- **warn** (fix if the change caused it): a control drawn over text, cards in one grid that are not one size, a dropdown or menu taller than 340px when open (`--click` opens it), font, tiny controls, containers that scroll sideways on a phone, non-Fluent controls, minor accessibility problems.
+- **warn** (fix if the change caused it): a control drawn over text, cards in one grid that are not one size, a dropdown or menu taller than 340px when open (`--click` opens it), a scrolling area still on the browser's default scrollbar, font, tiny controls, containers that scroll sideways on a phone, non-Fluent controls, minor accessibility problems.
 - **Advisory** (judgement calls, named in the agent's note, never a reason to re-run): long lines, words on the first screen, flat cards, repeated text, space at the bottom, dark mode.
 
 Each problem names the first-screen screenshot that shows it. If verify cannot run it prints `NOT RUN`, and the agent says the UI was not verified; it never installs packages itself.
@@ -54,7 +54,7 @@ Sign-in: the first run that lands on a sign-in page opens Edge on `.verify-profi
 
 ## The rules check
 
-`check.mjs` (no dependencies) reports hard-coded colours, spacing and fonts; other UI or icon libraries; Fluent v8; native `<button>`, `<input>`, `<select>`, `<a>`, `<table>` and friends; Fluent `Select` and `Input type="date|time|range"`; inline styles; icon-only buttons without a name; `<img>` without alt; gradients; `tokens.colorPalette*` as decoration (errors); Tailwind colour classes and style libraries, and a `Dropdown`, `Combobox` or long `Menu` fed from a list with no height cap (warnings). Exit code 1 on errors.
+`check.mjs` (no dependencies) reports hard-coded colours, spacing and fonts; other UI or icon libraries; Fluent v8; native `<button>`, `<input>`, `<select>`, `<a>`, `<table>` and friends; Fluent `Select` and `Input type="date|time|range"`; inline styles; icon-only buttons without a name; `<img>` without alt; gradients; `tokens.colorPalette*` as decoration (errors); Tailwind colour classes and style libraries, and a `Dropdown`, `Combobox` or long `Menu` fed from a list with no height cap (warnings, and `::-webkit-scrollbar` styling (warnings). Exit code 1 on errors.
 
 - `--changed`: only files changed in git. `--json`: machine-readable.
 - `--baseline`: record today's findings in `.fluent-kit/baseline.json`; later runs fail only on new ones. Use it once in a repo with old violations.
@@ -69,7 +69,7 @@ For other CI systems (Azure DevOps, GitLab), run `node .fluent-kit/scripts/check
 
 An empty folder (or one holding only the kit): `node .fluent-kit/scripts/scaffold.mjs --brand <#hex|stock> --lang <code> [--title "App name"] [--next]` creates a Vite (or Next.js App Router) + TypeScript app next to the kit's files, installs it with Fluent, writes the theme and wraps the app, without the starter's demo styling. Starters refuse a folder that is not empty (and their `--overwrite` would delete the kit), so it builds in a subfolder and moves the files up.
 
-`make-theme.mjs` writes a theme and provider for Vite or Next.js App Router (it also removes the browser's default body margin, which otherwise leaves a white frame around the page); `generate-ramp.mjs` builds the 16-step ramp (your colour at step 80, Microsoft's curve, contrast checks). For Microsoft's blue it reproduces the default ramp exactly. An official ramp from a designer always wins.
+`make-theme.mjs` writes a theme and provider for Vite or Next.js App Router (it also removes the browser's default body margin, which otherwise leaves a white frame around the page, and themes every scrollbar: thin, with a thumb from `colorNeutralStrokeAccessible`, Fluent's dropdowns and menus included); `generate-ramp.mjs` builds the 16-step ramp (your colour at step 80, Microsoft's curve, contrast checks). For Microsoft's blue it reproduces the default ramp exactly. An official ramp from a designer always wins.
 
 Fluent v8 apps migrate screen by screen (`tasks/migrate-v8.md`): baseline the v8 imports, v9 provider around the v8 one, a v8-to-v9 component table, v8 removed when no screen uses it.
 
@@ -105,7 +105,7 @@ Named colours (`"red"`) and border widths like `"1px solid"` are not checked. A 
   examples/*.tsx                      type-checked skeletons, 150 lines at most, each named by its card
 .fluent-kit/
   scripts/check.mjs, verify.mjs       the rules check and the browser check (verify --setup, --login)
-  scripts/probes.mjs                  what verify asks the page: control over text, uneven card grids, tall popups
+  scripts/probes.mjs                  what verify asks the page: control over text, uneven card grids, tall popups, default scrollbars
   scripts/context.mjs                 one call at the start of a task
   scripts/scaffold.mjs                a new app in an empty folder, ready for the first screen
   scripts/detect-theme.mjs, consistency.mjs, generate-ramp.mjs, make-theme.mjs, doctor.mjs, lib.mjs

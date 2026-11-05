@@ -39,8 +39,9 @@ No card fits: `tasks/new-page.md`.
 - Controls keep the 4px theme radius. **Cards** (dashboard, board, gallery cards and settings groups): `borderRadiusXLarge` (8px, not the 6px `borderRadiusLarge`) and `shadow4`.
 - One `primary` button per view. Never set Fluent's own sizes, paddings, shadows or dialog and drawer titles by hand.
 - No dead ends: leave out a link, button or menu with nothing behind it, and name it in the note.
-- A grid of cards is one size: fixed rows (`gridAutoRows`: 250px, 380px with a chart), each card fills its row, its body scrolls (`flexGrow: 1`, `minHeight: 0`, `overflowY: "auto"`, `tabIndex={0}`). Content never sets a card's size.
+- A grid of cards is one size: fixed rows (`gridAutoRows`: 250px, 380px with a chart), each card fills its row, its body scrolls (`flexGrow: 1`, `minHeight: 0`, `overflowY: "auto"`, `tabIndex={0}`, `scrollbarGutter: "stable"`). Content never sets a card's size.
 - A long popup list is capped at 320px and scrolls. `Dropdown`, `Combobox`: `positioning={{ autoSize: false }}` and `listbox={{ className }}` with `maxHeight` (its `style` is overridden). `Menu`: `maxHeight` on `MenuPopover`.
+- Scrollbars are thin and themed once, in the global styles, never per component (`context.mjs` prints the rule when missing).
 - Pages with values, rows or several blocks: `patterns/alignment.md`.
 
 Type roles the cards name:

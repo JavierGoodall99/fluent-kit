@@ -47,8 +47,14 @@ if (stock) {
 const nextImports = next ? "  RendererProvider,\n  SSRProvider,\n  createDOMRenderer,\n  renderToStyleElements,\n" : "";
 const reactImport = next ? 'import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";\nimport { useServerInsertedHTML } from "next/navigation";' : 'import { useSyncExternalStore, type ReactNode } from "react";';
 const body = `
-// The page background reaches the window edge: no browser default margin around the app.
-const useGlobalStyles = makeStaticStyles({ body: { margin: 0 } });
+// The page background reaches the window edge (no browser margin), and every scrollbar in the app is thin and themed,
+// Fluent's own lists, menus and drawers included. Never style a scrollbar per component. The page's own scrollbar
+// (the root element is outside the provider, so it cannot read tokens) follows the system scheme, like the app.
+const useGlobalStyles = makeStaticStyles({
+  html: { colorScheme: "light dark" },
+  body: { margin: 0 },
+  "*": { scrollbarWidth: "thin", scrollbarColor: \`\${tokens.colorNeutralStrokeAccessible} transparent\` },
+});
 function GlobalStyles() {
   useGlobalStyles();
   return null;
@@ -96,6 +102,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 }
 `}`;
 
-const file = `${next ? '"use client";\n\n' : ""}${header}// This file is the one place raw hex is allowed.\nimport {\n  ${imports}\n  FluentProvider,\n  makeStaticStyles,\n  type Theme,\n${nextImports}} from "@fluentui/react-components";\n${reactImport}\n\n${themes}${body}`;
+const file = `${next ? '"use client";\n\n' : ""}${header}// This file is the one place raw hex is allowed.\nimport {\n  ${imports}\n  FluentProvider,\n  makeStaticStyles,\n  tokens,\n  type Theme,\n${nextImports}} from "@fluentui/react-components";\n${reactImport}\n\n${themes}${body}`;
 if (out) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, file); console.log(`wrote ${out}`); }
 else process.stdout.write(file);

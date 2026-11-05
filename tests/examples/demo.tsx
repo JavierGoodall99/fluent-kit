@@ -20,6 +20,15 @@ import { StatusGrid } from "../../.github/skills/fluent-ui/examples/status-grid"
 import { TaskBoard } from "../../.github/skills/fluent-ui/examples/task-board";
 
 const useGlobal = makeStaticStyles({ body: { margin: 0 } });
+// The scrollbar rule the kit's generated provider sets (make-theme.mjs); audit AUD-18 keeps the two the same.
+const useScrollbars = makeStaticStyles({
+  html: { colorScheme: "light dark" },
+  "*": { scrollbarWidth: "thin", scrollbarColor: `${tokens.colorNeutralStrokeAccessible} transparent` },
+});
+function Scrollbars() {
+  useScrollbars();
+  return null;
+}
 const usePage = makeStyles({
   page: { minHeight: "100vh", boxSizing: "border-box", padding: tokens.spacingHorizontalXL, backgroundColor: tokens.colorNeutralBackground2 },
 });
@@ -48,6 +57,7 @@ const noop = () => {};
 
 // Fixtures that break the rules on purpose: tests/render-examples.mjs checks that verify reports each one. Never copy these.
 const useBad = makeStyles({
+  scroller: { height: "100px", overflowY: "auto" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: tokens.spacingHorizontalM },
   card: { padding: tokens.spacingHorizontalL, boxShadow: tokens.shadow4 },
 });
@@ -55,6 +65,10 @@ function BadGrid() {
   const s = useBad();
   const lines = [2, 12, 4, 3, 3, 3]; // six cards, two rows: the first row is taller because of its content
   return <div className={s.grid}>{lines.map((n, i) => <Card key={i} className={s.card}><Text>{Array.from({ length: n }, (_, k) => `Line ${k + 1} of card ${i + 1}.`).join(" ")}</Text></Card>)}</div>;
+}
+function BadScrollbar() {
+  const s = useBad();
+  return <div className={s.scroller}>{Array.from({ length: 30 }, (_, i) => <Text key={i} block>{`Row ${i + 1}`}</Text>)}</div>;
 }
 function BadDropdown() {
   return (
@@ -82,6 +96,7 @@ const DEMOS: Record<string, () => ReactNode> = {
   "app-nav": () => <AppNavExample />,
   "bad-dropdown": () => <Page><BadDropdown /></Page>,
   "bad-grid": () => <Page><BadGrid /></Page>,
+  "bad-scrollbar": () => <Page><BadScrollbar /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,
@@ -102,7 +117,7 @@ function App() {
   useGlobal();
   const name = window.location.hash.slice(1);
   const demo = DEMOS[name];
-  return demo ? <>{demo()}</> : <p>Unknown example: {name}</p>;
+  return demo ? <>{!name.startsWith("bad-scrollbar") && <Scrollbars />}{demo()}</> : <p>Unknown example: {name}</p>;
 }
 const root = document.getElementById("root");
 if (root) {
