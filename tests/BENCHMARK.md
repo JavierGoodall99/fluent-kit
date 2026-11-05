@@ -32,6 +32,9 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 | 6 | Make the tenant page look better please | restyle, whole page |
 | 7 | the tabs and toolbar are cut off on my phone | small fix |
 | 8 | Make the activity log KPI cards look like the ones on the home screen | consistency |
+| 9 | make a grid of cards, one per team, showing their open tickets | new page (cards with uneven content; customer case) |
+| 10 | add a customer dropdown to the invoice form, we have about 300 customers | new page (long dropdown; customer case) |
+| 11 | the numbers on the billing page are hard to read, tidy up the spacing and alignment | restyle (customer case) |
 
 ## Old kit results (Javier's runs, 2026-10, kit up to `6fb7ac7`, before the task and pattern split)
 

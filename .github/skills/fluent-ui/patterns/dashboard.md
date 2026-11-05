@@ -9,7 +9,7 @@
 **Shared measurements**
 - Card: the standard card (`SKILL.md`), padding 16px (`spacingHorizontalL`), 16px gap inside.
 - Card title and a caption description; a "..." `Menu` only when the card has real actions.
-- Cards in one row share one height; extra content scrolls inside the card or opens a drawer.
+- Detail that does not fit in a card opens a drawer or a page.
 
 **Dashboard**
 - 12px (`spacingHorizontalM`) between cards; `repeat(auto-fit, minmax(min(100%, 340px), 1fr))`; about 6 cards at most.
@@ -19,7 +19,7 @@
 
 **Gallery**
 - Page title, then sections 20px apart. Section title row 32px high: a section title, "See more" link at the right, 8px above its cards.
-- Cards 12px apart, equal width (`minmax(min(100%, 220px), 1fr)`), about 250px high. The card title is the link; no nested buttons on a clickable card.
+- Cards 12px apart, equal width (`minmax(min(100%, 220px), 1fr)`). The card title is the link; no nested buttons on a clickable card.
 
 **Board**
 - Columns 20px apart; column header (card title style) with the count; a full-width outline "Add" button under it; cards 12px apart.

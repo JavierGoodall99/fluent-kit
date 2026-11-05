@@ -23,7 +23,7 @@ Then the manual checks below. Record each result in the log at the bottom: a new
 | AUD-06 | Commands in cards can be copied as written (no `\|` from markdown tables) | `tests/audit.mjs` |
 | AUD-07 | The kit repo explains itself to agents (`AGENTS.md`, `CLAUDE.md`) | `tests/audit.mjs` |
 | AUD-08 | No card sets a size Fluent already sets | `tests/audit.mjs` |
-| AUD-09 | Every example renders clean at 1440 and 375px: no errors, no control over text, its click-to-open state too | `tests/render-examples.mjs` |
+| AUD-09 | Every example renders clean at 1440 and 375px: no errors, no control over text, no uneven card grid, its click-to-open state too (the form's dropdown is opened and measured); two bad fixtures must still be caught | `tests/render-examples.mjs` |
 | AUD-10 | Reading cost per route stays within budget | `tests/reading-cost.mjs` |
 | AUD-11 | Agent-facing files point only at files that exist; every example is named by a card | `tests/links.mjs` |
 | AUD-12 | `--finish` sizes the check, stops at the first failure, finds `tsc` (TypeScript 5 to 7) | `tests/check-finish.test.mjs` |
@@ -31,6 +31,7 @@ Then the manual checks below. Record each result in the log at the bottom: a new
 | AUD-14 | Installer: one skill copy, blocks in the right files, old files removed, repo-only files not shipped | `tests/installer-smoke.sh` |
 | AUD-15 | Empty folder to a type-checked Fluent app with one command (Linux, Windows, macOS) | `tests/scaffold-smoke.sh` |
 | AUD-16 | The companion versions `deviations.md` pins are the ones the kit installs and checks against | `tests/audit.mjs` |
+| AUD-17 | Examples size card grids with fixed rows; `check.mjs` flags an uncapped list-fed `Dropdown` and not a capped one | `tests/audit.mjs` |
 
 ## Manual checks
 
@@ -41,6 +42,7 @@ Then the manual checks below. Record each result in the log at the bottom: a new
 | MAN-03 | A person looks at the contact sheets of the last runs | Copilot may not see images: the browser checks are then the only visual gate |
 | MAN-04 | Pattern coverage | List the screens asked for in the last runs that no card covers |
 | MAN-05 | A first read of the repo as a new contributor | Open the repo cold: is it clear what ships and what is for work here? |
+| MAN-06 | Customer cases with a real agent | `tests/BENCHMARK.md` prompts 9 to 11: a card grid with uneven content, a form with a 300-option dropdown, spacing and alignment. A person checks the cards are one size, the list scrolls at 320px, numbers line up on the right |
 
 ## Findings log
 
@@ -95,6 +97,12 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-45 | A status page with charts read both cards and both examples (about 1,400 tokens more) | Copilot run 2 | fixed 1.6.3 (`new-page.md`: only the main card's example) |
 | F-46 | The agent tried to create `src/App.tsx`, which the scaffold had made | Copilot run 2 | fixed 1.6.3 (the scaffold's Done line says to edit it) |
 | F-47 | `context.mjs` ran twice: PowerShell showed no output the first time | Copilot run 2 | open: watch in the next runs (terminal, not the kit) |
+| F-48 | Cards in a grid took the height of their content, so they differed in size; the only rule was one line in the dashboard card and two examples used `minHeight` | Customer feedback 1 | fixed 1.7.0 (`SKILL.md` rule, fixed rows in the dashboard, gallery and data-card examples, verify grid probe; AUD-09, AUD-17) |
+| F-49 | A dropdown with a long list ran from the top to the bottom of the window. Fluent caps it at 80% of the window and its positioning writes an inline `max-height`, so a `maxHeight` class on the list does nothing; a `Menu` has no cap at all | Customer feedback 1 | fixed 1.7.0 (the working recipe in `SKILL.md`, measured in a browser; `check.mjs` `popup-height`; verify popup probe; the form example; AUD-09, AUD-17) |
+| F-50 | Spacing and the alignment of data had no rules beyond each card's own pixel values | Customer feedback 1 | fixed 1.7.0 (`patterns/alignment.md`, `examples/data-card.tsx`); only partly machine-checked, so MAN-06 |
+| F-51 | verify took a scrolling card body for the page's scrolling area: it asked for space under the page and made screenshots taller | found while fixing F-48 | fixed 1.7.0 (page-sized scrolling areas only; AUD-09) |
+| F-52 | Reading cost grew: the router gained about 155 tokens on every route and pages that show data read the alignment card (list restyle 2566 to 3188 tokens, new status page 4668 to 5307) | 1.7.0 | open: measure quality against credits in MAN-01; F-39 (a path-scoped block) is the other lever |
+| F-53 | Numbers right-aligned and label and value pairs lined up are judged by a person only | 1.7.0 | open (MAN-06) |
 
 ## Runs
 

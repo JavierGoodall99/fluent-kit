@@ -12,9 +12,9 @@ const useStyles = makeStyles({
   section: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalS, minWidth: 0 },
   sectionRow: { display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "32px", columnGap: tokens.spacingHorizontalS },
   sectionTitle: { margin: 0 },
-  cards: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: tokens.spacingHorizontalM },
-  card: { minWidth: 0, minHeight: "250px", rowGap: tokens.spacingVerticalL, padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
-  preview: { flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: tokens.borderRadiusMedium, backgroundColor: tokens.colorNeutralBackground3, color: tokens.colorNeutralForeground3 },
+  cards: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gridAutoRows: "250px", gap: tokens.spacingHorizontalM },
+  card: { minWidth: 0, minHeight: 0, rowGap: tokens.spacingVerticalL, padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
+  preview: { flexGrow: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: tokens.borderRadiusMedium, backgroundColor: tokens.colorNeutralBackground3, color: tokens.colorNeutralForeground3 },
   meta: { color: tokens.colorNeutralForeground3 },
 });
 

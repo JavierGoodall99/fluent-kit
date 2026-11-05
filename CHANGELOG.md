@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.7.0
+From customer feedback: card grids with cards of different sizes, dropdowns as tall as the window, and weak spacing and alignment of data.
+
+- **Cards in a grid are one size.** `SKILL.md` ("Every page") now says it plainly: fixed rows (`gridAutoRows`, 250px, or 380px with a chart), the card fills its row, its body scrolls. The dashboard and gallery examples follow it (they used `minHeight`, so content set the size), and the new `examples/data-card.tsx` shows it with uneven content.
+- **Long dropdowns and menus are capped at 320px and scroll.** Measured in a browser: Fluent sizes a `Dropdown` list to the window (80%), and its positioning writes an inline `max-height`, so the obvious `maxHeight` class does nothing, and neither does `listbox={{ style }}`. What works: `positioning={{ autoSize: false }}` with `listbox={{ className }}`; a `Menu` has no cap at all, so `maxHeight` goes on `MenuPopover`. The rule is in `SKILL.md`; the form example shows it.
+- **`patterns/alignment.md`**: one spacing scale (4, 8, 12, 16, 20px as tokens), gaps instead of margins, one left edge, numbers right-aligned with tabular figures, label and value pairs in one grid so values line up, empty values shown as "-", long text clamped. Pages that show data read it.
+- **New checks.** `verify` reports cards in one grid that are not one size and an open dropdown or menu taller than 340px. `check.mjs` warns about a `Dropdown` or `Combobox` fed from a list with no height cap (`popup-height`). Both are covered by `tests/render-examples.mjs` (two deliberately broken fixtures must still be caught) and AUD-17.
+- verify no longer takes a scrolling card body for the page's scrolling area (it asked for space under the page and made screenshots too tall).
+- The browser probes moved from `verify.mjs` into `probes.mjs`, so `verify.mjs` is smaller than before.
+- **Reading cost went up** (open finding F-52): the router grew about 155 tokens, and pages that show data read the alignment card. A list restyle reads 3,188 tokens (was 2,566), a new status page 5,307 (was 4,668). Budgets in `tests/reading-cost.mjs` say so.
+- `docs/AUDIT.md`: findings F-48 to F-53, AUD-17, MAN-06. `tests/BENCHMARK.md`: prompts 9 to 11 are the customer cases.
+
 ## 1.6.3
 From the second Copilot run (Windows, Vite, 1 turn, 11m 8s, 45.9 credits; the first run took 2 turns, 18m 27s and 94.6 credits):
 

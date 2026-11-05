@@ -1,7 +1,7 @@
 // Renders every example in the skill with demo data, one per URL hash (#status-grid, #list-page, ...), so CI can open each
 // one in a browser and check it the way verify checks an app. Typed against each example's own props: when an example
 // changes its props, the type check fails here. Used by tests/render-examples.mjs only; never installed.
-import { FluentProvider, makeStaticStyles, makeStyles, tokens, webLightTheme } from "@fluentui/react-components";
+import { Card, Dropdown, FluentProvider, Option, Text, makeStaticStyles, makeStyles, tokens, webLightTheme } from "@fluentui/react-components";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppNavExample } from "../../.github/skills/fluent-ui/examples/app-nav";
@@ -11,6 +11,7 @@ import { EditDrawer } from "../../.github/skills/fluent-ui/examples/edit-drawer"
 import { EmptyState } from "../../.github/skills/fluent-ui/examples/empty-state";
 import { FormPage } from "../../.github/skills/fluent-ui/examples/form-page";
 import { GalleryPage } from "../../.github/skills/fluent-ui/examples/gallery-page";
+import { DataCards } from "../../.github/skills/fluent-ui/examples/data-card";
 import { CustomerListPage } from "../../.github/skills/fluent-ui/examples/large-list";
 import { ItemListPage } from "../../.github/skills/fluent-ui/examples/list-page";
 import { LoadErrorBar } from "../../.github/skills/fluent-ui/examples/notifications";
@@ -45,6 +46,31 @@ const tasks: ComponentProps<typeof TaskBoard>["initial"] = {
 };
 const noop = () => {};
 
+// Fixtures that break the rules on purpose: tests/render-examples.mjs checks that verify reports each one. Never copy these.
+const useBad = makeStyles({
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: tokens.spacingHorizontalM },
+  card: { padding: tokens.spacingHorizontalL, boxShadow: tokens.shadow4 },
+});
+function BadGrid() {
+  const s = useBad();
+  const lines = [2, 12, 4, 3, 3, 3]; // six cards, two rows: the first row is taller because of its content
+  return <div className={s.grid}>{lines.map((n, i) => <Card key={i} className={s.card}><Text>{Array.from({ length: n }, (_, k) => `Line ${k + 1} of card ${i + 1}.`).join(" ")}</Text></Card>)}</div>;
+}
+function BadDropdown() {
+  return (
+    <Dropdown placeholder="Pick a customer" aria-label="Customer">
+      {Array.from({ length: 200 }, (_, i) => <Option key={i}>{`Customer ${i + 1}`}</Option>)}
+    </Dropdown>
+  );
+}
+// Uneven content on purpose: a card with 40 rows next to cards with 3, and one with long labels. They must stay one size.
+const rowsOf = (n: number) => Array.from({ length: n }, (_, i) => ({ label: `Team ${i + 1}`, value: i % 7 === 3 ? null : 1200 * (i + 1) + i }));
+const dataCards: ComponentProps<typeof DataCards>["cards"] = [
+  { title: "Tickets by team", description: "Open tickets, all teams", rows: rowsOf(40) },
+  { title: "Escalations", description: "Last 30 days", rows: rowsOf(3) },
+  { title: "Slowest customers", description: "Median resolution time in hours", rows: [{ label: "Acme Industrial Holdings International (Europe, Middle East and Africa) B.V.", value: 412 }, { label: "Contoso", value: 38 }, { label: "Northwind Traders", value: 7 }] },
+];
+
 function Overlay({ kind }: { kind: "drawer" | "dialog" }) {
   const [open, setOpen] = useState(true);
   return kind === "drawer"
@@ -54,8 +80,11 @@ function Overlay({ kind }: { kind: "drawer" | "dialog" }) {
 
 const DEMOS: Record<string, () => ReactNode> = {
   "app-nav": () => <AppNavExample />,
+  "bad-dropdown": () => <Page><BadDropdown /></Page>,
+  "bad-grid": () => <Page><BadGrid /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
+  "data-card": () => <Page><DataCards cards={dataCards} /></Page>,
   "edit-drawer": () => <Page><Overlay kind="drawer" /></Page>,
   "empty-state": () => <Page><EmptyState title="No invoices yet" description="Invoices you create or import show up here." primary={{ label: "New invoice", onClick: noop }} secondary={{ label: "Import", onClick: noop }} tertiary={{ label: "Learn more", href: "#empty-state" }} /></Page>,
   "form-page": () => <Page><FormPage /></Page>,
