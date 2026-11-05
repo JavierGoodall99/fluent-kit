@@ -107,6 +107,19 @@ const check = (id, title, problems) => results.push({ id, title, problems });
   check("AUD-08", "cards do not repeat Fluent's default sizes", problems);
 }
 
+// AUD-16 The companion versions deviations.md tells agents to install are the ones the kit installs and checks against
+// (the agent pins them without looking them up, so a stale version would ship into every app).
+{
+  const lock = JSON.parse(read("package-lock.json")).packages || {};
+  const problems = [];
+  for (const m of read(K + "deviations.md").matchAll(/`((?:@[\w-]+\/)?[\w-]+)@(\d+\.\d+\.\d+)`/g)) {
+    const have = lock[`node_modules/${m[1]}`]?.version;
+    if (!have) problems.push(`${m[1]}@${m[2]}: not a dev dependency of the kit, so nothing checks it`);
+    else if (have !== m[2]) problems.push(`${m[1]}: deviations.md says ${m[2]}, the kit has ${have}`);
+  }
+  check("AUD-16", "pinned companion versions match the kit's", problems);
+}
+
 let failed = 0;
 for (const r of results) {
   console.log(`${r.problems.length ? "FAIL" : "ok  "}  ${r.id}  ${r.title}`);

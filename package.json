@@ -1,6 +1,6 @@
 {
   "name": "@javiergoodall99/fluent-kit",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Makes GitHub Copilot and other coding agents build React UI with Fluent UI v9, Fluent icons and design tokens only.",
   "license": "MIT",
   "author": "Javier Goodall",
@@ -56,7 +56,9 @@
     "@fluentui-contrib/react-data-grid-react-window": "^1.4.2",
     "@fluentui/react-charts": "^9.3.29",
     "@fluentui/react-components": "^9.75.0",
+    "@fluentui/react-datepicker-compat": "0.6.40",
     "@fluentui/react-icons": "^2.0.344",
+    "@fluentui/react-timepicker-compat": "0.4.42",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.2.0",
     "@types/react-window": "^1.8.8",

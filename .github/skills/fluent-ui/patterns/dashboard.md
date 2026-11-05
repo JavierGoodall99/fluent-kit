@@ -8,12 +8,12 @@
 
 **Shared measurements**
 - Card: the standard card (`SKILL.md`), padding 16px (`spacingHorizontalL`), 16px gap inside.
-- Card title, a caption description, an optional "..." `Menu`.
+- Card title and a caption description; a "..." `Menu` only when the card has real actions.
 - Cards in one row share one height; extra content scrolls inside the card or opens a drawer.
 
 **Dashboard**
 - 12px (`spacingHorizontalM`) between cards; `repeat(auto-fit, minmax(min(100%, 340px), 1fr))`; about 6 cards at most.
-- One idea per card: a title, one chart or number, a one-sentence summary (the chart's text alternative), a "View details" link. Never a sentence repeating the chart.
+- One idea per card: a title, one chart or number, a one-sentence summary (the chart's text alternative), a "View details" link only when a page with those details exists. Never a sentence repeating the chart.
 - A time-range switch (7, 30, 60 days, small `TabList`) sits inside the card it changes.
 - Charts: `@fluentui/react-charts` (a companion package), theme colours, `LineChart` not `AreaChart`. It touches `document` when it loads, so in Next.js import the chart component with `next/dynamic` and `{ ssr: false }`.
 

@@ -30,6 +30,7 @@ Then the manual checks below. Record each result in the log at the bottom: a new
 | AUD-13 | `context.mjs` routes correctly: empty folder, new app, migrate, cache | `tests/context.test.mjs` |
 | AUD-14 | Installer: one skill copy, blocks in the right files, old files removed, repo-only files not shipped | `tests/installer-smoke.sh` |
 | AUD-15 | Empty folder to a type-checked Fluent app with one command (Linux, Windows, macOS) | `tests/scaffold-smoke.sh` |
+| AUD-16 | The companion versions `deviations.md` pins are the ones the kit installs and checks against | `tests/audit.mjs` |
 
 ## Manual checks
 
@@ -86,8 +87,14 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-37 | Not published to npm (`npx github:` downloads the whole repo) | Audit 2 | open |
 | F-38 | No card for detail page, wizard, search results, sign-in, upload, chart-heavy analytics | Audit 2 | open (MAN-04) |
 | F-39 | The always-on block loads on every Copilot request, UI or not | Audit 2 | open: try a path-scoped `.instructions.md` |
-| F-40 | Copilot may not see the contact sheet, so the visual critique does not happen there | Copilot run 1 | open (MAN-03) |
+| F-40 | Copilot may not see the contact sheet, so the visual critique does not happen there | Copilot run 1 | resolved: Copilot run 2 viewed it ("Viewed image"); MAN-03 stays for a person's look |
 | F-41 | `new-app.md` still carries a manual path for a starter that already has a `package.json` | Audit 2 | open: `scaffold.mjs --adopt` |
+| F-42 | The dashboard card asked for a "View details" link and a "..." menu with nothing behind them; the app shipped both dead | Copilot run 2 | fixed 1.6.3 (only when a page or real actions exist) |
+| F-43 | "No dead ends" lived only in `restyle.md`, so new pages did not get it | Copilot run 2 | fixed 1.6.3 (`SKILL.md`, every page) |
+| F-44 | The agent ran `npm view` to find a version to pin | Copilot run 2 | fixed 1.6.3 (`deviations.md` names exact versions; AUD-16) |
+| F-45 | A status page with charts read both cards and both examples (about 1,400 tokens more) | Copilot run 2 | fixed 1.6.3 (`new-page.md`: only the main card's example) |
+| F-46 | The agent tried to create `src/App.tsx`, which the scaffold had made | Copilot run 2 | fixed 1.6.3 (the scaffold's Done line says to edit it) |
+| F-47 | `context.mjs` ran twice: PowerShell showed no output the first time | Copilot run 2 | open: watch in the next runs (terminal, not the kit) |
 
 ## Runs
 
@@ -96,3 +103,4 @@ Status: **fixed** (version, guarding check) or **open**.
 | 2026-11-04 | Claude (author's assistant), kit 1.6.0 | build an api monitor dashboard (empty folder) | correct after 4 finish runs; found F-13 to F-19 | n/a | 8m 45s |
 | 2026-11-04 | Claude (author's assistant), kit 1.6.1 | same | correct on the first finish run | n/a | 3m 16s |
 | 2026-11-04 | Copilot, Claude Sonnet 5.5, kit 1.6.1, Windows, Next.js | same | correct, 0 errors on 6 renders; 2 turns (the first ended while the scaffold ran); found F-30 to F-33; Windows PATH lost `node` (machine, not kit) | 29.5 + 65.1 = 94.6 | 9m 18s + 9m 9s = 18m 27s |
+| 2026-11-04 | Copilot, Claude Sonnet 5.5, kit 1.6.2, Windows, Vite | same | correct, 0 errors and 0 warnings on 6 renders, 1 turn, 2 finish runs, viewed the contact sheet; Dutch, stock theme; status page plus 3 dashboard cards; found F-42 to F-47 | 45.9 | 11m 8s |

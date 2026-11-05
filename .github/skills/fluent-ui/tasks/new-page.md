@@ -4,7 +4,7 @@
 1. `node .fluent-kit/scripts/context.mjs new-page` (skip it if you came from `tasks/new-app.md`).
 2. Reuse the project's existing component or page for the job, and the standard card style.
 3. Brief, three lines, first: who uses it, the job, how much data, what can go wrong, what they see in five seconds. Cannot answer who, job or how much: ask once.
-4. Open the pattern card and its example. Copy the structure, not the placeholder data.
+4. Open the pattern card and its example. Copy the structure, not the placeholder data. Two needs on one page (status and charts): both cards, but only the main card's example.
 
 **No card fits**: a `Card` grid to browse; `Tree` for a hierarchy; a detail page for a large record; a stepped full page for a multi-stage process; an `InlineDrawer` for filters. Two fit: what the repo already does, then the simpler. Never invent one.
 

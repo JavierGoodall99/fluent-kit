@@ -5,7 +5,7 @@ description: Build or change UI so it looks and feels like a Microsoft applicati
 
 # Fluent UI: router
 
-Pick one route and read only what it names. Paths are relative to this folder.
+Pick one route; read only what it names (paths relative to this folder).
 
 | Route | When | Read |
 |---|---|---|
@@ -15,7 +15,7 @@ Pick one route and read only what it names. Paths are relative to this folder.
 | New app | empty folder, fresh scaffold, Fluent v8 or another UI library | `tasks/new-app.md`, then the new-page route |
 | Migrate | move an app or screen from Fluent v8 to v9 | `tasks/migrate-v8.md` + the screen's pattern card |
 
-Every route ends with `node .fluent-kit/scripts/check.mjs --finish --page /path` (the page's URL, with its `#hash` if the app routes by hash). It sizes the checks to the change. Fix errors, and warnings your change caused; advisory lines go in your note.
+Every route ends with `node .fluent-kit/scripts/check.mjs --finish --page /path` (with the `#hash` if the app routes by hash). Fix errors, and warnings your change caused; advisory lines go in your note.
 
 ## Pattern cards
 
@@ -30,14 +30,15 @@ Every route ends with `node .fluent-kit/scripts/check.mjs --finish --page /path`
 | move between pages (app shell) | `patterns/nav.md` |
 | be told something happened; an empty or first-run screen | `patterns/feedback.md` |
 
-No card fits: `tasks/new-page.md`, "No card fits".
+No card fits: `tasks/new-page.md`.
 
 ## Every page
 
-- Page `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`; 16px under 640px). Sections and cards on `colorNeutralBackground1`.
+- Page `colorNeutralBackground2`, padding 20px (`spacingHorizontalXL`; 16px under 640px); sections and cards on `colorNeutralBackground1`.
 - Header: the `h1` page title, an optional one-line section description 4px under it.
 - Controls keep the 4px theme radius. **Cards** (dashboard, board, gallery cards and settings groups): `borderRadiusXLarge` (8px, not the 6px `borderRadiusLarge`) and `shadow4`.
 - One `primary` button per view. Never set Fluent's own sizes, paddings, shadows or dialog and drawer titles by hand.
+- No dead ends: leave out a link, button or menu with nothing behind it, and name it in the note.
 
 Type roles the cards name:
 

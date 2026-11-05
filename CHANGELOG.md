@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.3
+From the second Copilot run (Windows, Vite, 1 turn, 11m 8s, 45.9 credits; the first run took 2 turns, 18m 27s and 94.6 credits):
+
+- **No dead ends on any page.** The rule moved from `restyle.md` to `SKILL.md`, and the dashboard card asks for a "View details" link only when the page exists and a "..." menu only with real actions (the run shipped both, doing nothing).
+- **Companion packages name their exact versions** in `deviations.md`, so the agent installs them without looking them up. AUD-16 fails when they drift from the versions the kit installs and type-checks.
+- **A page with two needs (status and charts)** reads both cards but only the main card's example, about 1,400 tokens less.
+- The scaffold's last line says the first screen's file already exists: edit it.
+- `docs/AUDIT.md`: the run, six findings (five fixed, one to watch), and Copilot's contact-sheet question resolved: it does view the image.
+
 ## 1.6.2
 A repeatable audit, and the fixes from the first Copilot run.
 

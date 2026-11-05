@@ -14,4 +14,4 @@
 They never clip: wrap them in `Overflow` / `OverflowItem` with a `useOverflowMenu` "..." menu. No sideways scrolling to hide it.
 
 ## Companion packages
-`@fluentui/react-datepicker-compat`, `@fluentui/react-timepicker-compat`, `@fluentui/react-charts`, and `@fluentui-contrib/react-data-grid-react-window` with `react-window@1`. Pin the version and name it in the note. A separate install is never a reason to use a native control.
+Install these exact versions (the kit checks against them; no need to look them up) and name them in the note: `@fluentui/react-charts@9.3.29`, `@fluentui/react-datepicker-compat@0.6.40`, `@fluentui/react-timepicker-compat@0.4.42`, `@fluentui-contrib/react-data-grid-react-window@1.4.2` with `react-window@1.8.11`. A separate install is never a reason to use a native control.
