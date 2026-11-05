@@ -16,6 +16,9 @@ import {
 } from "@fluentui/react-components";
 import { useState } from "react";
 
+// Teams come from the app's data; a long list gets a capped, scrolling popup (SKILL.md, "Every page").
+const TEAMS = ["Platform", "Support", "Sales", "Finance", "Legal", "Marketing", "Operations", "People", "Security", "Data", "Design", "Research"];
+
 const useStyles = makeStyles({
   page: { display: "flex", flexDirection: "column", alignItems: "center", minHeight: "100%", backgroundColor: tokens.colorNeutralBackground2, padding: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXL} 0` },
   column: { display: "flex", flexDirection: "column", width: "100%", maxWidth: "480px", flexGrow: 1, rowGap: tokens.spacingVerticalXL },
@@ -24,6 +27,7 @@ const useStyles = makeStyles({
   description: { color: tokens.colorNeutralForeground3 },
   section: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalM },
   sectionHeader: { display: "flex", flexDirection: "column", rowGap: tokens.spacingVerticalXS },
+  listbox: { maxHeight: "320px" },
   row: { display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: tokens.spacingHorizontalM, "@media (max-width: 640px)": { gridTemplateColumns: "1fr", rowGap: tokens.spacingVerticalM } },
   footer: { position: "sticky", bottom: 0, display: "flex", justifyContent: "flex-end", columnGap: tokens.spacingHorizontalS, padding: `${tokens.spacingVerticalM} 0 ${tokens.spacingVerticalXL}`, borderTop: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, backgroundColor: tokens.colorNeutralBackground2 },
 });
@@ -51,9 +55,8 @@ export function FormPage() {
               <Input appearance="filled-lighter" value={name} onChange={(_, d) => setName(d.value)} onBlur={() => setTouched(true)} />
             </Field>
             <Field label="Team" size="small">
-              <Dropdown appearance="filled-lighter" defaultValue="Platform" defaultSelectedOptions={["platform"]}>
-                <Option value="platform">Platform</Option>
-                <Option value="support">Support</Option>
+              <Dropdown appearance="filled-lighter" defaultValue="Platform" defaultSelectedOptions={["Platform"]} positioning={{ autoSize: false }} listbox={{ className: s.listbox }}>
+                {TEAMS.map((team) => <Option key={team}>{team}</Option>)}
               </Dropdown>
             </Field>
           </div>

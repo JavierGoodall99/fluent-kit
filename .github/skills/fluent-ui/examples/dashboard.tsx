@@ -19,14 +19,15 @@ const useStyles = makeStyles({
   canvas: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
+    gridAutoRows: "380px", // every card the same size; 250px for cards without a chart
     gap: tokens.spacingHorizontalM,
     padding: tokens.spacingHorizontalXL,
     backgroundColor: tokens.colorNeutralBackground2,
   },
-  card: { minWidth: 0, rowGap: tokens.spacingVerticalL, padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
+  card: { minWidth: 0, minHeight: 0, rowGap: tokens.spacingVerticalL, padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
   headerStack: { display: "flex", flexDirection: "column" },
   description: { color: tokens.colorNeutralForeground3 },
-  body: { flexGrow: 1, minHeight: "200px", display: "flex", flexDirection: "column", gap: tokens.spacingVerticalS, minWidth: 0, overflowX: "hidden" },
+  body: { flexGrow: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: tokens.spacingVerticalS, minWidth: 0, overflowX: "hidden", overflowY: "auto" }, // scrolls when the content is taller than the card
   summary: { color: tokens.colorNeutralForeground2 },
   footer: { display: "flex", justifyContent: "space-between", alignItems: "center" },
 });
@@ -58,7 +59,7 @@ function DashboardCard({ title, description, summary, range, onRange, children, 
           <Tab value="60">60 days</Tab>
         </TabList>
       )}
-      <div className={s.body}>
+      <div className={s.body} tabIndex={0}>
         <Text className={s.summary}>{summary}</Text>
         {children}
       </div>

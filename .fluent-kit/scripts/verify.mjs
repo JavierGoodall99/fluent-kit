@@ -21,6 +21,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSy
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
+import { gridProbe, overlapProbe, popupProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
@@ -259,44 +260,9 @@ if (!browser) {
   console.error(`fluent-kit verify: NOT RUN, no browser could start (${(launchErrors[0] || "unknown error").slice(0, 160)}). Do not retry: say in your reply that the UI was not verified. The person fixes it once by installing Microsoft Edge or Google Chrome, or with: ${SETUP_CMD}`);
   process.exit(2);
 }
-// A control drawn on top of text it does not belong to (a fixed height or an absolute position that does not fit this
-// width). Things in another layer (an open drawer, menu or tooltip over the page) are left out. Runs in the page.
-function overlapProbe() {
-  const CTRL = ".fui-Button, .fui-Link, .fui-Input, .fui-Dropdown, .fui-Combobox, .fui-Checkbox, .fui-Switch";
-  const layer = (el) => el.closest("[data-portal-node], [role=dialog], [role=menu], [role=listbox], [role=tooltip]");
-  const ctrls = [...document.querySelectorAll(CTRL)].filter((el) => { const r = el.getBoundingClientRect(); return r.width && r.height && getComputedStyle(el).visibility !== "hidden"; });
-  if (!ctrls.length || ctrls.length > 400) return [];
-  const texts = [];
-  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  for (let t = w.nextNode(); t && texts.length < 3000; t = w.nextNode()) {
-    const el = t.parentElement;
-    if (!el || !t.textContent.trim() || el.closest(CTRL) || el.closest("[aria-hidden=true]")) continue;
-    const cs = getComputedStyle(el); if (cs.visibility === "hidden" || cs.opacity === "0") continue;
-    // Only the part of the text a reader can see: a container that clips (a line clamp, overflow hidden) hides the rest.
-    let clip = null;
-    for (let a = el; a && a !== document.body; a = a.parentElement) {
-      const o = getComputedStyle(a);
-      if (/(hidden|clip|auto|scroll)/.test(o.overflowX + o.overflowY)) { const c = a.getBoundingClientRect(); clip = clip ? { left: Math.max(clip.left, c.left), top: Math.max(clip.top, c.top), right: Math.min(clip.right, c.right), bottom: Math.min(clip.bottom, c.bottom) } : { left: c.left, top: c.top, right: c.right, bottom: c.bottom }; }
-    }
-    const range = document.createRange(); range.selectNodeContents(t);
-    for (const raw of range.getClientRects()) {
-      const r = clip ? { left: Math.max(raw.left, clip.left), top: Math.max(raw.top, clip.top), right: Math.min(raw.right, clip.right), bottom: Math.min(raw.bottom, clip.bottom) } : raw;
-      if (r.right - r.left > 1 && r.bottom - r.top > 1) texts.push({ r: { ...r, width: r.right - r.left, height: r.bottom - r.top }, el, t: t.textContent.trim() });
-    }
-  }
-  const out = [];
-  for (const c of ctrls) {
-    const a = c.getBoundingClientRect();
-    for (const x of texts) {
-      if (c.contains(x.el) || x.el.contains(c) || layer(c) !== layer(x.el)) continue;
-      const b = x.r, iw = Math.min(a.right, b.right) - Math.max(a.left, b.left), ih = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-      if (iw > 4 && ih > 4 && iw * ih > 0.3 * Math.min(a.width * a.height, b.width * b.height)) { out.push(`"${(c.textContent || c.getAttribute("aria-label") || "").trim().slice(0, 20)}" covers "${x.t.slice(0, 30)}"`); break; }
-    }
-    if (out.length >= 4) break;
-  }
-  return out;
-          }
 const overlapMsg = (list) => `A control covers text: ${list.join("; ")}. Usually a fixed height or an absolute position that does not fit this width (a stacked Fluent TableCell needs height: "auto").`;
+const gridMsg = (list) => `Cards in a grid are not one size (${list.join("; ")}). Fixed rows, and the card body scrolls: SKILL.md, "Every page".`;
+const popupMsg = (list) => `An open list is too tall: ${list.join("; ")}. Cap it at 320px so it scrolls: SKILL.md, "Every page".`;
 let loaded = 0;
 async function runAxe(page, where) {
   if (!axeSource) return;
@@ -378,7 +344,7 @@ renders: for (const url of urls) {
           bottomGap: (() => {
             const se = document.scrollingElement;
             let c = se, best = se ? se.scrollHeight - se.clientHeight : 0;
-            for (const el of document.querySelectorAll("div, main, section")) { if (!/(auto|scroll)/.test(getComputedStyle(el).overflowY)) continue; const ex = el.scrollHeight - el.clientHeight; if (ex > best) { best = ex; c = el; } }
+            for (const el of document.querySelectorAll("div, main, section")) { if (!/(auto|scroll)/.test(getComputedStyle(el).overflowY) || el.clientHeight < 0.6 * window.innerHeight) continue; const ex = el.scrollHeight - el.clientHeight; if (ex > best) { best = ex; c = el; } } // page-sized areas only: a card body that scrolls is not the page
             if (!c || best < 40) return null;
             const top = c === se ? -c.scrollTop : c.getBoundingClientRect().top - c.scrollTop;
             let bottom = 0;
@@ -460,6 +426,10 @@ renders: for (const url of urls) {
       if (errors.some(isMsalRace)) note("warn", where, "MSAL reported interaction_in_progress: the app started a sign-in while another was still running. Not caused by a UI change; do not chase it in this task. (App fix, separately: only call loginRedirect/acquireTokenRedirect when inProgress === InteractionStatus.None.)");
       const overlaps = await page.evaluate(overlapProbe).catch(() => []);
       if (overlaps.length) note("warn", where, overlapMsg(overlaps));
+      const grids = await page.evaluate(gridProbe).catch(() => []);
+      if (grids.length) note("warn", where, gridMsg(grids));
+      const tall = await page.evaluate(popupProbe).catch(() => []);
+      if (tall.length) note("warn", where, popupMsg(tall));
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
       }
 
@@ -471,7 +441,7 @@ renders: for (const url of urls) {
       // Apps with their own scrolling area (a fixed shell with a scrolling <main>) make a "full page" screenshot show only the first screen.
       // Grow the window to the height of the biggest scrolling area so the whole page is in the picture.
       try {
-        const extra = await page.evaluate(() => { let best = 0; for (const el of document.querySelectorAll("div, main, section")) { const o = getComputedStyle(el).overflowY; if (/(auto|scroll)/.test(o) && el.scrollHeight > el.clientHeight + 40) best = Math.max(best, el.scrollHeight - el.clientHeight); } return best; });
+        const extra = await page.evaluate(() => { let best = 0; for (const el of document.querySelectorAll("div, main, section")) { const o = getComputedStyle(el).overflowY; if (/(auto|scroll)/.test(o) && el.clientHeight >= 0.6 * window.innerHeight && el.scrollHeight > el.clientHeight + 40) best = Math.max(best, el.scrollHeight - el.clientHeight); } return best; });
         if (extra > 0) { await page.setViewportSize({ width, height: Math.min(900 + extra, 7000) }); await page.waitForTimeout(400); }
       } catch { /* screenshot as is */ }
       await page.screenshot({ path: file, fullPage: true });
@@ -490,6 +460,8 @@ renders: for (const url of urls) {
           await runAxe(page, `${where} after clicking ${clickSteps.join(" then ")}`);
           const openOverlaps = await page.evaluate(overlapProbe).catch(() => []);
           if (openOverlaps.length) note("warn", `${where} after clicking ${clickSteps.join(" then ")}`, overlapMsg(openOverlaps));
+          const openTall = await page.evaluate(popupProbe).catch(() => []);
+          if (openTall.length) note("warn", `${where} after clicking ${clickSteps.join(" then ")}`, popupMsg(openTall));
           await page.screenshot({ path: file.replace(/\.png$/, "-open.png") });
           shots.push(file.replace(/\.png$/, "-open.png"));
           if (scheme === schemes[0]) firstShots.push([`${where} after click`, file.replace(/\.png$/, "-open.png")]);

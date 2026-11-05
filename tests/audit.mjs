@@ -1,7 +1,8 @@
 // The automated half of docs/AUDIT.md: every check a script can judge, with the same ID as in that file, so an audit
 // gives the same answer each time and a finding fixed once stays fixed. The browser half is tests/render-examples.mjs.
 // Run: node tests/audit.mjs   Exits 1 if any check fails.
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { tokens } from "./tokens.mjs";
@@ -58,9 +59,10 @@ const check = (id, title, problems) => results.push({ id, title, problems });
 }
 
 // AUD-04 Shipped scripts do not grow past their size (an agent that opens one to debug pays for all of it). Lower a
-// limit when a script shrinks; raising one needs a reason in the pull request.
+// limit when a script shrinks; raising one needs a reason in the pull request. (1.7.0: check.mjs +400 for the popup rule;
+// the browser probes moved out of verify.mjs into probes.mjs, so verify.mjs shrank.)
 {
-  const LIMIT = {"install.mjs": 5500, "check.mjs": 8200, "consistency.mjs": 1300, "context.mjs": 2250, "detect-theme.mjs": 5500, "doctor.mjs": 3300, "generate-ramp.mjs": 2000, "lib.mjs": 1500, "make-theme.mjs": 1550, "scaffold.mjs": 2200, "verify.mjs": 13550};
+  const LIMIT = {"install.mjs": 5500, "check.mjs": 8600, "consistency.mjs": 1300, "context.mjs": 2250, "detect-theme.mjs": 5500, "doctor.mjs": 3300, "generate-ramp.mjs": 2000, "lib.mjs": 1500, "make-theme.mjs": 1550, "scaffold.mjs": 2200, "verify.mjs": 13150, "probes.mjs": 1400};
   const problems = [];
   for (const f of scripts) {
     const name = f.split("/").pop(), n = tokens(read(f));
@@ -118,6 +120,30 @@ const check = (id, title, problems) => results.push({ id, title, problems });
     else if (have !== m[2]) problems.push(`${m[1]}: deviations.md says ${m[2]}, the kit has ${have}`);
   }
   check("AUD-16", "pinned companion versions match the kit's", problems);
+}
+
+// AUD-17 The rules for card grids and long popups (SKILL.md, "Every page") are followed by the shipped examples, and the
+// checker flags an uncapped list-fed Dropdown but not a capped one (the first customer feedback: cards sized by their
+// content, dropdowns as tall as the window).
+{
+  const problems = [];
+  for (const f of walk(K + "examples").filter((n) => n.endsWith(".tsx"))) {
+    const t = read(f);
+    if (/<Card\b/.test(t) && /repeat\(auto-fit/.test(t) && !/gridAutoRows/.test(t)) problems.push(`${f}: a grid of cards without fixed rows (gridAutoRows)`);
+  }
+  const dir = mkdtempSync(join(tmpdir(), "fk-aud17-"));
+  try {
+    const file = (props) => `import { Dropdown, Option } from "@fluentui/react-components";\nexport const A = ({ items }: { items: string[] }) => <Dropdown${props}>{items.map((i) => <Option key={i}>{i}</Option>)}</Dropdown>;\n`;
+    writeFileSync(join(dir, "package.json"), "{}");
+    writeFileSync(join(dir, "Open.tsx"), file(""));
+    writeFileSync(join(dir, "Capped.tsx"), file(' positioning={{ autoSize: false }} listbox={{ className: "c" }}'));
+    const out = spawnSync(process.execPath, [".fluent-kit/scripts/check.mjs", dir], { encoding: "utf8" }).stdout;
+    if (!/Open\.tsx:\d+\s+\[popup-height\]/.test(out)) problems.push("check.mjs does not flag a Dropdown fed from a list with no height cap");
+    if (/Capped\.tsx/.test(out)) problems.push("check.mjs flags a Dropdown that is capped");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+  const ex = spawnSync(process.execPath, [".fluent-kit/scripts/check.mjs", K + "examples"], { encoding: "utf8" }).stdout;
+  for (const l of ex.split("\n").filter((x) => /\[popup-height\]/.test(x))) problems.push(`example: ${l.trim().slice(0, 120)}`);
+  check("AUD-17", "card grids and popups follow the rules in the examples and the checker", problems);
 }
 
 let failed = 0;

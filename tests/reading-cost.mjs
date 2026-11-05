@@ -37,21 +37,28 @@ const cards = readdirSync(K + "patterns").filter((f) => f.endsWith(".md")).map((
   return { name: f.replace(/\.md$/, ""), tokens: tok(K + "patterns/" + f), example: Math.max(0, ...examples.map((e) => tok(K + e))) }; // the agent opens the one that fits: count the largest
 });
 
+// Pages that show values also read patterns/alignment.md (the router sends them there) and may open its example.
+const DATA = new Set(["dashboard", "list", "status-page"]);
+const align = cards.find((c) => c.name === "alignment");
+const extra = (c, example) => (DATA.has(c.name) && align ? align.tokens + (example && c.name === "dashboard" ? align.example : 0) : 0); // its example is for a grid of data cards
+
 // Budgets in tokens, and tool calls before the first edit (independent reads in one parallel call) and to finish.
-const BUDGET = { block: 260, smallFix: 800, restyle: 2750, newPage: 4900, newApp: 5400, migrate: 3300 };
+// 1.7.0: restyle 2750 to 3250, new page 4900 to 5350, new app 5400 to 5950, SKILL.md 850 to 1000. The router gained the
+// card-grid and popup rules (about 155 tokens, every route) and pages that show data read patterns/alignment.md.
+const BUDGET = { block: 260, smallFix: 800, restyle: 3250, newPage: 5350, newApp: 5950, migrate: 3300 };
 const rows = [];
 const add = (name, cost, budget, calls) => rows.push({ name, cost, budget, calls });
 add("always-on block", block, BUDGET.block, "-");
 add("small fix: block, tasks/small-fix, deviations if unsure", block + task("small-fix") + deviations, BUDGET.smallFix, "1-2 + 1");
-for (const c of cards) add(`restyle, ${c.name}: block, SKILL, context, tasks/restyle + card`, block + router + ctx.restyle + task("restyle") + c.tokens, BUDGET.restyle, "3 + 1");
-for (const c of cards) add(`new page, ${c.name}: block, SKILL, context, tasks/new-page + card + example`, block + router + ctx["new-page"] + task("new-page") + c.tokens + c.example, BUDGET.newPage, "3 + 1");
+for (const c of cards) add(`restyle, ${c.name}: block, SKILL, context, tasks/restyle + card`, block + router + ctx.restyle + task("restyle") + c.tokens + extra(c, false), BUDGET.restyle, "3 + 1");
+for (const c of cards) add(`new page, ${c.name}: block, SKILL, context, tasks/new-page + card + example`, block + router + ctx["new-page"] + task("new-page") + c.tokens + c.example + extra(c, true), BUDGET.newPage, "3 + 1");
 const worst = cards.reduce((a, c) => (c.tokens + c.example > a.tokens + a.example ? c : a));
-add(`new app (first page ${worst.name}): block, SKILL, context, tasks/new-app, new-page + card + example`, block + router + ctx["new-app"] + task("new-app") + task("new-page") + worst.tokens + worst.example, BUDGET.newApp, "4 + 1");
+add(`new app (first page ${worst.name}): block, SKILL, context, tasks/new-app, new-page + card + example`, block + router + ctx["new-app"] + task("new-app") + task("new-page") + worst.tokens + worst.example + extra(worst, true), BUDGET.newApp, "4 + 1");
 const biggest = cards.reduce((a, c) => (c.tokens > a.tokens ? c : a));
 add(`migrate (screen ${biggest.name}): block, SKILL, context, tasks/migrate-v8 + card`, block + router + ctx.migrate + task("migrate-v8") + biggest.tokens, BUDGET.migrate, "3 + 1");
 
 const limits = [
-  ["SKILL.md", router, 850], ["deviations.md", deviations, 500],
+  ["SKILL.md", router, 1000], ["deviations.md", deviations, 500],
   ...["small-fix", "restyle", "new-page", "new-app", "migrate-v8"].map((n) => [`tasks/${n}.md`, task(n), n === "small-fix" ? 300 : n === "migrate-v8" ? 1100 : 700]),
   ...cards.map((c) => [`patterns/${c.name}.md`, c.tokens, 650]),
   ...Object.entries(ctx).map(([r, n]) => [`context.mjs ${r} output`, n, 700]),
