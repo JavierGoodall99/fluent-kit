@@ -1,6 +1,6 @@
 {
   "name": "@javiergoodall99/fluent-kit",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Makes GitHub Copilot and other coding agents build React UI with Fluent UI v9, Fluent icons and design tokens only.",
   "license": "MIT",
   "author": "Javier Goodall",
@@ -36,13 +36,15 @@
     "microsoft"
   ],
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p bench/app/tsconfig.json",
     "check:examples": "node .fluent-kit/scripts/check.mjs .github/skills/fluent-ui/examples",
     "test:lint": "node .fluent-kit/eslint/no-hardcoded-styles.test.js && node .fluent-kit/eslint/fluent-only.test.js",
     "test:budget": "node tests/reading-cost.mjs",
     "test:links": "node tests/links.mjs",
-    "test": "npm run typecheck && npm run check:examples && npm run test:lint && npm run test:budget && npm run test:links && npm run test:record && npm run test:finish && npm run test:doctor && npm run test:context && npm run test:shipped-lint",
+    "test": "npm run typecheck && npm run check:examples && npm run test:lint && npm run test:budget && npm run test:links && npm run test:record && npm run test:score && npm run test:finish && npm run test:doctor && npm run test:context && npm run test:shipped-lint",
     "test:record": "node tests/record-run.test.mjs",
+    "test:score": "node tests/score-run.test.mjs",
+    "bench:setup": "node tests/bench-setup.mjs",
     "test:shipped-lint": "eslint -c tests/eslint.shipped.config.mjs .fluent-kit install.mjs",
     "test:finish": "node tests/check-finish.test.mjs",
     "test:doctor": "node tests/doctor.test.mjs",

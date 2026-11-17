@@ -17,7 +17,7 @@ const names = all.filter((n) => !n.startsWith("bad-"));
 const PAGE_LEVEL = /\[(landmark-one-main|page-has-heading-one|region)\]/;
 const CLICK = { "status-grid": "role=button[name='Expand Payments']", "form-page": "role=combobox[name='Team']" };
 // Fixtures that break a rule on purpose: verify must report each one, or its probe has stopped working.
-const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ } };
+const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ }, "bad-clip": { expect: /^Content is cut off by its container: <span>/ } };
 const FAIL = /^(A control covers text|Cards in a grid are not one size|An open list is too tall|Scrolling areas use the browser)/;
 
 let server;

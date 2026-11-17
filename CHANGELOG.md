@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.0
+A benchmark anyone can run, scored by machine where a machine can judge.
+
+- **`bench/app/`: a public test app for the benchmark prompts.** A Dutch tenant portal on Fluent v9 with the flaws the prompts are about (KPI cards in two styles, every tenant shown as "Gekoppeld", a toolbar cut off on a phone, unaligned figures, no customer field). Runs no longer need the private pilot app. `node tests/bench-setup.mjs <dir>` copies it, installs it and this kit, records the old findings as the kit's baseline and commits.
+- **Machine scoring (`tests/score-run.mjs`).** Four of the six quality checks get a verdict with reasons: scope (files outside the prompt, deleted files, features no longer used), uniform (card styles the app did not have, #8 matching home), correct (tsc, new kit rule errors, English text in the Dutch app, each prompt's own check) and every state (the scorer runs verify itself at 1440 and 375px and ignores problems the page already had). Rules live in `bench/expect.json`, outside the app, so the agent never sees them. `record-run.mjs` scores the bench app by itself and shows the result in a new Auto column; the person's scores stay the verdict.
+- **verify catches more cut-off content.** Text that overflows its own box inside a card (a narrow KPI card), tabs and table cells are now checked. The bench app's home page at 375px showed all three and verify reported nothing (F-70). A new fixture, `bad-clip`, keeps it caught.
+- CI type-checks the bench app and runs the scorer's tests on Linux, Windows and macOS.
+
 ## 1.8.0
 The quick wins from the token and consistency audit (findings F-58 to F-68 in `docs/AUDIT.md`), and the first steps toward a premium Microsoft look: a desktop top bar and a remembered Light or Dark choice.
 

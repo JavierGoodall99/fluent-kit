@@ -36,6 +36,28 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 | 10 | add a customer dropdown to the invoice form, we have about 300 customers | new page (long dropdown; customer case) |
 | 11 | the numbers on the billing page are hard to read, tidy up the spacing and alignment | restyle (customer case) |
 
+## The bench app: run the prompts anywhere
+
+`bench/app/` is a small public app made for these prompts, so a run does not need the private pilot app. It is a Dutch tenant portal on Fluent v9 with five pages, each with the flaws its prompts are about: Dashboard (home, #4), Activiteitenlogboek (activity log, #5 and #8: KPI cards in another style than home), Huurders (tenants, #6 and #7: every tenant shown as "Gekoppeld", a toolbar cut off on a phone), Facturatie (billing, #11) and Nieuwe factuur (invoice form, #10). `src/data.ts` holds the data the new-page prompts (#1, #2, #3, #9) need.
+
+```
+node tests/bench-setup.mjs ../fluent-kit-bench     # copy, git, npm install, this kit, baseline of old findings, commit
+cd ../fluent-kit-bench && node .fluent-kit/scripts/verify.mjs --setup     # once: the browser check
+```
+
+Then each run is the same three steps as below. `record-run.mjs` sees the bench app and scores it by machine first (`tests/score-run.mjs`, rules in `bench/expect.json`, which the agent never sees):
+
+| Check | Machine verdict |
+| --- | --- |
+| Scope | only the files the prompt is about changed (main.tsx and theme files always may); no file deleted; every feature the page had is still used (search, filter, export, paging, its data) |
+| First glance | person only |
+| Uniform | no card style the app did not have before; for #8 the activity log's cards share home's style; no "cards not one size" |
+| Correct | tsc passes; no new kit rule errors in changed files; no new English UI text; #6 shows each tenant's own status, #10 has a customer list, #11 aligns the figures; a new page uses its data |
+| Every state | the scorer runs verify itself at 1440 and 375px on the changed page; problems the page already had before the run do not count |
+| Honest note | person only |
+
+The verdict shows as the Auto column, for example `P-PFP-` ("-" for the two checks only a person can judge). The person's six letters stay the result; Auto is the evidence and catches what a person skims past. Each run folder also keeps `score-verify/`, the scorer's own screenshots.
+
 ## Old kit results (Javier's runs, 2026-10, kit up to `6fb7ac7`, before the task and pattern split)
 
 One run per row, on pages that earlier runs had already changed, with the kit changing between rows. Reference only; the new kit is not compared against these row by row.
@@ -127,23 +149,23 @@ Median 25.2 credits and 2m27s; worst 37.3 credits and 3m41s. The old kit took 14
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
 
-| Kit | Stage | Prompt | Run | Credits | Time | Files read before edit | Route followed | Verify calls | Diff | Scope | 5 s | Uniform | Correct | States | Note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| | 1 | #4 | 1 | | | | | | | | | | | | |
-| | 1 | #5 | 1 | | | | | | | | | | | | |
-| | 1 | #6 | 1 | | | | | | | | | | | | |
-| | 2 | #4 | 2 | | | | | | | | | | | | |
-| | 2 | #4 | 3 | | | | | | | | | | | | |
-| | 2 | #5 | 2 | | | | | | | | | | | | |
-| | 2 | #5 | 3 | | | | | | | | | | | | |
-| | 2 | #6 | 2 | | | | | | | | | | | | |
-| | 2 | #6 | 3 | | | | | | | | | | | | |
+| Kit | Stage | Prompt | Run | Credits | Time | Files read before edit | Route followed | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| | 1 | #4 | 1 | | | | | | | | | | | | | |
+| | 1 | #5 | 1 | | | | | | | | | | | | | |
+| | 1 | #6 | 1 | | | | | | | | | | | | | |
+| | 2 | #4 | 2 | | | | | | | | | | | | | |
+| | 2 | #4 | 3 | | | | | | | | | | | | | |
+| | 2 | #5 | 2 | | | | | | | | | | | | | |
+| | 2 | #5 | 3 | | | | | | | | | | | | | |
+| | 2 | #6 | 2 | | | | | | | | | | | | | |
+| | 2 | #6 | 3 | | | | | | | | | | | | | |
 
 Summary (paste from `--summary`):
 
-| Prompts | Runs | Median credits | Worst credits | Median time | Worst time | Quality fails |
-| --- | --- | --- | --- | --- | --- | --- |
-| all | | | | | | |
+| Prompts | Runs | Median credits | Worst credits | Median time | Worst time | Quality fails | Machine fails |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| all | | | | | | | |
 
 ## Ready for wide use
 
