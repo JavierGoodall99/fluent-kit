@@ -6,6 +6,8 @@ import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 // verify's own dependencies live here, inside the kit folder, so the project's package.json and lockfile stay untouched.
+// How to cap a long popup list (check.mjs and verify.mjs both print it, so the cards need not carry it).
+export const POPUP_CAP = 'Dropdown and Combobox: positioning={{ autoSize: false }} and listbox={{ className }} with maxHeight "320px" (a style prop is overridden). Menu: maxHeight on MenuPopover.';
 export const DEPS_DIR = ".fluent-kit/deps";
 export const VERIFY_DEPS = ["playwright-core@^1.64.1", "axe-core@^4.14.0"];
 export const SETUP_CMD = "node .fluent-kit/scripts/verify.mjs --setup";

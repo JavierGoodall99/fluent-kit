@@ -12,10 +12,3 @@ Copy this file to `.fluent-kit/PROFILE.md` (the installer does this with `--prof
 - Put strings in the project's i18n/resource files, not inline in JSX, so English can be added later.
 - Environment badges (TEST, ACCEPTATIE) are uppercase.
 
-## Shared packages
-
-- None confirmed. Use a shared UI or theme package only if the project already depends on one.
-
-## Brand
-
-- Each product keeps its own brand ramp. Existing products keep the ramp they have. Do not set brand colors by hand: the agent detects them (`.fluent-kit/scripts/detect-theme.mjs`).

@@ -30,6 +30,8 @@ Options:
   --hooks                also install a git pre-commit hook that runs check.mjs --changed
   --ci                   also write .github/workflows/fluent-kit.yml: a pull-request check that fails on rule errors,
                          whether or not the agent ran its own check
+  --no-cloud-setup       do not write .github/workflows/copilot-setup-steps.yml (it gives Copilot's cloud coding agent
+                         the browser check; written only when the file does not exist yet)
   --wire                 also add an npm script "ui:check" to package.json
   --dry-run              show what would change, write nothing
   -h, --help             show this help`;
@@ -252,6 +254,32 @@ jobs:
 `);
     log("wrote .github/workflows/fluent-kit.yml (runs check.mjs on every pull request)");
   }
+}
+
+// 9c. Copilot's coding agent runs in GitHub Actions, where .fluent-kit/deps (git ignores it) is missing, so verify could
+// not run. Copilot runs this workflow's steps before the agent starts. Written only when the repo has none.
+if (!flag("--no-cloud-setup") && !dry) {
+  const wf = join(dest, ".github", "workflows", "copilot-setup-steps.yml");
+  if (!existsSync(wf)) {
+    mkdirSync(dirname(wf), { recursive: true });
+    writeFileSync(wf, `# Written by the Fluent kit installer. GitHub Copilot's coding agent runs these steps before it starts, so the
+# kit's browser check (verify.mjs) works in the cloud too. Add your app's own setup steps below the kit's.
+name: Copilot Setup Steps
+on: workflow_dispatch
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: ${SETUP_CMD}
+`);
+    log("wrote .github/workflows/copilot-setup-steps.yml (Copilot's cloud coding agent gets the browser check)");
+  } else if (!readFileSync(wf, "utf8").includes("verify.mjs --setup")) log(`kept .github/workflows/copilot-setup-steps.yml: add a step that runs ${SETUP_CMD} so Copilot's cloud agent can run the browser check`);
 }
 
 // 10. optional: git pre-commit hook

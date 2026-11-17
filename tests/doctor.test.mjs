@@ -96,6 +96,22 @@ try {
   assert.match(r.out, /warn\s+Playwright is not set up[\s\S]*node \.fluent-kit\/scripts\/verify\.mjs --setup  \(installs into \.fluent-kit\/deps; your package\.json is not touched\)/);
   assert.doesNotMatch(r.out, /npm install -D playwright/);
 
+  // --report sums up verify's own log: runs grouped into tasks, and the problems that keep coming back.
+  const used = project("used");
+  mkdirSync(join(used, ".fluent-kit/out"), { recursive: true });
+  const at = (m) => new Date(Date.UTC(2026, 10, 2, 9, m)).toISOString();
+  writeFileSync(join(used, ".fluent-kit/out/verify-runs.jsonl"), [
+    { at: at(0), errors: 1, warnings: 1, kinds: ["Cards in a grid are not one size", "Page scrolls sideways"] },
+    { at: at(5), errors: 0, warnings: 1, kinds: ["Cards in a grid are not one size"] },
+    { at: at(50), errors: 0, warnings: 0, kinds: [] },
+  ].map((x) => JSON.stringify(x)).join("\n") + "\nnot json\n");
+  r = doctor(used, "--report");
+  assert.equal(r.code, 0, r.out);
+  assert.match(r.out, /3 verify run\(s\) from 2026-11-02 to 2026-11-02, about 2 task\(s\)/);
+  assert.match(r.out, /median 2, most 2\. Runs with errors: 1; with warnings: 2\./);
+  assert.match(r.out, /2 +Cards in a grid are not one size\n +1 +Page scrolls sideways/);
+  assert.match(doctor(project("unused"), "--report").out, /no verify runs logged yet/);
+
   console.log("doctor: all tests passed");
 } finally {
   rmSync(tmp, { recursive: true, force: true });

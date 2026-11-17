@@ -28,6 +28,10 @@ stale="$RUNNER_TEMP/stale" && mkdir -p "$stale/.github/skills/fluent-ui" "$stale
 node install.mjs "$stale" --claude | grep -q "removed .github/skills/fluent-ui/"
 test ! -e "$stale/.github/skills/fluent-ui" && test -f "$stale/.github/skills/other/SKILL.md" && test -f "$stale/.claude/skills/fluent-ui/SKILL.md"
 ci="$RUNNER_TEMP/ci" && mkdir -p "$ci" && node install.mjs "$ci" --ci && grep -q "check.mjs" "$ci/.github/workflows/fluent-kit.yml" && node install.mjs "$ci" --ci | grep -q "kept .github/workflows/fluent-kit.yml"
+# Copilot's cloud agent gets the browser check: the setup workflow is written once, never overwritten, and can be skipped.
+grep -q "copilot-setup-steps:" "$plain/.github/workflows/copilot-setup-steps.yml" && grep -q "verify.mjs --setup" "$plain/.github/workflows/copilot-setup-steps.yml"
+echo "# mine" > "$plain/.github/workflows/copilot-setup-steps.yml" && node install.mjs "$plain" | grep -q "kept .github/workflows/copilot-setup-steps.yml" && grep -qx "# mine" "$plain/.github/workflows/copilot-setup-steps.yml"
+nocloud="$RUNNER_TEMP/nocloud" && mkdir -p "$nocloud" && node install.mjs "$nocloud" --no-cloud-setup >/dev/null && test ! -e "$nocloud/.github/workflows/copilot-setup-steps.yml"
 # An update removes files older versions shipped (login.mjs, theme.tsx, lint tests).
 old="$RUNNER_TEMP/old" && mkdir -p "$old/.fluent-kit/scripts" "$old/.github/skills/fluent-ui/examples" && printf '#!/usr/bin/env node\n// Fluent kit login helper: sign in once\n' > "$old/.fluent-kit/scripts/login.mjs" && printf '// PLACEHOLDER theme\n' > "$old/.github/skills/fluent-ui/examples/theme.tsx"
 node install.mjs "$old" | grep -q "removed .fluent-kit/scripts/login.mjs"

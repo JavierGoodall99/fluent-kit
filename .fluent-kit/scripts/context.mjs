@@ -7,8 +7,8 @@
 // The project scan is cached in .fluent-kit/context.json and redone when package.json, a lockfile, brand.json,
 // PROFILE.md or a theme file changes (or with --refresh). The card scan always runs: it is fast and pages change.
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { skillPath } from "./lib.mjs";
@@ -33,6 +33,21 @@ function cacheKey(themeFiles) {
     h.update(f); h.update(read(join(root, f)) ?? "-");
   }
   return h.digest("hex").slice(0, 16);
+}
+
+// A monorepo root whose own package.json has no React: the app is in a workspace package, and a scan from here would
+// call it a new project. Name the packages to run from instead (F-61).
+const pkgOf = (d) => { try { return JSON.parse(read(join(d, "package.json"))); } catch { return null; } };
+const usesReact = (p) => p && Object.keys({ ...p.dependencies, ...p.devDependencies }).some((n) => n === "react" || n.startsWith("@fluentui/"));
+const rootPkg = pkgOf(root);
+const globs = [...[rootPkg?.workspaces || []].flat(), ...(rootPkg?.workspaces?.packages || []), ...[...(read(join(root, "pnpm-workspace.yaml")) || "").matchAll(/^\s*-\s*["']?([^"'\n#]+)/gm)].map((m) => m[1].trim())];
+if (globs.length && !usesReact(rootPkg)) {
+  const dirs = globs.filter((g) => typeof g === "string").flatMap((g) => { const base = join(root, g.replace(/\/\*+$/, "")); return g.endsWith("*") ? (existsSync(base) ? readdirSync(base).map((n) => join(base, n)) : []) : [base]; });
+  const apps = dirs.filter((d) => usesReact(pkgOf(d))).map((d) => relative(root, d).replace(/\\/g, "/"));
+  if (apps.length) {
+    console.log(`Fluent kit context: this is a monorepo root; the UI is in ${apps.slice(0, 5).join(", ")}.\nRun from the package you are changing: cd ${apps[0]} && node ${relative(join(root, apps[0]), here).replace(/\\/g, "/")}/context.mjs ${route || "<route>"}`);
+    process.exit(0);
+  }
 }
 
 let cached = null; try { cached = JSON.parse(read(cacheFile)); } catch { /* none */ }
@@ -85,7 +100,15 @@ if (noPackage) lines.push("Setup:     no app yet. Create it in this folder with:
 else if (detect.setup?.installCmd) lines.push(`Setup:     missing ${detect.setup.missingDeps.join(", ")}. Install: ${detect.setup.installCmd}`);
 
 if (profile) {
-  const body = profile.split("\n").filter((l) => l.trim() && !/^Copy this file/.test(l)).slice(0, 60);
+  // Lines left as the template's placeholders or saying "none" tell the agent nothing: leave them, and headings left empty, out.
+  const body = [];
+  for (const l of profile.split("\n")) {
+    if (!l.trim() || /^Copy this file/.test(l) || /^\s*-\s*(<[^>]*>|none\b.*)$|:\s*<[^>]*>\s*$/i.test(l)) continue;
+    if (/^#/.test(l) && /^#/.test(body.at(-1) || "")) body.pop();
+    body.push(l);
+  }
+  if (/^#/.test(body.at(-1) || "")) body.pop();
+  body.splice(60);
   lines.push("Profile:   .fluent-kit/PROFILE.md (overrides the kit):", ...body.map((l) => "  " + l));
 } else lines.push("Profile:   none (kit defaults).");
 

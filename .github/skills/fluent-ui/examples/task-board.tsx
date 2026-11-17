@@ -12,6 +12,7 @@ import {
   MenuPopover,
   MenuTrigger,
   Text,
+  Tooltip,
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
@@ -57,7 +58,9 @@ export function TaskBoard({ initial }: { initial: Record<Stage, Task[]> }) {
             <Text weight="semibold">{stage.label}</Text>
             <Text className={s.muted}>{cols[stage.id].length}</Text>
           </div>
-          <Button className={s.add} appearance="outline" icon={<Add24Regular />} aria-label={`Add a task to ${stage.label}`} />
+          <Tooltip content={`Add a task to ${stage.label}`} relationship="label">
+            <Button className={s.add} appearance="outline" icon={<Add24Regular />} aria-label={`Add a task to ${stage.label}`} />
+          </Tooltip>
           {cols[stage.id].length === 0 && <Text className={s.empty}>Nothing here yet.</Text>}
           {cols[stage.id].map((task) => (
             <Card key={task.id} className={s.card}>
@@ -66,7 +69,9 @@ export function TaskBoard({ initial }: { initial: Record<Stage, Task[]> }) {
                 action={
                   <Menu>
                     <MenuTrigger disableButtonEnhancement>
-                      <Button appearance="transparent" icon={<MoreHorizontal20Regular />} aria-label={`Actions for ${task.title}`} />
+                      <Tooltip content={`Actions for ${task.title}`} relationship="label">
+                        <Button appearance="transparent" icon={<MoreHorizontal20Regular />} aria-label={`Actions for ${task.title}`} />
+                      </Tooltip>
                     </MenuTrigger>
                     <MenuPopover>
                       <MenuList>

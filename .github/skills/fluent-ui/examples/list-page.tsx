@@ -52,7 +52,7 @@ const useStyles = makeStyles({
   },
   footer: {
     padding: tokens.spacingVerticalS,
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground3,
   },
 });
 

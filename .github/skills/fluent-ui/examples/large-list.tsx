@@ -19,7 +19,7 @@ import {
   tokens,
   type TableColumnDefinition,
 } from "@fluentui/react-components";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Customer {
   id: string;
@@ -46,7 +46,7 @@ const useStyles = makeStyles({
   search: { maxWidth: "360px" },
   bar: { padding: tokens.spacingVerticalS },
   empty: { padding: tokens.spacingVerticalXXXL, textAlign: "center" },
-  footer: { padding: tokens.spacingVerticalS, color: tokens.colorNeutralForeground2 },
+  footer: { padding: tokens.spacingVerticalS, color: tokens.colorNeutralForeground3 },
 });
 
 const columns: TableColumnDefinition<Customer>[] = [
@@ -69,6 +69,17 @@ const columns: TableColumnDefinition<Customer>[] = [
     renderCell: (c) => <TableCellLayout truncate>{c.email}</TableCellLayout>,
   }),
 ];
+// Under 640px only the name stays, with the city under it: no sideways scrolling to reach the key column.
+const narrowColumns = [createTableColumn<Customer>({ ...columns[0], renderCell: (c) => <TableCellLayout truncate description={c.city}>{c.name}</TableCellLayout> })];
+const NARROW = "(max-width: 640px)";
+function useNarrow() {
+  const [narrow, setNarrow] = useState(() => window.matchMedia(NARROW).matches);
+  useEffect(() => {
+    const m = window.matchMedia(NARROW), on = () => setNarrow(m.matches);
+    m.addEventListener("change", on); return () => m.removeEventListener("change", on);
+  }, []);
+  return narrow;
+}
 
 // Placeholder data for the example.
 const customers: Customer[] = Array.from({ length: 5000 }, (_, i) => ({
@@ -84,6 +95,7 @@ const GRID_HEIGHT = 480;
 export function CustomerListPage() {
   const styles = useStyles();
   const [query, setQuery] = useState("");
+  const narrow = useNarrow();
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -120,7 +132,7 @@ export function CustomerListPage() {
             <Text weight="semibold">No customers match your search</Text>
           </div>
         ) : (
-          <DataGrid items={visible} columns={columns} getRowId={(c: Customer) => c.id} sortable focusMode="composite" aria-label="Customers">
+          <DataGrid key={narrow ? "narrow" : "wide"} items={visible} columns={narrow ? narrowColumns : columns} getRowId={(c: Customer) => c.id} sortable focusMode="composite" aria-label="Customers">
             <DataGridHeader>
               <DataGridRow>{({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}</DataGridRow>
             </DataGridHeader>
