@@ -1,6 +1,6 @@
-# Publishes @javiergoodall/fluent-kit to npm when a GitHub release is published. No npm token is stored anywhere:
+# Publishes @javiergoodall/fluentui-kit to npm when a GitHub release is published. No npm token is stored anywhere:
 # npm's trusted publishing trusts this workflow file (OIDC). One-time setup on npmjs.com, after the first version was
-# published by hand: package settings > Trusted publisher > GitHub Actions, repository JavierGoodall99/fluent-kit,
+# published by hand: package settings > Trusted publisher > GitHub Actions, repository JavierGoodall99/fluentui-kit,
 # workflow publish.yml.
 name: Publish
 

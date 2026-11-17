@@ -102,7 +102,7 @@ Prompts 4 to 6 restyle pages that already exist. Prompts 1 to 3 (new page), 7 (s
 ### Setup (once)
 
 1. In the pilot app, make a branch from one base commit and install the kit at a fixed commit:
-   `git switch -c bench/kit-new <base> && npx -y github:JavierGoodall99/fluent-kit#<kit-commit> . && git add -A && git commit -m "kit <kit-commit>"`
+   `git switch -c bench/kit-new <base> && npx -y github:JavierGoodall99/fluentui-kit#<kit-commit> . && git add -A && git commit -m "kit <kit-commit>"`
 2. Have Playwright and axe-core installed, `.verify-profile/` signed in with a tenant that has real data, and a clone of this kit repo for `tests/record-run.mjs` (below: `~/fluent-kit`).
 3. Agent: GitHub Copilot, Agent mode, Claude Sonnet. Same model for every run.
 

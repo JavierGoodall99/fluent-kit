@@ -7,13 +7,13 @@ Makes GitHub Copilot (and Claude Code, Codex, Cursor) build screens that look an
 You need [Node](https://nodejs.org) 18 or newer. In your project folder:
 
 ```
-npx @javiergoodall/fluent-kit@latest
+npx @javiergoodall/fluentui-kit@latest
 ```
 
 1. When it asks to set up the browser check, answer **Y**. It installs into `.fluent-kit/deps` (your `package.json` is not touched) and uses the Edge or Chrome already on your computer.
 2. Commit the files it added (`.github/` and `.fluent-kit/`).
 
-Run the same command again any time to update. To try changes not yet released, use `npx github:JavierGoodall99/fluent-kit` instead.
+Run the same command again any time to update. To try changes not yet released, use `npx github:JavierGoodall99/fluentui-kit` instead.
 
 ## Use it
 
@@ -51,7 +51,7 @@ Include the doctor's output when you report a problem.
 
 ## More
 
-[Examples gallery](https://javiergoodall99.github.io/fluent-kit/): every page the agents copy, in the light and the dark theme.
+[Examples gallery](https://javiergoodall99.github.io/fluentui-kit/): every page the agents copy, in the light and the dark theme.
 
 [docs/REFERENCE.md](docs/REFERENCE.md): install options, how a task runs, what the checks do, CI and pre-commit enforcement, organisation profiles, lint setup and known limits.
 

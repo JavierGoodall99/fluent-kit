@@ -4,7 +4,7 @@ For people setting the kit up for a team, or changing it. Every script also prin
 
 ## Install options
 
-`npx @javiergoodall/fluent-kit@latest [target] [options]` (`@latest` makes npx fetch the newest release instead of a cached one; `npx github:JavierGoodall99/fluent-kit` installs what is on `main`). The target defaults to the current folder; an empty folder works too. From a clone, `node install.mjs [target]` does the same. `--help` lists every option.
+`npx @javiergoodall/fluentui-kit@latest [target] [options]` (`@latest` makes npx fetch the newest release instead of a cached one; `npx github:JavierGoodall99/fluentui-kit` installs what is on `main`). The target defaults to the current folder; an empty folder works too. From a clone, `node install.mjs [target]` does the same. `--help` lists every option.
 
 - `--profile <name>`: copy `.fluent-kit/profiles/<name>.md` to `.fluent-kit/PROFILE.md` (organisation overrides: language, tone, shared packages).
 - `--brand stock` or `--brand #rrggbb`: record the brand decision in `.fluent-kit/brand.json`, so the agent never asks.

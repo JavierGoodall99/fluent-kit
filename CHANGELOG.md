@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.2
+Renamed to `@javiergoodall/fluentui-kit`, and the repo to `JavierGoodall99/fluentui-kit`.
+
+- **Install with `npx @javiergoodall/fluentui-kit@latest`.** The README, `--help`, `docs/REFERENCE.md`, the doctor and `publish.yml` use the new names. `@javiergoodall/fluent-kit` was never released (its first version was rejected while staged).
+- **Nothing changes in a repo that has the kit:** the `.fluent-kit/` folder, the script paths and the `fluent-kit` markers in `copilot-instructions.md` keep their names. Run the new install command once to update.
+- The npm page links to the repo, its README and its issues (`repository`, `homepage`, `bugs`).
+
 ## 1.9.1
 Published on npm as `@javiergoodall/fluent-kit`.
 
