@@ -80,6 +80,9 @@ function BadDropdown() {
     </Dropdown>
   );
 }
+function BadClip() {
+  return <Card style={{ width: 120 }}><Text size={600}>€&nbsp;1.234.567.890</Text></Card>; // a figure wider than its card
+}
 function BadLinks() {
   return <div>{["Edit", "Copy", "Delete"].map((l) => <div key={l}><Link href={`#${l}`}>{l}</Link></div>)}</div>; // stacked, 20px apart
 }
@@ -104,6 +107,7 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-grid": () => <Page><BadGrid /></Page>,
   "bad-scrollbar": () => <Page><BadScrollbar /></Page>,
   "bad-links": () => <Page><BadLinks /></Page>,
+  "bad-clip": () => <Page><BadClip /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,

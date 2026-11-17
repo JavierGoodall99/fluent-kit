@@ -120,6 +120,7 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-67 | The full v8 to v9 table is read on every migration | Token audit, 2026-11 | open |
 | F-68 | `context.mjs` printed profile lines that said "none" or restated kit defaults; the dashboard example carried a third chart | Token audit, 2026-11 | fixed 1.8.0 |
 | F-69 | CI failed AUD-09 on `main` since 1.7.0: the bad-grid fixture's short cards fit on one line with the runner's fonts (52px), under the grid probe's 60px floor, so the probe saw one row of equal cards | CI, 1.7.0 to 1.7.1 | fixed 1.8.0 (every fixture card wraps to 3 lines or more in any font) |
+| F-70 | verify's cut-off probe missed text that overflows its own box inside a card, and never looked at tabs or table cells: the bench home page at 375px had all three and passed | Bench app, first scored run | fixed 1.9.0 (wider probe; `bad-clip` fixture) |
 
 ## Runs
 

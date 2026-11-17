@@ -22,6 +22,9 @@ jobs:
       - name: Type-check examples
         run: npx tsc -p tsconfig.json
 
+      - name: Type-check the bench app
+        run: npx tsc -p bench/app/tsconfig.json
+
       - name: Kit rules on examples
         run: node .fluent-kit/scripts/check.mjs .github/skills/fluent-ui/examples
 
@@ -44,6 +47,9 @@ jobs:
 
       - name: Benchmark recorder tests
         run: node tests/record-run.test.mjs
+
+      - name: Benchmark scorer tests
+        run: node tests/score-run.test.mjs
 
       - name: check --finish tests
         run: node tests/check-finish.test.mjs
@@ -95,6 +101,7 @@ jobs:
             fi
           }
           t node tests/record-run.test.mjs
+          t node tests/score-run.test.mjs
           t node tests/check-finish.test.mjs
           t node tests/context.test.mjs
           t node tests/doctor.test.mjs

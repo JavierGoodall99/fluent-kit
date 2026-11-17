@@ -14,6 +14,9 @@
 //
 // Quality is six letters, P (pass), F (fail) or ? (not scored), in this order:
 //   scope, first glance, uniform, correct, every state, honest note.
+// On the bench app (tests/bench-setup.mjs) a run is also scored by machine (tests/score-run.mjs): scope, uniform, correct and
+// every state, shown in the Auto column with "-" for the two checks only a person can judge. --no-score skips it,
+// --no-browser skips its browser check. The person's quality letters stay the verdict; Auto is the evidence.
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
@@ -105,18 +108,19 @@ export function row(r) {
   const kit = r.kit.commit || (r.kit.version ? `v${r.kit.version} ${r.kit.fingerprint}` : "?");
   const diff = `+${r.diff.insertions} −${r.diff.deletions} (${r.diff.files} file${r.diff.files === 1 ? "" : "s"})`;
   const route = r.route ? r.route.toUpperCase() : r.routeHint?.looksFollowed == null ? "?" : `?${r.routeHint.looksFollowed ? " (looks Y)" : " (looks N)"}`;
-  return `| ${kit} | ${r.stage} | #${r.prompt} | ${r.run} | ${r.credits ?? "?"} | ${fmtTime(r.seconds)} | ${r.filesRead ?? "?"} | ${route} | ${r.verify.calls}${r.verify.notRun ? ` (${r.verify.notRun} not run)` : ""} | ${diff} | ${q.join(" | ")} |`;
+  return `| ${kit} | ${r.stage} | #${r.prompt} | ${r.run} | ${r.credits ?? "?"} | ${fmtTime(r.seconds)} | ${r.filesRead ?? "?"} | ${route} | ${r.verify.calls}${r.verify.notRun ? ` (${r.verify.notRun} not run)` : ""} | ${diff} | ${r.auto?.quality ?? ""} | ${q.join(" | ")} |`;
 }
-export const HEADER = `| Kit | Stage | Prompt | Run | Credits | Time | Files read before edit | Route followed | Verify calls | Diff | ${QUALITY.join(" | ")} |\n|${" --- |".repeat(10 + QUALITY.length)}`;
+export const HEADER = `| Kit | Stage | Prompt | Run | Credits | Time | Files read before edit | Route followed | Verify calls | Diff | Auto | ${QUALITY.join(" | ")} |\n|${" --- |".repeat(11 + QUALITY.length)}`;
 
 export function summarise(runs) {
   const lines = [];
   const groups = [["all", runs], ...[...new Set(runs.map((r) => r.prompt))].map((p) => [`#${p}`, runs.filter((r) => r.prompt === p)])];
-  lines.push("| Prompts | Runs | Median credits | Worst credits | Median time | Worst time | Quality fails |", "| --- | --- | --- | --- | --- | --- | --- |");
+  lines.push("| Prompts | Runs | Median credits | Worst credits | Median time | Worst time | Quality fails | Machine fails |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const [name, rs] of groups) {
     const c = rs.map((r) => r.credits).filter((x) => x != null), t = rs.map((r) => r.seconds).filter((x) => x != null);
     const fails = rs.reduce((n, r) => n + ((r.quality || "").match(/F/g) || []).length, 0);
-    lines.push(`| ${name} | ${rs.length} | ${median(c) ?? "?"} | ${c.length ? Math.max(...c) : "?"} | ${fmtTime(median(t) == null ? null : Math.round(median(t)))} | ${fmtTime(t.length ? Math.max(...t) : null)} | ${fails} |`);
+    const auto = rs.reduce((n, r) => n + ((r.auto?.quality || "").match(/F/g) || []).length, 0);
+    lines.push(`| ${name} | ${rs.length} | ${median(c) ?? "?"} | ${c.length ? Math.max(...c) : "?"} | ${fmtTime(median(t) == null ? null : Math.round(median(t)))} | ${fmtTime(t.length ? Math.max(...t) : null)} | ${fails} | ${rs.some((r) => r.auto) ? auto : "-"} |`);
   }
   const s1 = runs.filter((r) => r.stage === 1);
   const runOk = (r) => r.credits != null && r.credits <= TARGET.medianCredits && r.seconds != null && r.seconds <= TARGET.medianSec && r.route === "y" && r.quality === "PPPPPP";
@@ -139,7 +143,7 @@ function writeResults(out, runs) {
   writeFileSync(join(out, "results.md"), `# Benchmark runs\n\nWritten by tests/record-run.mjs. Copy rows into tests/BENCHMARK.md when a stage is done.\n\n${HEADER}\n${runs.map(row).join("\n")}\n\n## Summary\n\n${summarise(runs)}\n`);
 }
 
-function main() {
+async function main() {
   if (flag("--help") || flag("-h")) { console.log(readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1).filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n")); return; }
   // Real paths, so they compare equal to what git prints (macOS /var -> /private/var, Windows short 8.3 names).
   const real = (p) => { for (let q = p, rest = ""; ;) { try { return join(realpathSync.native(q), rest); } catch { const d = dirname(q); if (d === q) return p; rest = join(basename(q), rest); q = d; } } };
@@ -180,6 +184,15 @@ function main() {
   if (!rel.startsWith("..") && !rel.startsWith(sep) && rel !== "" && !git(appRoot, ["check-ignore", "-q", out]).ok) die(`${out} is inside the app and not git-ignored, so \`git clean -fd\` would delete it. Use --out outside the app or ignore it.`);
 
   const d = diffStats(appRoot);
+  // The bench app is scored by machine before anything is reset or moved.
+  let auto = null;
+  const isBench = (() => { try { return JSON.parse(readFileSync(join(appRoot, "package.json"), "utf8")).name === "fluent-kit-bench-app"; } catch { return false; } })();
+  if (isBench && !flag("--no-score")) {
+    const { scoreRun, report } = await import("./score-run.mjs");
+    const s = scoreRun({ app: appRoot, prompt, browser: !flag("--no-browser"), out: join(dir, "score-verify") });
+    auto = { quality: s.quality, checks: s.checks, newPage: s.newPage };
+    console.log(report(s) + "\n");
+  }
   const kit = kitInfo(appRoot);
   if (opt("--kit")) kit.commit = opt("--kit");
   mkdirSync(dir, { recursive: true });
@@ -208,7 +221,7 @@ function main() {
   const r = {
     prompt, run, stage: Number(opt("--stage")) || (run === 1 ? 1 : 2), promptText: promptText(prompt), recordedAt: new Date().toISOString(),
     app: { root: appRoot, branch: git(appRoot, ["rev-parse", "--abbrev-ref", "HEAD"]).out.trim(), commit: git(appRoot, ["rev-parse", "--short", "HEAD"]).out.trim() },
-    kit, diff: { files: d.files, insertions: d.insertions, deletions: d.deletions, untracked: d.untracked }, verify, routeHint: hint,
+    kit, diff: { files: d.files, insertions: d.insertions, deletions: d.deletions, untracked: d.untracked }, verify, routeHint: hint, auto,
     credits: null, seconds: null, filesRead: null, route: null, quality: null, note: null, ...manual,
   };
   writeFileSync(join(dir, "run.json"), JSON.stringify(r, null, 2) + "\n");
@@ -224,4 +237,4 @@ function main() {
   console.log(`Next: git reset --hard && git clean -fd   (.fluent-kit/out was ${flag("--keep-out") ? "kept" : "emptied"})`);
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

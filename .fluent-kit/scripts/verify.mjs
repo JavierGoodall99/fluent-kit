@@ -386,8 +386,9 @@ renders: for (const url of urls) {
             return r.width / (parseFloat(cs.fontSize) * (mono ? 0.6 : 0.5)) > 100;
           }).slice(0, 3).map((el) => `"${(el.textContent || "").trim().slice(0, 28)}..." (${Math.round(el.getBoundingClientRect().width)}px wide)`) : [],
           // Controls or headings cut off by a container with overflow hidden (content you cannot reach).
-          clipped: [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Input, h1, h2, h3, .fui-Text")].filter((el) => {
-            const r = el.getBoundingClientRect();
+          // Tabs and table cells count too, and so does text that overflows its own box inside a card (a narrow KPI card).
+          clipped: [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Input, .fui-Tab, h1, h2, h3, .fui-Text, td, th")].filter((el) => {
+            const b = el.getBoundingClientRect(), r = { left: b.left, width: b.width, height: b.height, right: Math.max(b.right, b.left + el.scrollWidth) };
             if (!r.width || !r.height) return false;
             if (r.right <= 0 || r.left >= window.innerWidth) return false; // fully off screen on purpose (a closed drawer), not cut off
             const own = getComputedStyle(el);

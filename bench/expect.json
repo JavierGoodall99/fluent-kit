@@ -1,0 +1,26 @@
+{
+  "//": "What tests/score-run.mjs expects of a run of each benchmark prompt on bench/app. Lives in the kit repo, not in the app, so the agent never reads it. edit: existing files the prompt may change (main.tsx and theme files are always allowed: the kit wires themes and global styles there). keep: names each file must still use after the run (its features). new: a new page must be added that uses this data. must: per-file patterns the result must contain; mustNot: patterns it must not contain. uniform: same-or-fewer (no new card styles) or match (the named file's cards share one style with the reference file).",
+  "1": { "kind": "new page", "edit": ["src/App.tsx"], "new": "integrations", "uniform": "same-or-fewer" },
+  "2": { "kind": "new page", "edit": ["src/App.tsx"], "new": "profile", "uniform": "same-or-fewer" },
+  "3": { "kind": "new page", "edit": ["src/App.tsx"], "new": "tasks", "uniform": "same-or-fewer" },
+  "4": { "kind": "restyle", "edit": ["src/pages/Home.tsx"], "keep": { "src/pages/Home.tsx": ["eventCounts", "invoiceTotals", "tenants", "events"] }, "uniform": "same-or-fewer" },
+  "5": { "kind": "restyle", "edit": ["src/pages/ActivityLog.tsx"], "keep": { "src/pages/ActivityLog.tsx": ["filterEvents", "exportActivityCsv", "paginate", "eventCounts", "SearchBox"] }, "uniform": "same-or-fewer" },
+  "6": {
+    "kind": "restyle", "edit": ["src/pages/Tenants.tsx"], "keep": { "src/pages/Tenants.tsx": ["searchTenants", "connectTenant", "tenantStatusLabel"] },
+    "mustNot": { "src/pages/Tenants.tsx": [["tenantStatusLabel\\.gekoppeld", "every tenant shown as Gekoppeld; the data has three statuses"]] },
+    "uniform": "same-or-fewer"
+  },
+  "7": { "kind": "small fix", "edit": ["src/App.tsx", "src/pages/Tenants.tsx"], "keep": { "src/App.tsx": ["TabList"], "src/pages/Tenants.tsx": ["searchTenants", "connectTenant"] }, "uniform": "same-or-fewer" },
+  "8": { "kind": "consistency", "edit": ["src/pages/ActivityLog.tsx"], "keep": { "src/pages/ActivityLog.tsx": ["filterEvents", "exportActivityCsv", "paginate", "eventCounts"] }, "uniform": { "match": "src/pages/ActivityLog.tsx", "with": "src/pages/Home.tsx" } },
+  "9": { "kind": "new page", "edit": ["src/App.tsx"], "new": "teams", "uniform": "same-or-fewer" },
+  "10": {
+    "kind": "new field", "edit": ["src/pages/InvoiceForm.tsx"], "keep": { "src/pages/InvoiceForm.tsx": ["saveInvoice", "customers"] },
+    "must": { "src/pages/InvoiceForm.tsx": [["<(Combobox|Dropdown)\\b", "no Combobox or Dropdown for the customer"]] },
+    "uniform": "same-or-fewer"
+  },
+  "11": {
+    "kind": "restyle", "edit": ["src/pages/Billing.tsx"], "keep": { "src/pages/Billing.tsx": ["invoiceTotals", "invoices"] },
+    "must": { "src/pages/Billing.tsx": [["tabular-nums", "amounts without tabular figures"], ["textAlign:\\s*\"(right|end)\"|justify(Content|Self|Items):\\s*\"(flex-)?end\"|<(Table|DataGrid)\\b", "amounts not right-aligned"]] },
+    "uniform": "same-or-fewer"
+  }
+}
