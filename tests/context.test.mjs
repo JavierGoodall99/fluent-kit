@@ -33,7 +33,7 @@ try {
   assert.match(r.out, /Cards: +standard style radius=borderRadiusXLarge.*\(2x\)[\s\S]*also radius=borderRadiusMedium.*Log\.tsx[\s\S]*Leave other pages as they are(?![\s\S]*shared component)/);
   assert.doesNotMatch(r.out, /^Next:/m, "the card that ran this is what the agent reads next: no second routing");
   // An app on the browser's default scrollbars is told the one rule; once a file sets it, the line is gone.
-  assert.match(r.out, /Scrollbars: not themed[^\n]*src\/main\.tsx[^\n]*scrollbarWidth: "thin"[^\n]*colorNeutralStrokeAccessible/);
+  assert.match(r.out, /Scrollbars: not themed[^\n]*src[\\/]main\.tsx[^\n]*scrollbarWidth: "thin"[^\n]*colorNeutralStrokeAccessible/);
   assert.ok(existsSync(join(dir, ".fluent-kit/context.json")));
   assert.match(readFileSync(join(dir, ".fluent-kit/.gitignore"), "utf8"), /context\.json/);
 
