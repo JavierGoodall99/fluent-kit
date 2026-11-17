@@ -16,7 +16,7 @@ const args = process.argv.slice(2);
 const root = resolve(args.find((a) => !a.startsWith("--")) || ".");
 const json = args.includes("--json");
 const START = "<!-- fluent-kit:start -->", END = "<!-- fluent-kit:end -->";
-const INSTALL = "npx github:JavierGoodall99/fluent-kit";
+const INSTALL = "npx @javiergoodall/fluent-kit@latest";
 const SKILL_DIRS = [".github/skills", ".claude/skills", ".agents/skills"];
 
 const out = [];
@@ -64,10 +64,11 @@ if (manifest === undefined) {
 } else {
   skill = manifest.skill;
   ok(`Kit ${manifest.kit?.version ?? "?"}${manifest.kit?.commit ? ` (${manifest.kit.commit})` : ""}, skill in ${skill}/`);
-  // A newer kit on GitHub: each repo holds its own copy, so nothing else tells you. Never fails the doctor when offline.
+  // A newer kit on npm (else GitHub main): each repo holds its own copy, so nothing else tells you. Silent offline.
   if (manifest.kit?.version && !args.includes("--offline") && !process.env.CI) {
     try {
-      const latest = (await (await fetch("https://raw.githubusercontent.com/JavierGoodall99/fluent-kit/main/package.json", { signal: AbortSignal.timeout(3000) })).json()).version;
+      const get = async (u) => (await (await fetch(u, { signal: AbortSignal.timeout(3000) })).json()).version;
+      const latest = (await get("https://registry.npmjs.org/@javiergoodall/fluent-kit/latest").catch(() => null)) || await get("https://raw.githubusercontent.com/JavierGoodall99/fluent-kit/main/package.json");
       const n = (v) => v.split(".").map(Number), [a, b] = [n(manifest.kit.version), n(latest)];
       if ((b[0] - a[0] || b[1] - a[1] || b[2] - a[2]) > 0) warn(`Kit ${manifest.kit.version} is older than the latest, ${latest}`, `Run ${INSTALL} again to update (PROFILE.md and brand.json are kept)`);
       else ok("The kit is up to date");

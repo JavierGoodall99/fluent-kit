@@ -1,0 +1,31 @@
+# Publishes @javiergoodall/fluent-kit to npm when a GitHub release is published. No npm token is stored anywhere:
+# npm's trusted publishing trusts this workflow file (OIDC). One-time setup on npmjs.com, after the first version was
+# published by hand: package settings > Trusted publisher > GitHub Actions, repository JavierGoodall99/fluent-kit,
+# workflow publish.yml.
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest # trusted publishing needs npm 11.5.1 or later
+      - run: npm ci
+      - run: npm test && npm run audit
+      - name: The release tag matches package.json
+        if: github.event_name == 'release'
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+      - run: npm publish --provenance
