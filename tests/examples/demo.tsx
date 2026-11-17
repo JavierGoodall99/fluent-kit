@@ -64,7 +64,9 @@ const useBad = makeStyles({
 });
 function BadGrid() {
   const s = useBad();
-  const lines = [2, 12, 4, 3, 3, 3]; // six cards, two rows: the first row is taller because of its content
+  // Six cards, two rows at 1440px: the first row is taller because of its content. Every card wraps to at least 3 lines in
+  // any font, so none drops under the probe's 60px floor (3 short lines fit on one line with CI's fonts, F-69).
+  const lines = [6, 12, 6, 6, 6, 6];
   return <div className={s.grid}>{lines.map((n, i) => <Card key={i} className={s.card}><Text>{Array.from({ length: n }, (_, k) => `Line ${k + 1} of card ${i + 1}.`).join(" ")}</Text></Card>)}</div>;
 }
 function BadScrollbar() {

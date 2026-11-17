@@ -14,6 +14,7 @@ The quick wins from the token and consistency audit (findings F-58 to F-68 in `d
 - **Copilot's cloud coding agent can run the browser check.** The installer writes `.github/workflows/copilot-setup-steps.yml` when the repo has none (`--no-cloud-setup` skips it).
 - **`doctor.mjs`** says when a newer kit is out (`--offline` skips it, CI never asks), and `doctor.mjs --report` sums up verify's own log: calls per task, and the problems that keep coming back. verify now logs the kind of each problem for it.
 - **Examples gallery:** `tests/build-gallery.mjs` builds every example as a static site, in the light and the dark theme; `.github/workflows/gallery.yml` publishes it to GitHub Pages.
+- **CI passes again.** `main` had failed AUD-09 since 1.7.0: the bad-grid fixture's short cards fit on one line with the CI runner's fonts, under the grid probe's size floor (F-69).
 - **Reading cost went down** (against 1.7.1): a list restyle reads 3,150 tokens (was 3,288), a new status page 5,265 (was 5,407), a new dashboard 5,002 (was 5,408). Six scripts grew; `tests/audit.mjs` gives the reason for each new limit.
 
 ## 1.7.1

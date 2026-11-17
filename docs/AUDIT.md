@@ -119,6 +119,7 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-66 | The page wrapper, card style and page title are written again in every example; no shared components | Token audit, 2026-11 | open (roadmap: company shared components) |
 | F-67 | The full v8 to v9 table is read on every migration | Token audit, 2026-11 | open |
 | F-68 | `context.mjs` printed profile lines that said "none" or restated kit defaults; the dashboard example carried a third chart | Token audit, 2026-11 | fixed 1.8.0 |
+| F-69 | CI failed AUD-09 on `main` since 1.7.0: the bad-grid fixture's short cards fit on one line with the runner's fonts (52px), under the grid probe's 60px floor, so the probe saw one row of equal cards | CI, 1.7.0 to 1.7.1 | fixed 1.8.0 (every fixture card wraps to 3 lines or more in any font) |
 
 ## Runs
 
