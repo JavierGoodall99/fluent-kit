@@ -7,13 +7,13 @@ Makes GitHub Copilot (and Claude Code, Codex, Cursor) build screens that look an
 You need [Node](https://nodejs.org) 18 or newer. In your project folder:
 
 ```
-npx github:JavierGoodall99/fluent-kit
+npx @javiergoodall/fluent-kit@latest
 ```
 
 1. When it asks to set up the browser check, answer **Y**. It installs into `.fluent-kit/deps` (your `package.json` is not touched) and uses the Edge or Chrome already on your computer.
 2. Commit the files it added (`.github/` and `.fluent-kit/`).
 
-Run the same command again any time to update.
+Run the same command again any time to update. To try changes not yet released, use `npx github:JavierGoodall99/fluent-kit` instead.
 
 ## Use it
 

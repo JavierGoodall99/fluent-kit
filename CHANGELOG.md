@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.1
+Published on npm as `@javiergoodall/fluent-kit`.
+
+- **Install with `npx @javiergoodall/fluent-kit@latest`.** README, `--help`, `docs/REFERENCE.md` and the doctor's fix lines use it. `npx github:JavierGoodall99/fluent-kit` still installs what is on `main`.
+- **The doctor compares against the npm release**, and falls back to GitHub's `main` when npm cannot be reached.
+- **`.github/workflows/publish.yml`** publishes each GitHub release to npm with trusted publishing (no npm token stored) and a provenance statement, after `npm test` and `npm run audit` pass and the release tag matches `package.json`.
+
 ## 1.9.0
 A benchmark anyone can run, scored by machine where a machine can judge.
 

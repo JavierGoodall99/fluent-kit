@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Installs the Fluent kit into any repo. No dependencies.
-// Usage: npx github:JavierGoodall99/fluent-kit [target-repo] [options]   (target defaults to the current folder)
+// Usage: npx @javiergoodall/fluent-kit@latest [target-repo] [options]   (target defaults to the current folder)
 // Safe to run again to update: kit files are replaced, files the kit no longer ships are removed, your PROFILE.md,
 // brand.json and any .fluent-kit/brands/ files are not touched, and only the marked block in the instruction files is replaced.
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync, rmdirSync } from "node:fs";
@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { createInterface } from "node:readline/promises";
 import { SETUP_CMD, axeSourcePath, hasPlaywright, installVerifyDeps, systemBrowser } from "./.fluent-kit/scripts/lib.mjs";
 
-const HELP = `Usage: npx github:JavierGoodall99/fluent-kit [target-repo] [options]
+const HELP = `Usage: npx @javiergoodall/fluent-kit@latest [target-repo] [options]
 Target defaults to the current folder.
 
 Options:
