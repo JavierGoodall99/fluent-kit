@@ -108,6 +108,17 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-55 | The page's own scrollbar sits outside the provider and cannot read tokens | 1.7.1 | partly fixed: new apps follow the system scheme (`color-scheme` in the generated provider); an existing app keeps its page scrollbar |
 | F-56 | verify's screenshots hide scrollbars (Playwright's headless default), so the contact-sheet critique cannot see them | 1.7.1 | open: the probe checks the style instead; showing them would change layout widths |
 | F-57 | Content ran flush against the scrollbar (customer screenshot: status text touching the track) | Customer feedback 2 | fixed 1.7.1 (`scrollbarGutter: "stable"` in the card rule and examples); not machine-checked |
+| F-58 | Four examples printed verify warnings (links and buttons under 24px, a list that scrolled sideways on a phone), and the dashboard shipped a "..." button and a "View details" link with nothing behind them; `render-examples.mjs` let warnings pass | Token audit, 2026-11 | fixed 1.8.0 (examples fixed; render-examples fails on warnings; short links reported only when crowded, `bad-links` fixture) |
+| F-59 | Every route reads the card before it runs `context.mjs`, one round trip more than needed; the finish command is written three times on each route | Token audit, 2026-11 | open: needs a real agent run to price a round trip |
+| F-60 | Every finish run prints all problems and the critique again, 279 to 912 tokens a run | Token audit, 2026-11 | open: print only what changed from the second run |
+| F-61 | From a monorepo root without React, `context.mjs` called the app a new project and gave an install command | Token audit, 2026-11 | fixed 1.8.0 (names the workspace package; `tests/context.test.mjs`) |
+| F-62 | Scope and card uniformity at finish are prose only; old whole-page failures were both | Token audit, 2026-11 | open |
+| F-63 | The dropdown cap recipe was read on every route (66 tokens) though `check.mjs` catches the miss | Token audit, 2026-11 | fixed 1.8.0 (recipe in the `popup-height` and verify messages; one line left in `SKILL.md`) |
+| F-64 | Cards and examples disagreed: caption colour in `list.md`, `Tooltip` on icon-only buttons, a Regular status icon, 16px narrow padding no example used | Token audit, 2026-11 | fixed 1.8.0; one rule for status (badge or icon and label) still open |
+| F-65 | verify cannot tell warnings a change caused from ones the page already had | Token audit, 2026-11 | open |
+| F-66 | The page wrapper, card style and page title are written again in every example; no shared components | Token audit, 2026-11 | open (roadmap: company shared components) |
+| F-67 | The full v8 to v9 table is read on every migration | Token audit, 2026-11 | open |
+| F-68 | `context.mjs` printed profile lines that said "none" or restated kit defaults; the dashboard example carried a third chart | Token audit, 2026-11 | fixed 1.8.0 |
 
 ## Runs
 

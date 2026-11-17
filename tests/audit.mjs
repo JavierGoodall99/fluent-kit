@@ -61,9 +61,11 @@ const check = (id, title, problems) => results.push({ id, title, problems });
 // AUD-04 Shipped scripts do not grow past their size (an agent that opens one to debug pays for all of it). Lower a
 // limit when a script shrinks; raising one needs a reason in the pull request. (1.7.0: check.mjs +400 for the popup rule;
 // the browser probes moved out of verify.mjs into probes.mjs, so verify.mjs shrank. 1.7.1: the scrollbar rule in
-// make-theme.mjs and context.mjs, and its probe.)
+// make-theme.mjs and context.mjs, and its probe. 1.8.0: install.mjs +300 for Copilot's cloud setup file; context.mjs +550
+// for monorepo roots and empty profile lines; doctor.mjs +700 for the version check and --report; lib.mjs +50 for the popup
+// recipe moved out of SKILL.md; make-theme.mjs +330 for the Light/Dark choice (the page scrollbar follows it); verify.mjs +150 for the crowded-link probe.)
 {
-  const LIMIT = {"install.mjs": 5500, "check.mjs": 8600, "consistency.mjs": 1300, "context.mjs": 2370, "detect-theme.mjs": 5500, "doctor.mjs": 3300, "generate-ramp.mjs": 2000, "lib.mjs": 1500, "make-theme.mjs": 1620, "scaffold.mjs": 2200, "verify.mjs": 13150, "probes.mjs": 1650};
+  const LIMIT = {"install.mjs": 5800, "check.mjs": 8600, "consistency.mjs": 1300, "context.mjs": 2920, "detect-theme.mjs": 5500, "doctor.mjs": 4000, "generate-ramp.mjs": 2000, "lib.mjs": 1550, "make-theme.mjs": 1950, "scaffold.mjs": 2200, "verify.mjs": 13450, "probes.mjs": 1650};
   const problems = [];
   for (const f of scripts) {
     const name = f.split("/").pop(), n = tokens(read(f));

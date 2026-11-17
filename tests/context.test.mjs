@@ -86,6 +86,23 @@ try {
     assert.match(e, /Brand: +none yet: ask for the brand hex or "stock"/);
   } finally { rmSync(empty, { recursive: true, force: true }); }
 
+  // Template placeholders and "none" lines are left out of the profile, and so are headings left empty (F-68).
+  writeFileSync(join(dir, ".fluent-kit/PROFILE.md"), "# Organisation profile\n\n## Shared packages\n\n- Shared UI package: <name, or none>\n- None confirmed.\n\n## Other rules\n\n- Sentence case.\n");
+  r = ctx("restyle", "--refresh");
+  assert.match(r.out, /## Other rules\n +- Sentence case\./);
+  assert.doesNotMatch(r.out, /Shared packages|None confirmed|<name/);
+
+  // A monorepo root with the app in a workspace package: name the package to run from, scan nothing (F-61).
+  const mono = mkdtempSync(join(tmpdir(), "fk-mono-"));
+  try {
+    mkdirSync(join(mono, "apps/web"), { recursive: true });
+    writeFileSync(join(mono, "package.json"), JSON.stringify({ private: true, workspaces: ["apps/*"] }));
+    writeFileSync(join(mono, "apps/web/package.json"), JSON.stringify({ dependencies: { react: "^18", "@fluentui/react-components": "^9" } }));
+    const m = spawnSync(process.execPath, [join(kit, "context.mjs"), "restyle"], { cwd: mono, encoding: "utf8" }).stdout;
+    assert.match(m, /monorepo root; the UI is in apps\/web\.\nRun from the package you are changing: cd apps\/web && node .*context\.mjs restyle/);
+    assert.doesNotMatch(m, /New project|npm install/);
+  } finally { rmSync(mono, { recursive: true, force: true }); }
+
   // --no-cache reads but never writes (the installer's dry run).
   rmSync(join(dir, ".fluent-kit/context.json"));
   ctx("restyle", "--no-cache");

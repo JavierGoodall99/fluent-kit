@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Fluent kit doctor: finds what is wrong with an install or the environment, and says how to fix each thing.
-// Usage: node .fluent-kit/scripts/doctor.mjs [dir] [--json]
+// Usage: node .fluent-kit/scripts/doctor.mjs [dir] [--json] [--offline] [--report]
 // Prints one line per finding: ok, warn (works, but worse than it could) or FIX (something will not work).
+// --report: instead, a summary of the verify runs logged in .fluent-kit/out/verify-runs.jsonl (how often agents verified,
+// which problems keep coming back). --offline: skip the check for a newer kit (also skipped under CI).
 // Exit code 1 when anything needs fixing, 0 otherwise. Changes nothing.
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
@@ -23,6 +25,21 @@ const ok = (m) => add("ok", m), warn = (m, f) => add("warn", m, f), fix = (m, f)
 const read = (p) => { try { return readFileSync(join(root, p), "utf8"); } catch { return null; } };
 const readJson = (p) => { const t = read(p); if (t === null) return undefined; try { return JSON.parse(t); } catch { return null; } };
 const rel = (p) => p.split(sep).join("/");
+
+// --report: what everyday use of the kit shows, from verify's own log. Runs less than 20 minutes apart count as one task.
+if (args.includes("--report")) {
+  const runs = (read(".fluent-kit/out/verify-runs.jsonl") || "").split("\n").filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  if (!runs.length) { console.log("fluent-kit doctor --report: no verify runs logged yet (.fluent-kit/out/verify-runs.jsonl)."); process.exit(0); }
+  const tasks = [];
+  for (const r of runs) { const t = Date.parse(r.at), last = tasks.at(-1); if (last && t - last.end < 20 * 60000) { last.n++; last.end = t; } else tasks.push({ n: 1, end: t }); }
+  const per = tasks.map((t) => t.n).sort((a, b) => a - b), kinds = new Map();
+  for (const r of runs) for (const k of new Set(r.kinds || [])) kinds.set(k, (kinds.get(k) || 0) + 1);
+  console.log(`fluent-kit doctor --report: ${runs.length} verify run(s) from ${runs[0].at.slice(0, 10)} to ${runs.at(-1).at.slice(0, 10)}, about ${tasks.length} task(s).
+Verify calls per task: median ${per[Math.floor(per.length / 2)]}, most ${per.at(-1)}. Runs with errors: ${runs.filter((r) => r.errors).length}; with warnings: ${runs.filter((r) => r.warnings).length}.`);
+  const top = [...kinds].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if (top.length) console.log("Problems that came back most (runs):\n" + top.map(([k, n]) => `  ${String(n).padStart(3)}  ${k}`).join("\n"));
+  process.exit(0);
+}
 
 // Node
 const major = Number(process.versions.node.split(".")[0]);
@@ -47,6 +64,15 @@ if (manifest === undefined) {
 } else {
   skill = manifest.skill;
   ok(`Kit ${manifest.kit?.version ?? "?"}${manifest.kit?.commit ? ` (${manifest.kit.commit})` : ""}, skill in ${skill}/`);
+  // A newer kit on GitHub: each repo holds its own copy, so nothing else tells you. Never fails the doctor when offline.
+  if (manifest.kit?.version && !args.includes("--offline") && !process.env.CI) {
+    try {
+      const latest = (await (await fetch("https://raw.githubusercontent.com/JavierGoodall99/fluent-kit/main/package.json", { signal: AbortSignal.timeout(3000) })).json()).version;
+      const n = (v) => v.split(".").map(Number), [a, b] = [n(manifest.kit.version), n(latest)];
+      if ((b[0] - a[0] || b[1] - a[1] || b[2] - a[2]) > 0) warn(`Kit ${manifest.kit.version} is older than the latest, ${latest}`, `Run ${INSTALL} again to update (PROFILE.md and brand.json are kept)`);
+      else ok("The kit is up to date");
+    } catch { /* offline or blocked: say nothing */ }
+  }
   const gone = manifest.files.filter((f) => !existsSync(join(root, f)));
   if (gone.length) fix(`${gone.length} kit file(s) are missing: ${gone.slice(0, 3).join(", ")}${gone.length > 3 ? ", ..." : ""}`, `Run ${INSTALL} again`);
   else ok(`All ${manifest.files.length} kit files are present`);

@@ -1,6 +1,6 @@
 // Renders every example in the skill in a real browser and checks it with the kit's own verify, at 1440 and 375px.
 // The examples are what agents copy, so a layout bug here ends up in every app built from them (the backtest copied a
-// phone overlap from status-grid.tsx). Fails on any verify error and on any control drawn over text.
+// phone overlap from status-grid.tsx). Fails on any verify error or warning and on any control drawn over text.
 // Run: node tests/render-examples.mjs   (needs Edge, Chrome or Playwright's Chromium on the machine)
 import { build } from "esbuild";
 import { createServer } from "node:http";
@@ -17,7 +17,7 @@ const names = all.filter((n) => !n.startsWith("bad-"));
 const PAGE_LEVEL = /\[(landmark-one-main|page-has-heading-one|region)\]/;
 const CLICK = { "status-grid": "role=button[name='Expand Payments']", "form-page": "role=combobox[name='Team']" };
 // Fixtures that break a rule on purpose: verify must report each one, or its probe has stopped working.
-const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ } };
+const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ } };
 const FAIL = /^(A control covers text|Cards in a grid are not one size|An open list is too tall|Scrolling areas use the browser)/;
 
 let server;
@@ -50,7 +50,8 @@ try {
     for (const p of report.problems) {
       const where = p.where.map((w) => w.replace(base, "")).join(", ");
       if (PAGE_LEVEL.test(p.msg)) continue; // an example is a fragment of a page: its main and h1 are the app's
-      if (p.level === "error" || FAIL.test(p.msg)) failures.push(`${where}: ${p.msg}`);
+      // Agents copy the examples and fix the warnings they cause, so an example ships with none (F-58).
+      if (p.level !== "advice" || FAIL.test(p.msg)) failures.push(`${where}: ${p.msg}`);
       else notes.push(`${p.level}  ${where}: ${p.msg.slice(0, 160)}`);
     }
   }

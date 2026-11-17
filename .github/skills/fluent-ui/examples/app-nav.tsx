@@ -1,12 +1,10 @@
-// App shell navigation skeleton: NavDrawer (260px) that collapses to a 56px icon rail, and slides over the page under 1024px.
-// Rules and measurements: patterns/nav.md. Router-agnostic: the page passes the selected value and handles navigation.
-// Sub-pages: NavCategory / NavSubItem (one level). A global action (theme, help) goes in NavDrawerFooter as a
-// left-aligned subtle Button (justifyContent: flex-start). UI text: use the project's language.
+// App shell: top bar and NavDrawer. Rules and measurements: patterns/nav.md. Router-agnostic: the page passes the
+// selected value and handles navigation. UI text: use the project's language.
 import {
-  Button, Hamburger, NavDrawer, NavDrawerBody, NavDrawerHeader, NavItem, Text, Tooltip,
-  makeStyles, mergeClasses, tokens,
+  Avatar, Button, Hamburger, Menu, MenuItemRadio, MenuList, MenuPopover, MenuTrigger, NavDrawer, NavDrawerBody, NavDrawerHeader,
+  NavItem, SearchBox, Text, Tooltip, makeStyles, mergeClasses, tokens,
 } from "@fluentui/react-components";
-import { Dismiss20Regular, Home20Filled, Home20Regular, Settings20Filled, Settings20Regular, bundleIcon } from "@fluentui/react-icons";
+import { DarkTheme20Regular, Dismiss20Regular, Home20Filled, Home20Regular, Settings20Filled, Settings20Regular, bundleIcon } from "@fluentui/react-icons";
 import { useState, type MouseEvent, type ReactElement } from "react";
 
 export interface NavEntry { value: string; label: string; icon: ReactElement; href?: string }
@@ -19,7 +17,7 @@ const useStyles = makeStyles({
     transform: "translateX(-100%)", visibility: "hidden", // closed on narrow screens: out of the tab order, not just off-screen
     transitionProperty: "transform, width, visibility", transitionDuration: tokens.durationSlow, transitionTimingFunction: tokens.curveEasyEase,
     "@media (prefers-reduced-motion: reduce)": { transitionDuration: "0.01ms" },
-    [WIDE]: { position: "sticky", alignSelf: "flex-start", transform: "none", visibility: "visible", flexShrink: 0 },
+    [WIDE]: { position: "sticky", top: "48px", height: "calc(100vh - 48px)", alignSelf: "flex-start", transform: "none", visibility: "visible", flexShrink: 0 },
   },
   open: { transform: "none", visibility: "visible", boxShadow: tokens.shadow64, [WIDE]: { boxShadow: "none" } },
   collapsed: { [WIDE]: { width: "56px" } },
@@ -28,7 +26,6 @@ const useStyles = makeStyles({
     borderRight: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`,
   },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: `${tokens.spacingVerticalM} ${tokens.spacingHorizontalM} ${tokens.spacingVerticalS}` },
-  // Stock NavItem is near-black when selected: blend items into the drawer instead.
   item: {
     backgroundColor: tokens.colorSubtleBackground,
     ":hover": { backgroundColor: tokens.colorSubtleBackgroundHover },
@@ -59,7 +56,7 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
         <NavDrawer open type="inline" className={s.surface} surfaceMotion={null} selectedValue={selectedValue} onNavItemSelect={(_, d) => go(d.value)}>
           <NavDrawerHeader>
             <div className={s.header}>
-              <Text weight="semibold" size={400}>{title}</Text>
+              <Text weight="semibold" size={400} className={s.narrowOnly}>{title}</Text>
               <Hamburger onClick={onToggle} aria-label="Collapse navigation" className={s.wideOnly} />
               <Button appearance="subtle" icon={<Dismiss20Regular />} onClick={onCloseMobile} aria-label="Close" className={s.narrowOnly} />
             </div>
@@ -96,34 +93,54 @@ export function AppNav({ items, selectedValue, onNavigate, title, collapsed, onT
 const HomeIcon = bundleIcon(Home20Filled, Home20Regular);
 const SettingsIcon = bundleIcon(Settings20Filled, Settings20Regular);
 
+type Appearance = "system" | "light" | "dark";
+const APPEARANCE: Record<Appearance, string> = { system: "Use system setting", light: "Light", dark: "Dark" };
 const useShell = makeStyles({
-  shell: { display: "flex", minHeight: "100vh" },
+  shell: { display: "flex", flexDirection: "column", minHeight: "100vh" },
+  body: { display: "flex", flexGrow: 1 },
   main: { flexGrow: 1, minWidth: 0 },
-  // Under 1024px the nav is hidden: this bar is the only way to open it. Hidden on wide screens, where the nav shows.
-  topBar: { display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalS, padding: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalM}`, "@media (min-width: 1024px)": { display: "none" } },
+  topBar: {
+    position: "sticky", top: 0, zIndex: 40, display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalL, height: "48px", boxSizing: "border-box",
+    padding: `0 ${tokens.spacingHorizontalM}`, backgroundColor: tokens.colorNeutralBackground1, borderBottom: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`,
+  },
+  // The two sides are equal, so the search box sits in the middle.
+  side: { flex: "1 1 0", minWidth: 0, display: "flex", alignItems: "center", columnGap: tokens.spacingHorizontalS },
+  search: { flex: "0 1 400px", "@media (max-width: 640px)": { display: "none" } },
+  end: { justifyContent: "flex-end" },
+  narrowOnly: { "@media (min-width: 1024px)": { display: "none" } },
 });
 
-// The page owns the state because the content sits beside the nav.
+// The page owns the state. In the app, appearance comes from the theme file: useAppearance().
 export function AppNavExample() {
   const s = useShell();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selected, setSelected] = useState("home");
+  const [appearance, setAppearance] = useState<Appearance>("system");
   const items: NavEntry[] = [
     { value: "home", label: "Home", href: "/", icon: <HomeIcon /> },
     { value: "settings", label: "Settings", href: "/settings", icon: <SettingsIcon /> },
   ];
   return (
     <div className={s.shell}>
-      <AppNav items={items} selectedValue={selected} onNavigate={setSelected} title="My app" collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
-      <main className={s.main}>
-        <header className={s.topBar}>
-          <Hamburger onClick={() => setMobileOpen(true)} aria-label="Open navigation" />
-          <Text weight="semibold">My app</Text>
-        </header>
-        {/* page content: its title and command bar first */}
-      </main>
+      <header className={s.topBar}>
+        <div className={s.side}><Hamburger onClick={() => setMobileOpen(true)} aria-label="Open navigation" className={s.narrowOnly} /><Text weight="semibold">My app</Text></div>
+        <SearchBox className={s.search} placeholder="Search" aria-label="Search" />
+        <div className={mergeClasses(s.side, s.end)}>
+          <Menu checkedValues={{ theme: [appearance] }} onCheckedValueChange={(_, d) => setAppearance(d.checkedItems[0] as Appearance)}>
+            <MenuTrigger disableButtonEnhancement>
+              <Tooltip content="Theme" relationship="label"><Button appearance="subtle" icon={<DarkTheme20Regular />} aria-label="Theme" /></Tooltip>
+            </MenuTrigger>
+            <MenuPopover><MenuList>{(Object.keys(APPEARANCE) as Appearance[]).map((v) => <MenuItemRadio key={v} name="theme" value={v}>{APPEARANCE[v]}</MenuItemRadio>)}</MenuList></MenuPopover>
+          </Menu>
+          <Avatar name="Megan Bowen" size={32} />
+        </div>
+      </header>
+      <div className={s.body}>
+        <AppNav items={items} selectedValue={selected} onNavigate={setSelected} title="My app" collapsed={collapsed}
+          onToggle={() => setCollapsed((c) => !c)} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
+        <main className={s.main}>{/* page content: its title and command bar first */}</main>
+      </div>
     </div>
   );
 }

@@ -5,7 +5,8 @@
 //   stock    no custom brand: uses Microsoft's webLightTheme / webDarkTheme
 //   --next   Next.js App Router: adds "use client" and the Griffel style registry needed for server rendering
 //   --out    file to write (default: print to stdout)
-// The provider follows the OS light/dark setting without causing a hydration mismatch, and removes the browser's
+// The provider follows the OS light/dark setting without causing a hydration mismatch, lets the person pick Light or Dark
+// instead (useAppearance(), remembered in localStorage), and removes the browser's
 // default body margin (otherwise the page background stops 8px short of the window, a white frame in dark mode).
 // This generated file is the one place raw hex is allowed. No dependencies.
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -45,7 +46,7 @@ if (stock) {
 }
 
 const nextImports = next ? "  RendererProvider,\n  SSRProvider,\n  createDOMRenderer,\n  renderToStyleElements,\n" : "";
-const reactImport = next ? 'import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";\nimport { useServerInsertedHTML } from "next/navigation";' : 'import { useSyncExternalStore, type ReactNode } from "react";';
+const reactImport = `import { createContext, useContext, useEffect, ${next ? "useRef, " : ""}useState, useSyncExternalStore, type ReactNode } from "react";${next ? '\nimport { useServerInsertedHTML } from "next/navigation";' : ""}`;
 const body = `
 // The page background reaches the window edge (no browser margin), and every scrollbar in the app is thin and themed,
 // Fluent's own lists, menus and drawers included. Never style a scrollbar per component. The page's own scrollbar
@@ -74,9 +75,23 @@ function useSystemDark(): boolean {
     () => false,
   );
 }
+
+// The person's choice: "system" follows the OS. Read after hydration, so the server and first render agree.
+export type Appearance = "system" | "light" | "dark";
+const AppearanceContext = createContext<{ appearance: Appearance; setAppearance: (a: Appearance) => void }>({ appearance: "system", setAppearance: () => {} });
+export const useAppearance = () => useContext(AppearanceContext);
+function useDark() {
+  const system = useSystemDark();
+  const [appearance, setChoice] = useState<Appearance>("system");
+  useEffect(() => { try { const v = localStorage.getItem("appearance"); if (v === "light" || v === "dark") setChoice(v); } catch { /* storage blocked */ } }, []);
+  const setAppearance = (a: Appearance) => { setChoice(a); try { if (a === "system") localStorage.removeItem("appearance"); else localStorage.setItem("appearance", a); } catch { /* storage blocked */ } };
+  // The page's own scrollbar follows the choice too (the global styles set "light dark" for the system setting).
+  useEffect(() => { document.documentElement.style.colorScheme = appearance === "system" ? "" : appearance; }, [appearance]);
+  return { dark: appearance === "system" ? system : appearance === "dark", value: { appearance, setAppearance } };
+}
 ${next ? `
 export function AppProvider({ children }: { children: ReactNode }) {
-  const dark = useSystemDark();
+  const { dark, value } = useDark();
   const [renderer] = useState(() => createDOMRenderer());
   const seen = useRef(0);
   useServerInsertedHTML(() => {
@@ -90,15 +105,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <RendererProvider renderer={renderer}>
       <SSRProvider>
-        <FluentProvider theme={dark ? darkTheme : lightTheme}><GlobalStyles />{children}</FluentProvider>
+        <AppearanceContext.Provider value={value}>
+          <FluentProvider theme={dark ? darkTheme : lightTheme}><GlobalStyles />{children}</FluentProvider>
+        </AppearanceContext.Provider>
       </SSRProvider>
     </RendererProvider>
   );
 }
 ` : `
 export function AppProvider({ children }: { children: ReactNode }) {
-  const dark = useSystemDark();
-  return <FluentProvider theme={dark ? darkTheme : lightTheme}><GlobalStyles />{children}</FluentProvider>;
+  const { dark, value } = useDark();
+  return (
+    <AppearanceContext.Provider value={value}>
+      <FluentProvider theme={dark ? darkTheme : lightTheme}><GlobalStyles />{children}</FluentProvider>
+    </AppearanceContext.Provider>
+  );
 }
 `}`;
 

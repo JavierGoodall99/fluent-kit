@@ -13,6 +13,7 @@ For people setting the kit up for a team, or changing it. Every script also prin
 - `--with-deps`: set up the browser check without asking (`playwright-core` and `axe-core` into `.fluent-kit/deps`; Chromium only when Edge or Chrome is missing). Same as `node .fluent-kit/scripts/verify.mjs --setup` later.
 - `--ci`: write `.github/workflows/fluent-kit.yml`, a pull-request check that runs the rules whether or not the agent did.
 - `--hooks`: a git pre-commit hook that runs `check.mjs --changed`.
+- `.github/workflows/copilot-setup-steps.yml` is written by default when the repo has none. GitHub Copilot's coding agent runs its steps before it starts, so the browser check works in the cloud. An existing file is kept; the installer says which step to add. `--no-cloud-setup` skips it.
 - `--wire`: an npm script `ui:check`.
 - `--dry-run`: show what would change.
 

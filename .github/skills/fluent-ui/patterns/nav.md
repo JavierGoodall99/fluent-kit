@@ -3,7 +3,8 @@
 Move between the main sections of the app. Example: `examples/app-nav.tsx`.
 
 **Shell**
-- Left `NavDrawer` (the project's app shell first, if it has one), a slim top header with the app name, an organisation or environment selector if the app needs one, and the user `Persona`.
+- The project's app shell first, if it has one. Otherwise a left `NavDrawer` under a 48px top bar on every width: `colorNeutralBackground1`, a `colorNeutralStroke2` line under it, sticky. In it: the app name, an organisation or environment selector if the app needs one, a centred `SearchBox` (max 400px) if the app has search, then at the right the global actions (theme, help) as icon buttons and the user's `Avatar`.
+- Theme: a menu of Use system setting, Light and Dark (`MenuItemRadio`), wired to `useAppearance()` when the app's theme file exports it (`make-theme.mjs` writes it).
 - Content to the right on `colorNeutralBackground2`; each page starts with its title and command bar.
 - Breadcrumbs only inside nested pages, never as the main navigation. `TabList` for a few closely related views of one page.
 
@@ -12,7 +13,6 @@ Move between the main sections of the app. Example: `examples/app-nav.tsx`.
 - Selected item: a 4px by 20px rounded brand bar at the left edge, a filled icon (`bundleIcon(XFilled, XRegular)`), semibold text.
 - Stock `NavItem` is near-black when selected. Override: `colorSubtleBackground` at rest, `colorSubtleBackgroundHover` on hover, `colorSubtleBackgroundSelected` when selected.
 - One level of nesting (`NavCategory` with `NavSubItem`); deeper hierarchies use a `Tree` in the page.
-- Global actions (theme, help, sign out) in `NavDrawerFooter`, left-aligned with the items: the `Button` needs `justifyContent: flex-start`, the item padding and regular weight.
 
 **Behaviour**
 - Collapse with a `Hamburger`. The rail shows icon buttons with a `Tooltip` and `aria-label` each; the active one is marked `aria-current="page"`.
@@ -22,5 +22,5 @@ Move between the main sections of the app. Example: `examples/app-nav.tsx`.
 
 **Narrow (under 1024px)**
 - The nav is hidden (`visibility: hidden`, out of the tab order) until opened; it slides over the page with `shadow64` and a close button.
-- A top bar inside `<header>` holds a `Hamburger` that opens it and the page title.
+- A `Hamburger` at the start of the top bar opens it. The search box hides under 640px.
 - Choosing an item closes the drawer.

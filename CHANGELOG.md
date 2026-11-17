@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.8.0
+The quick wins from the token and consistency audit (findings F-58 to F-68 in `docs/AUDIT.md`), and the first steps toward a premium Microsoft look: a desktop top bar and a remembered Light or Dark choice.
+
+- **The examples render with no warnings, and CI keeps it that way.** `tests/render-examples.mjs` now fails on any warning, not only errors (F-58). Fixed: the dashboard shipped a "..." button and a "View details" link with nothing behind them (the card forbids both); the large list scrolled sideways on a phone (it now shows the name with the city under it).
+- **verify reports a short link only when it crowds another control.** A Fluent `Link` is as tall as its text, so every link was a warning that could only be fixed by setting Fluent's sizes, which the kit forbids. WCAG 2.5.8 accepts a short target whose 24px circle touches nothing else; now only those that do are reported. A new fixture (`bad-links`) proves the probe works.
+- **Monorepos:** run from a root whose `package.json` has no React, `context.mjs` called the app a new project and gave an install command. It now names the workspace package and the command to run from there (F-61).
+- **The dropdown height recipe moved out of `SKILL.md`** into the messages of `check.mjs` (`popup-height`) and verify, the two places that catch the mistake. `SKILL.md` keeps one line (F-63).
+- **Cards and examples agree** (F-64): list captions use the caption role (`colorNeutralForeground3`); icon-only buttons on toolbars and cards get a `Tooltip` (the task board now has them); the status grid uses a filled icon for every status; the router's 16px narrow padding, which no example used, is gone.
+- **Profiles:** `context.mjs` leaves out template placeholders, "none" lines and the headings they leave empty. The `acme-nl` sample profile drops sections that restated kit defaults (F-68). The dashboard example keeps two charts instead of three.
+- **App shell:** a 48px top bar on every width (app name, a centred search box, a theme menu, the account `Avatar`), as in Microsoft 365. `patterns/nav.md` and `examples/app-nav.tsx` follow it.
+- **Light or Dark:** the theme file `make-theme.mjs` writes still follows the system setting, and now exports `useAppearance()` so a person can pick Light or Dark. The choice is remembered, and the page's own scrollbar follows it.
+- **Copilot's cloud coding agent can run the browser check.** The installer writes `.github/workflows/copilot-setup-steps.yml` when the repo has none (`--no-cloud-setup` skips it).
+- **`doctor.mjs`** says when a newer kit is out (`--offline` skips it, CI never asks), and `doctor.mjs --report` sums up verify's own log: calls per task, and the problems that keep coming back. verify now logs the kind of each problem for it.
+- **Examples gallery:** `tests/build-gallery.mjs` builds every example as a static site, in the light and the dark theme; `.github/workflows/gallery.yml` publishes it to GitHub Pages.
+- **Reading cost went down** (against 1.7.1): a list restyle reads 3,150 tokens (was 3,288), a new status page 5,265 (was 5,407), a new dashboard 5,002 (was 5,408). Six scripts grew; `tests/audit.mjs` gives the reason for each new limit.
+
 ## 1.7.1
 From customer feedback: scrollbars were the browser's thick default (arrow buttons, a bright track in dark mode) and did not fit the design.
 

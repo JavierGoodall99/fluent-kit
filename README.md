@@ -39,7 +39,7 @@ The first time the check reaches a sign-in page, an Edge window opens. Sign in u
 node .fluent-kit/scripts/doctor.mjs
 ```
 
-It lists what is wrong and the command that fixes each thing. The usual ones:
+It lists what is wrong and the command that fixes each thing, and says when a newer kit is out (`--offline` skips that). The usual ones:
 
 - **The browser check says NOT RUN:** `node .fluent-kit/scripts/verify.mjs --setup`
 - **Edge says the profile is in use:** close the Edge window the check opened (on a Mac, quit Edge with Cmd+Q) and try again.
@@ -47,7 +47,11 @@ It lists what is wrong and the command that fixes each thing. The usual ones:
 
 Include the doctor's output when you report a problem.
 
+`node .fluent-kit/scripts/doctor.mjs --report` sums up how agents have used the browser check in this repo: verify calls per task, and the problems that keep coming back.
+
 ## More
+
+[Examples gallery](https://javiergoodall99.github.io/fluent-kit/): every page the agents copy, in the light and the dark theme.
 
 [docs/REFERENCE.md](docs/REFERENCE.md): install options, how a task runs, what the checks do, CI and pre-commit enforcement, organisation profiles, lint setup and known limits.
 

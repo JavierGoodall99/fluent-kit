@@ -21,7 +21,7 @@ import { join, relative, resolve, sep, extname, basename, dirname } from "node:p
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { SETUP_CMD, hasPlaywright, packageManager, skillPath, tscPath } from "./lib.mjs";
+import { POPUP_CAP, SETUP_CMD, hasPlaywright, packageManager, skillPath, tscPath } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -173,7 +173,7 @@ for (const file of files) {
       const many = (!menu && /\.map\(/.test(mm[0])) || (mm[0].match(menu ? /<MenuItem\b/g : /<Option\b/g) || []).length > 8; // a mapped Menu is judged in the browser (verify)
       if (!many || (menu ? /\b(?:className|style)\s*=/.test(tag) : /\bpositioning\s*=/.test(tag) && /\blistbox\s*=/.test(tag))) continue;
       const line = text.slice(0, mm.index).split("\n").length;
-      if (!/fluent-kit-ignore/.test(lines[line - 1] || "") && !/fluent-kit-ignore/.test(lines[line - 2] || "")) add(file, line, "popup-height", "warn", `A long ${menu ? "Menu" : mm[1]} list has no height cap and fills the window. Cap it at 320px so it scrolls: SKILL.md, "Every page".`);
+      if (!/fluent-kit-ignore/.test(lines[line - 1] || "") && !/fluent-kit-ignore/.test(lines[line - 2] || "")) add(file, line, "popup-height", "warn", `A long ${menu ? "Menu" : mm[1]} list has no height cap and fills the window. Cap it at 320px so it scrolls. ${POPUP_CAP}`);
     }
     // <img> without alt
     for (const mm of text.matchAll(/<img\b(?![^>]*\balt\s*=)[^>]*>/g)) add(file, text.slice(0, mm.index).split("\n").length, "img-alt", "error", "<img> without alt.");

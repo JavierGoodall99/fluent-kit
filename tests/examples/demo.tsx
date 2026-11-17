@@ -1,7 +1,7 @@
 // Renders every example in the skill with demo data, one per URL hash (#status-grid, #list-page, ...), so CI can open each
 // one in a browser and check it the way verify checks an app. Typed against each example's own props: when an example
 // changes its props, the type check fails here. Used by tests/render-examples.mjs only; never installed.
-import { Card, Dropdown, FluentProvider, Option, Text, makeStaticStyles, makeStyles, tokens, webLightTheme } from "@fluentui/react-components";
+import { Card, Dropdown, FluentProvider, Link, Option, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppNavExample } from "../../.github/skills/fluent-ui/examples/app-nav";
@@ -30,6 +30,7 @@ function Scrollbars() {
   return null;
 }
 const usePage = makeStyles({
+  item: { paddingBlock: tokens.spacingVerticalXS }, // index links 28px apart, so each keeps its 24px target
   page: { minHeight: "100vh", boxSizing: "border-box", padding: tokens.spacingHorizontalXL, backgroundColor: tokens.colorNeutralBackground2 },
 });
 function Page({ children }: { children: ReactNode }) {
@@ -77,6 +78,9 @@ function BadDropdown() {
     </Dropdown>
   );
 }
+function BadLinks() {
+  return <div>{["Edit", "Copy", "Delete"].map((l) => <div key={l}><Link href={`#${l}`}>{l}</Link></div>)}</div>; // stacked, 20px apart
+}
 // Uneven content on purpose: a card with 40 rows next to cards with 3, and one with long labels. They must stay one size.
 const rowsOf = (n: number) => Array.from({ length: n }, (_, i) => ({ label: `Team ${i + 1}`, value: i % 7 === 3 ? null : 1200 * (i + 1) + i }));
 const dataCards: ComponentProps<typeof DataCards>["cards"] = [
@@ -97,6 +101,7 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-dropdown": () => <Page><BadDropdown /></Page>,
   "bad-grid": () => <Page><BadGrid /></Page>,
   "bad-scrollbar": () => <Page><BadScrollbar /></Page>,
+  "bad-links": () => <Page><BadLinks /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,
@@ -113,14 +118,26 @@ const DEMOS: Record<string, () => ReactNode> = {
 };
 export const EXAMPLES = Object.keys(DEMOS);
 
+// No hash: the gallery's index page (tests/build-gallery.mjs publishes this bundle), one link per example in each theme.
+const dark = new URLSearchParams(window.location.search).has("dark");
+function Index() {
+  const s = usePage();
+  return (
+    <main className={s.page}>
+      <Text as="h1" size={600} weight="semibold" block>Fluent kit examples</Text>
+      <Text block>What agents copy when they build a page with the kit. Each example in the light and the dark theme.</Text>
+      <ul>{EXAMPLES.filter((n) => !n.startsWith("bad-")).map((n) => <li key={n} className={s.item}><Link href={`?#${n}`}>{n}</Link> (<Link href={`?dark#${n}`}>dark</Link>)</li>)}</ul>
+    </main>
+  );
+}
 function App() {
   useGlobal();
   const name = window.location.hash.slice(1);
   const demo = DEMOS[name];
-  return demo ? <>{!name.startsWith("bad-scrollbar") && <Scrollbars />}{demo()}</> : <p>Unknown example: {name}</p>;
+  return demo ? <>{!name.startsWith("bad-scrollbar") && <Scrollbars />}{demo()}</> : name ? <p>Unknown example: {name}</p> : <Index />;
 }
 const root = document.getElementById("root");
 if (root) {
-  createRoot(root).render(<FluentProvider theme={webLightTheme}><App /></FluentProvider>);
+  createRoot(root).render(<FluentProvider theme={dark ? webDarkTheme : webLightTheme}><App /></FluentProvider>);
   window.addEventListener("hashchange", () => window.location.reload());
 }

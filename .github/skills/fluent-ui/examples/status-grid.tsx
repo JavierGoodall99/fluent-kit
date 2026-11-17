@@ -1,16 +1,16 @@
 // Status grid skeleton. Rules and measurements: patterns/status-page.md. UI text: use the project's language.
 import { Button, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, ToggleButton, makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
-import { CheckmarkCircle16Filled, ChevronDown16Regular, ChevronRight16Regular, DismissCircle16Filled, QuestionCircle16Regular, Warning16Filled } from "@fluentui/react-icons";
+import { CheckmarkCircle16Filled, ChevronDown16Regular, ChevronRight16Regular, DismissCircle16Filled, QuestionCircle16Filled, Warning16Filled } from "@fluentui/react-icons";
 import { useState, type ReactElement } from "react";
 
 // Add every status your source documents, each with one fixed icon. Problems sort first.
 type Status = "unhealthy" | "degraded" | "unknown" | "healthy";
 interface Check { id: string; name: string; status: Status; message?: string }
 interface Group { id: string; name: string; checks: Check[] }
-const STATUS: Record<Status, { label: string; icon: ReactElement; tone: "danger" | "warning" | "neutral" | "success"; problem: boolean }> = {
+const STATUS: Record<Status, { label: string; icon: ReactElement; tone: "danger" | "warning" | "success"; problem: boolean }> = {
   unhealthy: { label: "Unhealthy", icon: <DismissCircle16Filled />, tone: "danger", problem: true },
   degraded: { label: "Degraded", icon: <Warning16Filled />, tone: "warning", problem: true },
-  unknown: { label: "Unknown", icon: <QuestionCircle16Regular />, tone: "warning", problem: true }, // no data is not "fine"
+  unknown: { label: "Unknown", icon: <QuestionCircle16Filled />, tone: "warning", problem: true }, // no data is not "fine"
   healthy: { label: "Healthy", icon: <CheckmarkCircle16Filled />, tone: "success", problem: false },
 };
 const ORDER = Object.keys(STATUS) as Status[];
@@ -39,7 +39,6 @@ const useStyles = makeStyles({
   indicator: { display: "inline-flex", alignItems: "center", columnGap: tokens.spacingHorizontalSNudge },
   danger: { color: tokens.colorStatusDangerForeground1 },
   warning: { color: tokens.colorStatusWarningForeground1 },
-  neutral: { color: tokens.colorNeutralForeground3 },
   success: { color: tokens.colorStatusSuccessForeground1 },
   count: { marginLeft: "auto", color: tokens.colorNeutralForeground3 },
 });

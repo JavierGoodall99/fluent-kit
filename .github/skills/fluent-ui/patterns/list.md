@@ -14,11 +14,11 @@ Scan, compare, sort or select same-shaped records.
 **Layout** (1440px)
 - 12px (`spacingVerticalM`) between blocks.
 - Command bar: one full-width `Toolbar` on its own `colorNeutralBackground1` surface. Order: New (the one primary), Delete, then view actions (Refresh); filter and a ~200px `SearchBox` at the right. Actions that need a selection stay visible but disabled.
-- Grid on a `colorNeutralBackground1` surface, `borderRadiusMedium`, `colorNeutralStroke2` border. Footer: row count, a caption in `colorNeutralForeground2`.
+- Grid on a `colorNeutralBackground1` surface, `borderRadiusMedium`, `colorNeutralStroke2` border. Footer: row count as a caption.
 
 **Measurements**
 - Row and header heights are Fluent's own: the default `size`, or `size="small"` for dense admin grids; a two-line cell grows its row. Never set row heights by hand.
-- Cells: 8px left, 16px right padding; body text, secondary text a caption in `colorNeutralForeground2`.
+- Cells: 8px left, 16px right padding; body text, secondary text a caption.
 - Centred column (check marks, status icons): a class with `justifyContent: "center"` on the `DataGridCell`, and on the header through its slot: `<DataGridHeaderCell button={{ className: s.centred }}>`. A class on the header cell itself does nothing (the text stays left).
 - `List` (it has no heights of its own): set the header to 48px and rows to 44px, with 1px `colorNeutralStroke2` dividers.
 - Virtualized: fixed row height (44px), one-line cells (`TableCellLayout truncate`), memoized row renderer; Next.js mounts it on the client only.

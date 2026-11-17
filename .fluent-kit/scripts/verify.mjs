@@ -20,7 +20,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
-import { SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
+import { POPUP_CAP, SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
 import { gridProbe, overlapProbe, popupProbe, scrollbarProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
@@ -263,7 +263,7 @@ if (!browser) {
 const overlapMsg = (list) => `A control covers text: ${list.join("; ")}. Usually a fixed height or an absolute position that does not fit this width (a stacked Fluent TableCell needs height: "auto").`;
 const scrollMsg = (list) => `Scrolling areas use the browser's default scrollbar: ${list.join("; ")}. Theme it once in the global styles, never per component: context.mjs prints the rule.`;
 const gridMsg = (list) => `Cards in a grid are not one size (${list.join("; ")}). Fixed rows, and the card body scrolls: SKILL.md, "Every page".`;
-const popupMsg = (list) => `An open list is too tall: ${list.join("; ")}. Cap it at 320px so it scrolls: SKILL.md, "Every page".`;
+const popupMsg = (list) => `An open list is too tall: ${list.join("; ")}. Cap it at 320px so it scrolls. ${POPUP_CAP}`;
 let loaded = 0;
 async function runAxe(page, where) {
   if (!axeSource) return;
@@ -326,7 +326,12 @@ renders: for (const url of urls) {
         const cs = prov ? getComputedStyle(prov) : null;
         const lum = (rgb) => { const m = (rgb || "").match(/\d+(\.\d+)?/g); if (!m) return null; const [r, g, b] = m.slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
         const stray = [...document.querySelectorAll("button, input, select, textarea, a[href], table, dialog")].filter((el) => !el.closest("[class*='fui-']") && !(el.className && String(el.className).includes("fui-")));
-        const tiny = [...document.querySelectorAll(".fui-Button, .fui-Link, .fui-Checkbox, .fui-Switch, .fui-Radio")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24); }).map((el) => { const r = el.getBoundingClientRect(); return `<${el.tagName.toLowerCase()}> "${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}" ${Math.round(r.width)}x${Math.round(r.height)}px`; });
+        const tiny = [...document.querySelectorAll(".fui-Button, .fui-Checkbox, .fui-Switch, .fui-Radio")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24); }).map((el) => { const r = el.getBoundingClientRect(); return `<${el.tagName.toLowerCase()}> "${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}" ${Math.round(r.width)}x${Math.round(r.height)}px`; });
+        // A link is as tall as its text (Fluent's own size). WCAG 2.5.8 accepts that when its 24px circle touches no other
+        // control or short link, so only crowded links are reported.
+        const hits = [...document.querySelectorAll("a[href], button, input, select, textarea, [role='button'], [role='tab']")];
+        const mid = (q) => [q.x + q.width / 2, q.y + q.height / 2];
+        const tinyLinks = [...document.querySelectorAll(".fui-Link")].filter((el) => { const r = el.getBoundingClientRect(), [cx, cy] = mid(r); return r.width > 0 && r.height < 24 && hits.some((o) => { const q = o.getBoundingClientRect(), [ox, oy] = mid(q); return !o.contains(el) && !el.contains(o) && q.width > 0 && (Math.hypot(Math.max(q.left - cx, 0, cx - q.right), Math.max(q.top - cy, 0, cy - q.bottom)) < 12 || (q.height < 24 && Math.hypot(ox - cx, oy - cy) < 24)); }); }).map((el) => `"${el.textContent.trim().slice(0, 24)}"`);
         return {
           provider: !!prov,
           v8: [...document.querySelectorAll("[class*='ms-']")].some((el) => /(^|\s)ms-[A-Z]/.test(el.getAttribute("class"))),
@@ -337,7 +342,7 @@ renders: for (const url of urls) {
           overflow: document.documentElement.scrollWidth - window.innerWidth,
           stray: stray.slice(0, 5).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 30)}`),
           strayCount: stray.length,
-          tiny,
+          tiny, tinyLinks,
           emptyBody: document.body.innerText.trim().length === 0,
           // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
           hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).length : 0,
@@ -414,6 +419,7 @@ renders: for (const url of urls) {
       if (info.repeated.length) note("advice", where, `The same long text appears 3 or more times: ${info.repeated.join("; ")}. In one table or list, group repeats and show the text once with the names it applies to. If each item is its own card, repeats are fine: keep them clamped (about 3 lines) with "Show more".`);
       if (info.strayCount) note("warn", where, `${info.strayCount} control(s) are not Fluent v9 components${info.strayV8 ? ` (${info.strayV8} of them Fluent v8)` : ""}: ${info.stray.join("; ")}`);
       if (info.tiny.length) note("warn", where, `${info.tiny.length} Fluent control(s) smaller than 24px: ${info.tiny.slice(0, 4).join("; ")}. Make them at least 24px (32px on touch) or use a larger size.`);
+      if (info.tinyLinks.length) note("warn", where, `${info.tinyLinks.length} link(s) shorter than 24px crowd another control: ${info.tinyLinks.slice(0, 3).join(", ")}. Space them apart, or use a Button.`);
       if (scheme === "dark" && info.bgLum !== null && info.bgLum > 0.5) note("advice", where, "The browser asks for dark mode but the app stayed light. Fine if the app has a manual theme switch; otherwise follow the system scheme.");
       // Fluent's focus helper (tabster) can insert hidden <i data-tabster-dummy> elements before React hydrates a
       // page chunk. React then reports a mismatch whose only server-side difference is those helpers. It is a known
@@ -514,7 +520,7 @@ if (advice.length) {
   for (const g of advice) console.log(`  - ${g.msg} (${placeOf(g)})`);
 }
 const errs = uniq.filter((p) => p.level === "error").length;
-Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length });
+Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, kinds: uniq.map((g) => g.msg.replace(/\d+/g, "N").slice(0, 60)) }); // kinds: for doctor --report
 try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
 console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s) (must fix), ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${advice.length ? `, ${advice.length} advisory` : ""}.`);
 if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
