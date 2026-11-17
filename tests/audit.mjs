@@ -60,9 +60,10 @@ const check = (id, title, problems) => results.push({ id, title, problems });
 
 // AUD-04 Shipped scripts do not grow past their size (an agent that opens one to debug pays for all of it). Lower a
 // limit when a script shrinks; raising one needs a reason in the pull request. (1.7.0: check.mjs +400 for the popup rule;
-// the browser probes moved out of verify.mjs into probes.mjs, so verify.mjs shrank.)
+// the browser probes moved out of verify.mjs into probes.mjs, so verify.mjs shrank. 1.7.1: the scrollbar rule in
+// make-theme.mjs and context.mjs, and its probe.)
 {
-  const LIMIT = {"install.mjs": 5500, "check.mjs": 8600, "consistency.mjs": 1300, "context.mjs": 2250, "detect-theme.mjs": 5500, "doctor.mjs": 3300, "generate-ramp.mjs": 2000, "lib.mjs": 1500, "make-theme.mjs": 1550, "scaffold.mjs": 2200, "verify.mjs": 13150, "probes.mjs": 1400};
+  const LIMIT = {"install.mjs": 5500, "check.mjs": 8600, "consistency.mjs": 1300, "context.mjs": 2370, "detect-theme.mjs": 5500, "doctor.mjs": 3300, "generate-ramp.mjs": 2000, "lib.mjs": 1500, "make-theme.mjs": 1620, "scaffold.mjs": 2200, "verify.mjs": 13150, "probes.mjs": 1650};
   const problems = [];
   for (const f of scripts) {
     const name = f.split("/").pop(), n = tokens(read(f));
@@ -144,6 +145,14 @@ const check = (id, title, problems) => results.push({ id, title, problems });
   const ex = spawnSync(process.execPath, [".fluent-kit/scripts/check.mjs", K + "examples"], { encoding: "utf8" }).stdout;
   for (const l of ex.split("\n").filter((x) => /\[popup-height\]/.test(x))) problems.push(`example: ${l.trim().slice(0, 120)}`);
   check("AUD-17", "card grids and popups follow the rules in the examples and the checker", problems);
+}
+
+// AUD-18 The scrollbar rule is the same wherever the kit states it: the generated provider, the line context.mjs prints
+// for an app that lacks it, and the demo the examples are rendered with (a drifted copy would pass its own test).
+{
+  const RULE = '"*": { scrollbarWidth: "thin", scrollbarColor: `${tokens.colorNeutralStrokeAccessible} transparent` }';
+  const files = [".fluent-kit/scripts/make-theme.mjs", ".fluent-kit/scripts/context.mjs", "tests/examples/demo.tsx"];
+  check("AUD-18", "the scrollbar rule is identical in the provider, the context line and the demo", files.filter((f) => !read(f).replace(/\\/g, "").includes(RULE)).map((f) => `${f}: does not contain the rule`));
 }
 
 let failed = 0;

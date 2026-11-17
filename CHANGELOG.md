@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.1
+From customer feedback: scrollbars were the browser's thick default (arrow buttons, a bright track in dark mode) and did not fit the design.
+
+- **One global scrollbar rule, never per component.** `make-theme.mjs` now writes it into the generated provider: `scrollbarWidth: "thin"` and a thumb from `tokens.colorNeutralStrokeAccessible` on a transparent track, for every element, so Fluent's own dropdown lists, menus and drawers are covered too (checked in a browser, light and dark; the tokens resolve inside the popups). The page's own scrollbar follows the system scheme (`color-scheme`), because the root element sits outside the provider.
+- **An existing app is told once.** `context.mjs restyle` and `new-page` print the exact rule when no file in the app sets a scrollbar style, and nothing once it does (`detect-theme.mjs` reports `scrollbars` and the provider file).
+- **A scrolling body adds `scrollbarGutter: "stable"`** so values line up with and without a bar, and content never touches it. The dashboard and data-card examples do.
+- **New checks.** `verify` warns about a scrolling area still on the default scrollbar (also inside the state `--click` opens); `check.mjs` warns about `::-webkit-scrollbar` styling (Chrome ignores it once the standard properties are set). `tests/render-examples.mjs` has a third deliberately broken fixture; AUD-18 keeps the rule identical in the provider, the context line and the demo.
+- Reading cost: the router grew about 40 tokens; budgets moved by up to 100 (`tests/reading-cost.mjs` says why). `docs/AUDIT.md`: F-54 to F-57, AUD-18.
+
 ## 1.7.0
 From customer feedback: card grids with cards of different sizes, dropdowns as tall as the window, and weak spacing and alignment of data.
 

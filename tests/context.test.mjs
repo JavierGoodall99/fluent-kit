@@ -32,6 +32,8 @@ try {
   assert.doesNotMatch(r.out, /Copy this file/, "template boilerplate is left out");
   assert.match(r.out, /Cards: +standard style radius=borderRadiusXLarge.*\(2x\)[\s\S]*also radius=borderRadiusMedium.*Log\.tsx[\s\S]*Leave other pages as they are(?![\s\S]*shared component)/);
   assert.doesNotMatch(r.out, /^Next:/m, "the card that ran this is what the agent reads next: no second routing");
+  // An app on the browser's default scrollbars is told the one rule; once a file sets it, the line is gone.
+  assert.match(r.out, /Scrollbars: not themed[^\n]*src\/main\.tsx[^\n]*scrollbarWidth: "thin"[^\n]*colorNeutralStrokeAccessible/);
   assert.ok(existsSync(join(dir, ".fluent-kit/context.json")));
   assert.match(readFileSync(join(dir, ".fluent-kit/.gitignore"), "utf8"), /context\.json/);
 
@@ -42,6 +44,12 @@ try {
   assert.doesNotMatch(r.out, /cached/);
   assert.match(r.out, /informally/);
   assert.match(ctx("new-page", "--refresh").out, /^Fluent kit context for new-page\n/);
+
+  writeFileSync(join(dir, "src/global.ts"), 'export const rule = { "*": { scrollbarWidth: "thin" } };\n');
+  r = ctx("new-page", "--refresh");
+  assert.doesNotMatch(r.out, /Scrollbars:/, "no line when the app themes its scrollbars");
+  rmSync(join(dir, "src/global.ts"));
+  ctx("new-page", "--refresh");
 
   // The new-app route shows the detection detail the card's table needs; the card scan is skipped.
   r = ctx("new-app");

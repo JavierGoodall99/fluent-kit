@@ -65,3 +65,16 @@ export function popupProbe() {
   }
   return out.slice(0, 2);
 }
+// Scrolling areas (a card body, a list, a drawer) still on the browser's default scrollbar: thick, with arrow buttons.
+// The page's own scrollbar is left out (it follows the colour scheme).
+export function scrollbarProbe() {
+  const out = [];
+  for (const el of document.querySelectorAll("div, ul, section, aside, main, [role=listbox], [role=menu]")) {
+    if (el === document.body || el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1) continue;
+    const cs = getComputedStyle(el);
+    if (!/(auto|scroll)/.test(cs.overflowX + cs.overflowY) || !el.clientWidth || cs.visibility === "hidden") continue;
+    if (cs.scrollbarWidth === "auto" && cs.scrollbarColor === "auto") out.push(`${el.tagName.toLowerCase()}${el.getAttribute("role") ? `[role=${el.getAttribute("role")}]` : ""} ${el.clientWidth}x${el.clientHeight}px`);
+    if (out.length >= 3) break;
+  }
+  return out;
+}

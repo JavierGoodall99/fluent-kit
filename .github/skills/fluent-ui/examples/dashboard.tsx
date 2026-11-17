@@ -27,7 +27,7 @@ const useStyles = makeStyles({
   card: { minWidth: 0, minHeight: 0, rowGap: tokens.spacingVerticalL, padding: tokens.spacingHorizontalL, borderRadius: tokens.borderRadiusXLarge, boxShadow: tokens.shadow4 },
   headerStack: { display: "flex", flexDirection: "column" },
   description: { color: tokens.colorNeutralForeground3 },
-  body: { flexGrow: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: tokens.spacingVerticalS, minWidth: 0, overflowX: "hidden", overflowY: "auto" }, // scrolls when the content is taller than the card
+  body: { flexGrow: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: tokens.spacingVerticalS, minWidth: 0, overflowX: "hidden", overflowY: "auto", scrollbarGutter: "stable" }, // scrolls when the content is taller than the card
   summary: { color: tokens.colorNeutralForeground2 },
   footer: { display: "flex", justifyContent: "space-between", alignItems: "center" },
 });

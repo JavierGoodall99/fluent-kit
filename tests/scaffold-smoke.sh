@@ -14,7 +14,7 @@ test -f .fluent-kit/scripts/check.mjs && test -f .github/skills/fluent-ui/SKILL.
 test ! -e fluent-kit-scaffold && test ! -e src/index.css && test ! -e src/App.css
 grep -q '<html lang="nl">' index.html && grep -q '<title>Billing portal</title>' index.html
 grep -q '"name": "billing-portal"' package.json && grep -q '@fluentui/react-components' package.json
-grep -q 'AppProvider' src/main.tsx && grep -q 'makeStaticStyles({ body: { margin: 0 } })' src/theme.tsx
+grep -q 'AppProvider' src/main.tsx && grep -q 'body: { margin: 0 }' src/theme.tsx && grep -q 'scrollbarWidth: "thin"' src/theme.tsx
 grep -q '"hex": "#0f6cbd"' .fluent-kit/brand.json
 again=$(node .fluent-kit/scripts/scaffold.mjs --brand stock 2>&1 || true)   # refuses an existing app (exit 1)
 grep -q "already has a package.json" <<<"$again"
