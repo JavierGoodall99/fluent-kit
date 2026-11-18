@@ -128,6 +128,7 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-75 | The bench scorer: a card that only gained a background failed Uniform; Dutch text with "of" counted as English; a new cut-off item merged into an old message was missed; its second verify met the first one's server; on Windows it deleted the app's `.fluent-kit/deps` through junctions | Bench baseline | fixed 1.10.0 |
 | F-76 | The benchmark's route rule allowed one pattern card, but `SKILL.md` sends pages with values to `patterns/alignment.md` as well | Bench baseline, #4 | fixed 1.10.0 (`BENCHMARK.md` and `record-run.mjs` allow it) |
 | F-77 | No agent opened the contact sheet in three runs, although verify asks for one look every time | Bench baseline | open (the machine checks above carry the load instead) |
+| F-78 | verify gave up when the page was still loading after 30 s: the first start of the bench app's dev server after a reinstall timed out three times in a row, so the agent never saw its table errors | Bench rerun, #4 | fixed 1.10.0 (one more load, waiting for the load event only) |
 
 ## Runs
 
