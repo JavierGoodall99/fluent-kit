@@ -18,7 +18,7 @@ const names = all.filter((n) => !n.startsWith("bad-"));
 const PAGE_LEVEL = /\[(landmark-one-main|page-has-heading-one|region)\]/;
 const CLICK = { "status-grid": "role=button[name='Expand Payments']", "form-page": "role=combobox[name='Team']" };
 // Fixtures that break a rule on purpose: verify must report each one, or its probe has stopped working.
-const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ }, "bad-clip": { expect: /^Content is cut off by its container: <span>/ }, "bad-spill": { expect: /^Text runs out of its cell over the next one/ }, "bad-wide-table": { widths: "375", expect: /^A table scrolls sideways at this width/ }, "bad-toolbar": { widths: "375", expect: /^A toolbar wraps onto several lines/ }, "bad-placeholder": { expect: /^A placeholder is cut off/ } };
+const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ }, "bad-clip": { expect: /^Content is cut off by its container: <span>/ }, "bad-spill": { expect: /^Text runs out of its cell over the next one/ }, "bad-wide-table": { widths: "375", expect: /^A table scrolls sideways at this width/ }, "bad-toolbar": { widths: "375", expect: /^A toolbar wraps onto several lines/ }, "bad-placeholder": { expect: /^A placeholder is cut off/ }, "bad-columns": { expect: /^Rows of a list do not line up/ } };
 const FAIL = /^(A control covers text|Cards in a grid are not one size|An open list is too tall|Scrolling areas use the browser)/;
 
 let server;
@@ -66,6 +66,10 @@ try {
   await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#bad-clip`, "--widths", "1440", "--out", out, "--no-login"], { env: { ...process.env, CI: "1" } });
   writeFileSync(known, JSON.stringify(JSON.parse(readFileSync(join(out, "verify-report.json"), "utf8")).problems.flatMap(problemKinds)));
   const k = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#bad-clip`, "--widths", "1440", "--out", out, "--no-login", "--known", known], { env: { ...process.env, CI: "1" } });
+  // ...and with the old problems known, a warning the change caused fails it (an empty list: the page had none before).
+  writeFileSync(known, "[]");
+  const w = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#bad-placeholder`, "--widths", "1440", "--out", out, "--no-login", "--known", known], { env: { ...process.env, CI: "1" } });
+  if (w.status !== 1 || !/NEW +A placeholder is cut off/.test(w.stdout)) failures.push(`--known: a warning the change caused did not fail the run (exit ${w.status}).`);
   if (k.status !== 0 || !/Already on the page before your change/.test(k.stdout)) failures.push(`--known: a problem the page already had still fails the run (exit ${k.status}).\n${k.stdout.trim().split("\n").slice(-6).join("\n")}`);
   for (const n of notes) console.log(n);
   for (const f of failures) console.log(`FAIL  ${f}`);

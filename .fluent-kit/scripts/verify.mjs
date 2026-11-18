@@ -14,7 +14,7 @@
 //          [--setup]   install what verify needs (playwright-core and axe-core) into .fluent-kit/deps, plus Chromium only when
 //                      no Edge or Chrome is on the machine. The project's package.json is not touched. Run it once, as a person.
 //          [--login <url>]   open Edge on .verify-profile at <url> to sign in once, without running a check.
-//          [--known file]   problems the page had before the change (check.mjs --finish writes it): listed apart, never an error. [--fresh-server] never uses a server already on the port.
+//          [--known file]   problems the page had before the change (check.mjs --finish writes it): listed apart, never an error; every other warning is then the change's, so it fails the run. [--fresh-server] never uses a server already on the port.
 // Uses Playwright and axe-core from the project if it has them, otherwise from .fluent-kit/deps (see --setup). Writes screenshots plus one contact-sheet.png of every first screen; it names the screenshot to open
 // next to each problem, so look at the contact sheet once and open other files only when a problem points to them.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
@@ -22,7 +22,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSy
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { POPUP_CAP, SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager, problemKinds } from "./lib.mjs";
-import { gridProbe, overlapProbe, placeholderProbe, popupProbe, scrollbarProbe, wrapProbe } from "./probes.mjs";
+import { columnsProbe, gridProbe, overlapProbe, placeholderProbe, popupProbe, scrollbarProbe, wrapProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
@@ -269,7 +269,7 @@ if (!browser) {
   process.exit(2);
 }
 const overlapMsg = (list) => `A control covers text: ${list.join("; ")}. Usually a fixed height or an absolute position that does not fit this width (a stacked Fluent TableCell needs height: "auto").`;
-const scrollMsg = (list) => `Scrolling areas use the browser's default scrollbar: ${list.join("; ")}. Theme it once in the global styles, never per component: context.mjs prints the rule.`;
+const scrollMsg = (list) => `Scrolling areas use the browser's default scrollbar: ${list.join("; ")}. Theme it once in the global styles (allowed in any task, even a restyle), never per component: context.mjs prints the rule.`;
 const gridMsg = (list) => `Cards in a grid are not one size (${list.join("; ")}). Fixed rows, and the card body scrolls: SKILL.md, "Every page".`;
 const popupMsg = (list) => `An open list is too tall: ${list.join("; ")}. Cap it at 320px so it scrolls. ${POPUP_CAP}`;
 let loaded = 0;
@@ -463,6 +463,8 @@ renders: for (const url of urls) {
       if (bars.length) note("warn", where, scrollMsg(bars));
       const wraps = await page.evaluate(wrapProbe).catch(() => []);
       if (wraps.length) note("error", where, `A toolbar wraps onto several lines at this width (${wraps.join("; ")}). Icon-only buttons with a Tooltip, extras in an Overflow "..." menu, on one line with search (patterns/list.md, Narrow).`);
+      const cols = await page.evaluate(columnsProbe).catch(() => []);
+      if (cols.length) note("warn", where, `Rows of a list do not line up (${cols.join("; ")}). Give the cells after the name fixed widths, or use a Table (patterns/alignment.md).`);
       const hints = await page.evaluate(placeholderProbe).catch(() => []);
       if (hints.length) note("warn", where, `A placeholder is cut off: ${hints.join("; ")}. Shorten it or widen the box.`);
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
@@ -533,26 +535,28 @@ for (const p of problems) {
   if (!groups.has(k)) groups.set(k, { level: p.level, msg: p.msg, where: [] });
   groups.get(k).where.push(p.where);
 }
-let known = []; try { known = JSON.parse(readFileSync(opt("--known", ""), "utf8")); } catch { /* no before-change check */ }
+let known = null; try { known = JSON.parse(readFileSync(opt("--known", ""), "utf8")); } catch { /* no before-change check */ }
 const all = [...groups.values()];
-for (const g of all) g.before = g.level !== "advice" && known.length > 0 && problemKinds(g).every((k) => known.includes(k));
+for (const g of all) g.before = g.level !== "advice" && !!known && problemKinds(g).every((k) => known.includes(k));
 const before = all.filter((g) => g.before);
 const uniq = all.filter((g) => g.level !== "advice" && !g.before);
+const mine = (g) => !!known && !g.where.includes("setup"); // a missing axe-core is the setup's, not the change's
 const advice = all.filter((g) => g.level === "advice");
 const placeOf = (g) => (g.where.length > 3 ? `${g.where.length} checks across ${loaded} renders` : g.where.join(", "));
 for (const g of uniq) {
   const shot = g.where.map((x) => shotFor.get(x)).find(Boolean);
-  console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
+  console.log(`${g.level === "error" ? "ERROR" : mine(g) ? "NEW  " : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
 }
 if (before.length) console.log(`\nAlready on the page before your change (leave them, even in a shared file; name them in your note):\n${before.map((g) => `  - ${g.level}: ${g.msg.slice(0, 140)}`).join("\n")}`);
 if (advice.length) {
   console.log("\nAdvisory (judgement calls: change them only if they are part of what you were asked; otherwise name them in your note. Never re-run verify for these):");
   for (const g of advice) console.log(`  - ${g.msg} (${placeOf(g)})`);
 }
-const errs = uniq.filter((p) => p.level === "error").length;
+// With the page's old problems known, every warning left is one this change caused: fix it like an error (bench #5, 1.10d).
+const errs = uniq.filter((p) => p.level === "error" || mine(p)).length;
 Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, kinds: uniq.map((g) => g.msg.replace(/\d+/g, "N").slice(0, 60)) }); // kinds: for doctor --report
 try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, urls, renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
-console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s) (must fix), ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${before.length ? `, ${before.length} already there before` : ""}${advice.length ? `, ${advice.length} advisory` : ""}.`);
+console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} ${known ? "problem(s) your change caused (must fix)" : "error(s) (must fix)"}, ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${before.length ? `, ${before.length} already there before` : ""}${advice.length ? `, ${advice.length} advisory` : ""}.`);
 if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
 else console.log(`Screenshots: ${outDir}. Open the 1440px *-first.png once, and other files only where a problem above says "open:".`);
 console.log(`Critique, once, from the contact sheet (change the page only where an answer is no and the fix is within what was asked):

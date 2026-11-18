@@ -101,3 +101,19 @@ export function placeholderProbe() {
   }
   return out.slice(0, 2);
 }
+// A list of rows (cards or flex rows, not a table): the same cell should line up in every row. Flagged when neither its
+// left nor its right edge lines up, so cells right-aligned on purpose pass (bench #6, 1.10d: city and status shifted per row).
+export function columnsProbe() {
+  if (window.innerWidth < 1024) return [];
+  const out = [];
+  for (const list of document.querySelectorAll("div, ul, section")) {
+    const rows = [...list.children].filter((r) => { const c = getComputedStyle(r); return /flex/.test(c.display) && c.flexDirection.startsWith("row") && r.children.length >= 3; });
+    if (rows.length < 3 || rows.length < list.children.length * 0.8 || rows.some((r) => r.children.length !== rows[0].children.length)) continue;
+    for (let i = 1; i < rows[0].children.length; i++) {
+      const box = rows.map((r) => r.children[i].getBoundingClientRect()), spread = (k) => Math.max(...box.map((b) => b[k])) - Math.min(...box.map((b) => b[k]));
+      if (spread("left") > 6 && spread("right") > 6) { out.push(`cell ${i + 1} starts between x ${Math.round(Math.min(...box.map((b) => b.left)))} and ${Math.round(Math.max(...box.map((b) => b.left)))}`); break; }
+    }
+    if (out.length >= 2) break;
+  }
+  return out;
+}
