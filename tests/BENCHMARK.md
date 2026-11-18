@@ -169,6 +169,18 @@ Same protocol, `--out ../bench-runs-1.10`, the dev server warmed once before the
 
 Median 28.2 credits and 2m 28s, worst 32.1 credits and 4m 31s. Every run checked the right page, and verify's table errors made the agent fix the phone layout in #4 and #5. Stage 1 still fails: #4 took over 4 minutes (three check rounds and a `.new.tsx` copy it deleted, F-80), and #6's toolbar wrapped into four ragged rows on a phone with nothing to flag it (F-81). Auto Correct F on #5 is the scorer reading Dutch "of" as English. Also seen: numbers without a thousands separator (F-79) and a cut-off search hint (F-82).
 
+### Bench app rerun on 1.10, second batch (2026-11-18, kit b4a305f)
+
+After PR #44 (toolbar and placeholder checks, number format in `alignment.md`, "no new copy" in the restyle card). `--out ../bench-runs-1.10b`. The pages still had their hint comments (F-84).
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 30.8 | 3m 20s | 5 | Y | 8 (1 not run) | +121 −37 (2 files) | F-PPF- | F | P | P | P | F | P |
+| #5 | 28.5 | 2m 43s | 5 | Y | 2 | +72 −31 (1 file) | P-PP?- | F | P | P | P | P | P |
+| #6 | 22.5 | 1m 59s | 5 | Y | 4 (1 not run) | +33 −21 (1 file) | P-PPP- | P | P | P | P | P | P |
+
+Median 28.5 credits and 2m 43s, worst 30.8 credits and 3m 20s: every run under 4 minutes for the first time. Stage 1 fails on scope. #4: `--finish` kept failing on the planted tab bar, so the agent changed the shared `App.tsx` (F-65). #5: after "no new copy", it deleted the page and recreated it, and dropped the ID column (F-80). #6 (a redo; the first attempt's dev server ran out of memory) is the first clean run: icon toolbar on a phone after the new check, status per tenant, 4.210. Neither #4 nor #6 opened `alignment.md`, so #4 still showed € 57573 (F-85).
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
