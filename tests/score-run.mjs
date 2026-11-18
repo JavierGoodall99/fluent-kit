@@ -105,7 +105,7 @@ export function scoreRun({ app, prompt, browser = true, out }) {
   const cf = [], cu = [];
   const tsc = join(app, "node_modules", ".bin", process.platform === "win32" ? "tsc.cmd" : "tsc");
   if (!existsSync(tsc)) cu.push("tsc not installed in the app (npm install)");
-  else { const r = spawnSync(tsc, ["--noEmit", "-p", "."], { cwd: app, encoding: "utf8", shell: process.platform === "win32" }); if (r.status !== 0) cf.push(`tsc fails: ${(r.stdout || r.stderr).split("\n").filter(Boolean).slice(0, 2).join(" | ")}`); }
+  else { const r = spawnSync(process.platform === "win32" ? `"${tsc}"` : tsc, ["--noEmit", "-p", "."], { cwd: app, encoding: "utf8", shell: process.platform === "win32" }); if (r.status !== 0) cf.push(`tsc fails: ${(r.stdout || r.stderr).split("\n").filter(Boolean).slice(0, 2).join(" | ")}`); }
   // The app's baseline (written at setup) tolerates the bench app's planted findings: only new ones count, as for the agent.
   const touched = new Set(ch.filter((c) => c.status !== "D").map((c) => c.file));
   const rules = spawnSync(process.execPath, [join(kit, ".fluent-kit", "scripts", "check.mjs"), ".", "--json"], { cwd: app, encoding: "utf8" });

@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- `tests/bench-setup.mjs` works on Windows: it no longer runs git through a shell, which split the bench author name and failed at `git add`. The scorer's type check also works when the app path has spaces.
+
 ## 1.9.3
 Releases now publish from GitHub Actions through npm trusted publishing, with a provenance badge on npm. No change to the kit itself.
 
