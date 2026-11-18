@@ -121,4 +121,5 @@ export function pageRoutes(root) {
 }
 
 // One kind per item a verify problem lists ("cut off: <button> A; <span> B. Let it wrap"), digits as N: compares a page before and after a change.
-export const problemKinds = (p) => { const m = p.msg.replace(/\d+/g, "N").match(/^(.*?: )(<.+?)(\. [A-Z].*)?$/); return m ? m[2].split("; ").map((i) => `${p.level} ${m[1]}${i}`) : [`${p.level} ${p.msg.replace(/\d+/g, "N").slice(0, 90)}`]; };
+// A page that scrolls sideways by another amount counts as new: the change moved its layout (bench #5, 1.10e: 239px became 71px).
+export const problemKinds = (p) => { const t = /^Page scrolls sideways/.test(p.msg) ? p.msg : p.msg.replace(/\d+/g, "N"), m = t.match(/^(.*?: )(<.+?)(\. [A-Z].*)?$/); return m ? m[2].split("; ").map((i) => `${p.level} ${m[1]}${i}`) : [`${p.level} ${t.slice(0, 90)}`]; };
