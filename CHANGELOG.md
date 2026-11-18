@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.10.0 (unreleased)
+Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were fast and cheap, and two failed on a phone without the agent seeing it.
+
+- **The check looks at the right page.** `context.mjs` prints a Pages line with how the app addresses pages (`--page /#<key>` in a hash-routed app). `check.mjs --finish` reads the app's router, finds the page of the file you changed, and checks that page when `--page` names another one.
+- **verify catches squeezed tables.** Text that runs out of its table cell over the next one is an error, and so is a table that scrolls sideways with more than a quarter of it off screen. The restyle card points to the narrow layout in `patterns/list.md`.
+- **A dev server that is already running is used.** When the port is taken ("Port 5173 is already in use"), verify checks the page on the server there instead of giving up. `--finish --page` also takes a full URL.
+- **Restyles keep every column, field and action** unless asked.
+- The bench scorer: a card that only gained a background is not a new style; Dutch text is not read as English; a new cut-off item next to an old one counts; it waits for its first dev server to stop, and refuses to score the browser part while your own server holds the port. The benchmark's route rule allows `patterns/alignment.md`.
 - The bench scorer no longer deletes the app's `.fluent-kit/deps` (and possibly `node_modules`) on Windows. It linked them into a temporary copy of the app with junctions, and deleting that copy deleted what they pointed to. It now removes the links first.
 - `record-run.mjs` no longer warns that the kit is not clean on a Windows checkout: it ignores line endings in the skill files, as the installer does.
 - `tests/bench-setup.mjs` works on Windows: it no longer runs git through a shell, which split the bench author name and failed at `git add`. The scorer's type check also works when the app path has spaces.

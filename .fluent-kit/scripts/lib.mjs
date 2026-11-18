@@ -1,8 +1,8 @@
 // Shared helpers for the kit's scripts: package manager, the skill's install path, and what verify needs
 // (Playwright, axe-core, a browser). One copy, so install, check, verify and doctor always agree.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 // verify's own dependencies live here, inside the kit folder, so the project's package.json and lockfile stay untouched.
@@ -95,4 +95,27 @@ export function installVerifyDeps(root, log = console.log) {
   const b = spawnSync(process.execPath, [cli, "install", "chromium"], { cwd: dir, stdio: "inherit" });
   if (b.status !== 0) { log("Chromium download failed. Install Microsoft Edge or Google Chrome instead; verify finds them by itself."); return false; }
   return true;
+}
+
+// How the app addresses its pages, read from the source: hash routing (/#key) or paths, and which file is which page.
+// Finds `path: "x" ... <Page` (React Router) and, in a hash-routed app, `x: [..., Page]` or `x: Page` maps. Null if unsure.
+export function pageRoutes(root) {
+  const top = ["src", "app"].map((d) => join(root, d)).find((d) => existsSync(d));
+  const files = [], walk = (d, n) => { for (const e of readdirSync(d, { withFileTypes: true })) { const p = join(d, e.name); if (e.name === "node_modules" || e.name.startsWith(".") || files.length > 400) continue; if (e.isDirectory()) { if (n < 6) walk(p, n + 1); } else if (/\.[jt]sx?$/.test(e.name)) files.push(p); } };
+  if (top) walk(top, 0);
+  let hash = false; const found = [];
+  for (const f of files) {
+    const s = readFileSync(f, "utf8");
+    if (/location\.hash|HashRouter|createHashRouter/.test(s)) hash = true;
+    for (const m of s.matchAll(/import\s+(?:(\w+)|\{([^}]+)\})\s+from\s+["'](\.[^"']+)["']/g)) {
+      const file = ["", ".tsx", ".ts", ".jsx", ".js", "/index.tsx", "/index.jsx"].map((x) => resolve(dirname(f), m[3] + x)).find((p) => existsSync(p) && statSync(p).isFile());
+      if (file) for (const n of m[1] ? [m[1]] : m[2].split(",").map((x) => x.trim().split(/\s+as\s+/).pop()).filter(Boolean)) {
+        const k = s.match(new RegExp(`path\\s*[:=]\\s*\\{?\\s*["'\`]/?([^"'\`]*)["'\`](?:(?!path\\b)[^\\n]){0,120}?<${n}\\b`));
+        const o = s.match(new RegExp(`["']?([\\w-]+)["']?\\s*:\\s*(?:\\[[^\\]\\n]*\\b${n}\\b|${n}\\s*[,}\\n])`));
+        if (k) found.push({ key: k[1], file }); else if (o) found.push({ key: o[1], file, map: true });
+      }
+    }
+  }
+  const pages = found.filter((p) => hash || !p.map);
+  return pages.length ? { hash, pages, url: (key) => (hash ? `/#${key}` : `/${key}`) } : null;
 }

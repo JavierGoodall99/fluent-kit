@@ -155,6 +155,7 @@ try {
 
   // A Next.js route is read from the file path (verify then fails to start here, which is reported, not hidden).
   d = project("next", { playwright: true });
+  writeFileSync(join(d, "package.json"), JSON.stringify({ name: "next", private: true, type: "module", dependencies: { next: "15.0.0" } }));
   mkdirSync(join(d, "app/(shop)/invoices"), { recursive: true });
   writeFileSync(join(d, "app/(shop)/invoices/page.tsx"), 'import { Button } from "@fluentui/react-components";\nexport default function P() { return <Button>New</Button>; }\n');
   r = finish(d);

@@ -146,7 +146,10 @@ if (startServer) {
       // The dev server stopped at once, often because one is already running for this project ("another instance is already running"
       // and it prints that server's URL). Use that URL instead of failing.
       const all = log.replace(ANSI, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
-      if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); resolveUrl(all[all.length - 1]); } else resolveUrl(null);
+      if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); resolveUrl(all[all.length - 1]); return; }
+      // "Port 5173 is already in use" with no URL (Vite's strictPort): the person's own dev server is usually running there (F-73).
+      const port = log.replace(ANSI, "").match(/port\D{0,12}(\d{2,5})\D{0,20}(?:in use|already)|EADDRINUSE\D*(\d{2,5})/i);
+      if (port) { const u = `http://localhost:${port[1] || port[2]}`; console.log(`Note: port ${port[1] || port[2]} is in use, so no new dev server started; checking the one already running at ${u}. Check the heading below against the page you asked for.`); resolveUrl(u); } else resolveUrl(null);
     });
     setTimeout(() => resolveUrl(null), 90000);
   });
@@ -345,7 +348,9 @@ renders: for (const url of urls) {
           tiny, tinyLinks,
           emptyBody: document.body.innerText.trim().length === 0,
           // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
-          hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).length : 0,
+          hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).map((el) => (el.querySelector("table, [role=grid]") && el.scrollWidth > 1.25 * el.clientWidth ? Math.round(100 - (100 * el.clientWidth) / el.scrollWidth) : 0)) : [],
+          // Table text that runs out of its cell over the next one (a fixed-layout table squeezed to a phone): visible, not clipped (F-72).
+          spill: [...document.querySelectorAll("td, th, [role=cell], [role=gridcell], [role=columnheader]")].filter((el) => el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !/(hidden|clip)/.test(getComputedStyle(el).overflowX)).slice(0, 3).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || "").trim().slice(0, 24)}`),
           // Space under the last content in the scrolling area: a card that ends flush with the window edge looks cut off.
           bottomGap: (() => {
             const se = document.scrollingElement;
@@ -412,7 +417,10 @@ renders: for (const url of urls) {
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);
       if (info.longlines.length) note("advice", where, `Text lines are too long to read comfortably (over about 100 characters across): ${info.longlines.join("; ")}. Cap the text width (max-width around 70 to 80ch, tokens for spacing) and let the card or page be wider than the text.`);
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
-      if (info.hscroll) note("warn", where, `${info.hscroll} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
+      const wide = Math.max(0, ...info.hscroll);
+      if (wide) note("error", where, `A table scrolls sideways at this width with ${wide}% of it off screen. Keep the name and the status on screen: hide other columns or move one short value under the name (patterns/list.md, Narrow).`);
+      else if (info.hscroll.length) note("warn", where, `${info.hscroll.length} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
+      if (info.spill.length) note("error", where, `Text runs out of its cell over the next one: ${info.spill.join("; ")}. At this width show fewer columns, or let the cell wrap (patterns/list.md, Narrow).`);
       if (info.emptyBody) note("error", where, "The page is empty.");
       if (info.bottomGap !== null && info.bottomGap < 8) note("advice", where, `The last content ends ${Math.max(info.bottomGap, 0)}px from the bottom of the scrolling area, so cards look cut off at the end. Add space below the page content (padding-bottom: tokens.spacingVerticalXL, or the page wrapper's bottom padding).`);
       if (info.flatCards) note("advice", where, `${info.flatCards} cards in a row are only a thin outline on the same colour as the page, so they blend in. Put the page area on tokens.colorNeutralBackground2 and the cards on tokens.colorNeutralBackground1 with tokens.shadow4 and tokens.borderRadiusXLarge (8px), see the skill's SKILL.md, "Every page".`);
