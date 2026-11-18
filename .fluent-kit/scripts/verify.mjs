@@ -291,7 +291,12 @@ renders: for (const url of urls) {
       // A missing favicon is the browser's own request, not the page's: reporting it as an error sends the agent after nothing.
       page.on("console", (m) => { if (m.type() === "error" && !(/Failed to load resource/.test(m.text()) && /\/favicon\.ico(\?|$)/.test(m.location()?.url || ""))) errors.push(shortError(m.text())); });
       try {
-        await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+        await page.goto(url, { waitUntil: "networkidle", timeout: 30000 }).catch(async (e) => {
+          // A dev server's first start bundles and reloads, so the network may not go quiet (F-78).
+          if (!/timeout/i.test(String(e))) throw e;
+          await page.goto(url, { waitUntil: "load", timeout: 60000 }); await page.waitForTimeout(2000);
+          console.log(`Note: ${url} kept loading for 30 s (a dev server's first start?); checked it after load.`);
+        });
       } catch (e) {
         console.error(`Could not open ${url}: ${String(e).split("\n")[0]}\nIs the dev server running?`);
         await ctx.close(); await browser.close(); process.exit(2);
