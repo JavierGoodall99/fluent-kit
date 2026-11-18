@@ -14,18 +14,19 @@
 //          [--setup]   install what verify needs (playwright-core and axe-core) into .fluent-kit/deps, plus Chromium only when
 //                      no Edge or Chrome is on the machine. The project's package.json is not touched. Run it once, as a person.
 //          [--login <url>]   open Edge on .verify-profile at <url> to sign in once, without running a check.
+//          [--known file]   problems the page had before the change (check.mjs --finish writes it): listed apart, never an error. [--fresh-server] never uses a server already on the port.
 // Uses Playwright and axe-core from the project if it has them, otherwise from .fluent-kit/deps (see --setup). Writes screenshots plus one contact-sheet.png of every first screen; it names the screenshot to open
 // next to each problem, so look at the contact sheet once and open other files only when a problem points to them.
 // Exit codes: 0 ok (warnings allowed), 1 problems found, 2 could not run (no Playwright, no browser, server or page did not load).
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
-import { POPUP_CAP, SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
+import { POPUP_CAP, SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager, problemKinds } from "./lib.mjs";
 import { gridProbe, overlapProbe, placeholderProbe, popupProbe, scrollbarProbe, wrapProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
-const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage", "--profile", "--login"]);
+const valueFlags = new Set(["--widths", "--schemes", "--out", "--wait", "--cmd", "--click", "--storage", "--profile", "--login", "--known"]);
 if (args.includes("--help") || args.includes("-h")) { console.log(readFileSync(new URL(import.meta.url), "utf8").split("\n").filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n")); process.exit(0); }
 if (args.includes("--setup")) process.exit(installVerifyDeps(process.cwd()) ? 0 : 2);
 const loginOnly = args.includes("--login") ? (opt("--login", "") || "http://localhost:3000") : null;
@@ -125,7 +126,7 @@ if (startServer) {
   rmSync(serverFile, { force: true });
   console.log(`Starting dev server: ${cmd}`);
   let log = "";
-  let exited = false;
+  let exited = false, reused = false;
   server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
   try { mkdirSync(dirname(serverFile), { recursive: true }); writeFileSync(serverFile, JSON.stringify({ pid: server.pid, cwd, at: new Date().toISOString() })); } catch { /* best effort */ }
   const ready = new Promise((resolveUrl) => {
@@ -146,10 +147,11 @@ if (startServer) {
       // The dev server stopped at once, often because one is already running for this project ("another instance is already running"
       // and it prints that server's URL). Use that URL instead of failing.
       const all = log.replace(ANSI, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
-      if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); resolveUrl(all[all.length - 1]); return; }
+      if (args.includes("--fresh-server")) { resolveUrl(null); return; } // the before-change check: a running server shows the changed page
+      if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); reused = true; resolveUrl(all[all.length - 1]); return; }
       // "Port 5173 is already in use" with no URL (Vite's strictPort): the person's own dev server is usually running there (F-73).
       const port = log.replace(ANSI, "").match(/port\D{0,12}(\d{2,5})\D{0,20}(?:in use|already)|EADDRINUSE\D*(\d{2,5})/i);
-      if (port) { const u = `http://localhost:${port[1] || port[2]}`; console.log(`Note: port ${port[1] || port[2]} is in use, so no new dev server started; checking the one already running at ${u}. Check the heading below against the page you asked for.`); resolveUrl(u); } else resolveUrl(null);
+      if (port) { const u = `http://localhost:${port[1] || port[2]}`; console.log(`Note: port ${port[1] || port[2]} is in use, so no new dev server started; checking the one already running at ${u}. Check the heading below against the page you asked for.`); reused = true; resolveUrl(u); } else resolveUrl(null);
     });
     setTimeout(() => resolveUrl(null), 90000);
   });
@@ -166,6 +168,9 @@ if (startServer) {
   }
   if (!live) { console.error(`The dev server printed ${base} but nothing answered there (or at any other URL it printed) within 30 seconds.\nLast output:\n${log.slice(-600)}\nIf you already have the server running, pass its full URL, for example http://localhost:3000/your-page. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
   if (live !== base) { console.log(`Note: nothing answered at ${base}; using ${live}, which the dev server also printed.`); base = live; }
+  // A server found on the port must be this app's: another project on the same port would be checked instead (F-83).
+  const title = existsSync(join(cwd, "index.html")) && (readFileSync(join(cwd, "index.html"), "utf8").match(/<title>([^<]+)<\/title>/) || [])[1];
+  if (reused && title && !(await fetch(base).then((r) => r.text()).catch(() => "")).includes(title)) { console.error(`The server on ${base} is another app (its page is not titled "${title}"). Stop it, or pass this app's full URL. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
   urls = urls.map((u) => (u.startsWith("/") ? base + u : u));
   console.log(`Dev server ready at ${base}`);
 }
@@ -525,22 +530,26 @@ for (const p of problems) {
   if (!groups.has(k)) groups.set(k, { level: p.level, msg: p.msg, where: [] });
   groups.get(k).where.push(p.where);
 }
+let known = []; try { known = JSON.parse(readFileSync(opt("--known", ""), "utf8")); } catch { /* no before-change check */ }
 const all = [...groups.values()];
-const uniq = all.filter((g) => g.level !== "advice");
+for (const g of all) g.before = g.level !== "advice" && known.length > 0 && problemKinds(g).every((k) => known.includes(k));
+const before = all.filter((g) => g.before);
+const uniq = all.filter((g) => g.level !== "advice" && !g.before);
 const advice = all.filter((g) => g.level === "advice");
 const placeOf = (g) => (g.where.length > 3 ? `${g.where.length} checks across ${loaded} renders` : g.where.join(", "));
 for (const g of uniq) {
   const shot = g.where.map((x) => shotFor.get(x)).find(Boolean);
   console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
 }
+if (before.length) console.log(`\nAlready on the page before your change (not yours to fix unless asked; name them in your note):\n${before.map((g) => `  - ${g.level}: ${g.msg.slice(0, 140)}`).join("\n")}`);
 if (advice.length) {
   console.log("\nAdvisory (judgement calls: change them only if they are part of what you were asked; otherwise name them in your note. Never re-run verify for these):");
   for (const g of advice) console.log(`  - ${g.msg} (${placeOf(g)})`);
 }
 const errs = uniq.filter((p) => p.level === "error").length;
 Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, kinds: uniq.map((g) => g.msg.replace(/\d+/g, "N").slice(0, 60)) }); // kinds: for doctor --report
-try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
-console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s) (must fix), ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${advice.length ? `, ${advice.length} advisory` : ""}.`);
+try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, urls, renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
+console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} error(s) (must fix), ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${before.length ? `, ${before.length} already there before` : ""}${advice.length ? `, ${advice.length} advisory` : ""}.`);
 if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
 else console.log(`Screenshots: ${outDir}. Open the 1440px *-first.png once, and other files only where a problem above says "open:".`);
 console.log(`Critique, once, from the contact sheet (change the page only where an answer is no and the fix is within what was asked):

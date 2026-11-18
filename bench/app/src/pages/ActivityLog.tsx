@@ -1,5 +1,3 @@
-// Activity log: KPI cards in a different style from home (#8), raw event codes and a dense table (#5).
-// Search, type filter, export and paging are features: a restyle keeps them.
 import { Button, Card, Dropdown, Option, SearchBox, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { useState } from "react";
 import { type EventType, eventCounts, events, exportActivityCsv, filterEvents, paginate } from "../data";

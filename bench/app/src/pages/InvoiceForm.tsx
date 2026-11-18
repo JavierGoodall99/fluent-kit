@@ -1,4 +1,3 @@
-// Invoice form: no customer field yet (#10 adds a dropdown over the 300 customers in data.ts).
 import { Button, Field, Input, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { useState } from "react";
 import { saveInvoice } from "../data";

@@ -16,12 +16,13 @@
 //   --json      machine-readable output
 // Exit code 1 if there are errors, 0 otherwise. Warnings never fail the run.
 // Silence one line with a comment: // fluent-kit-ignore -- reason   (on the same line or the line above)
-import { existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, rmdirSync, statSync, symlinkSync, unlinkSync, writeFileSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, relative, resolve, sep, extname, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { POPUP_CAP, SETUP_CMD, hasPlaywright, packageManager, pageRoutes, skillPath, tscPath } from "./lib.mjs";
+import { POPUP_CAP, SETUP_CMD, hasPlaywright, packageManager, pageRoutes, problemKinds, skillPath, tscPath } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -324,13 +325,43 @@ function finish(ruleErrors) {
 
   const full = flag("--full") || change.newFiles > 0;
   if (full && !flag("--full")) steps.push("full check (a new UI file)");
-  const vArgs = [...(url ? [] : ["--start"]), page, ...(full ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])]; // a full URL: the server already runs
+  const extra = [...(full ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
+  const known = url || change.newFiles ? null : before(page, extra);
+  const vArgs = [...(url ? [] : ["--start"]), page, ...extra, ...(known ? ["--known", known] : [])]; // a full URL: the server already runs
   console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
   const v = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), ...vArgs], { cwd: root, stdio: "inherit" });
   const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => shown(f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
   if (v.status === 0) return done([...steps, `verify ok${hint ? "." + hint : ""}`], 0);
   if (v.status === 1) return done([...steps, `verify found problems (above): fix them, then run --finish again${hint ? "." + hint : ""}`], 1);
   return done([...steps, "verify could not run (see above): fix that, or say in your reply that the UI was not verified"], 2);
+}
+
+// The page as committed (HEAD), checked once per commit and page in a temporary worktree: what it already got wrong is
+// listed apart, so an old error does not look like unfinished work (F-65: an agent changed the shared shell to clear one).
+function before(page, extra) {
+  const head = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout?.trim();
+  if (!head) return null;
+  const file = join(root, ".fluent-kit", "out", "before", `${head}-${page.replace(/\W+/g, "_")}.json`);
+  if (existsSync(file)) return file;
+  const tmp = mkdtempSync(join(tmpdir(), "fk-before-")), links = ["node_modules", join(".fluent-kit", "deps")];
+  try {
+    if (spawnSync("git", ["worktree", "add", "--detach", tmp, "HEAD"], { cwd: root, stdio: "ignore" }).status !== 0) return null;
+    for (const d of links) if (existsSync(join(root, d))) symlinkSync(join(root, d), join(tmp, d), "junction");
+    console.log("\nChecking the page as it was before your change (once per commit), so problems it already had are listed apart...");
+    const out = join(tmp, ".fluent-kit", "out");
+    spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), "--start", page, "--fresh-server", "--no-login", "--out", out, ...extra], { cwd: tmp, stdio: "ignore", env: { ...process.env, CI: "1" } });
+    const rep = JSON.parse(readFileSync(join(out, "verify-report.json"), "utf8"));
+    // Wait until that server has let go of its port: the next verify would otherwise find it and check the old page.
+    const port = (String(rep.urls?.[0]).match(/:(\d+)\//) || [])[1];
+    for (let i = 0; port && i < 40 && spawnSync(process.execPath, ["-e", `require("net").connect(${port}, "localhost").on("connect", () => process.exit(1)).on("error", () => process.exit(0))`]).status === 1; i++) spawnSync(process.execPath, ["-e", "setTimeout(() => {}, 500)"]);
+    if (!rep.renders) return null;
+    mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify(rep.problems.flatMap(problemKinds)));
+    return file;
+  } catch { return null; } finally {
+    // Unlink the junctions first: on Windows, removing the worktree with them in it deletes what they point to.
+    for (const d of links) { const p = join(tmp, d); try { if (lstatSync(p).isSymbolicLink()) { try { unlinkSync(p); } catch { rmdirSync(p); } } } catch { /* not linked */ } }
+    spawnSync("git", ["worktree", "remove", "--force", tmp], { cwd: root, stdio: "ignore" }); rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 // tsc the way the project does it: its "typecheck" script, else tsc -b for project references (Vite), else tsc --noEmit.

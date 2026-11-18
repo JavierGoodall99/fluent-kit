@@ -115,7 +115,7 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-62 | Scope and card uniformity at finish are prose only; old whole-page failures were both | Token audit, 2026-11 | open |
 | F-63 | The dropdown cap recipe was read on every route (66 tokens) though `check.mjs` catches the miss | Token audit, 2026-11 | fixed 1.8.0 (recipe in the `popup-height` and verify messages; one line left in `SKILL.md`) |
 | F-64 | Cards and examples disagreed: caption colour in `list.md`, `Tooltip` on icon-only buttons, a Regular status icon, 16px narrow padding no example used | Token audit, 2026-11 | fixed 1.8.0; one rule for status (badge or icon and label) still open |
-| F-65 | verify cannot tell warnings a change caused from ones the page already had | Token audit, 2026-11 | open |
+| F-65 | verify cannot tell warnings a change caused from ones the page already had | Token audit, 2026-11; bench rerun #4 on 1.10 changed the shared `App.tsx` to clear the planted tab-bar error, with 8 verify calls | fixed 1.10.0 (`--finish` checks the committed page once per commit in a worktree; verify lists those problems apart and they never fail the run) |
 | F-66 | The page wrapper, card style and page title are written again in every example; no shared components | Token audit, 2026-11 | open (roadmap: company shared components) |
 | F-67 | The full v8 to v9 table is read on every migration | Token audit, 2026-11 | open |
 | F-68 | `context.mjs` printed profile lines that said "none" or restated kit defaults; the dashboard example carried a third chart | Token audit, 2026-11 | fixed 1.8.0 |
@@ -130,9 +130,12 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-77 | No agent opened the contact sheet in three runs, although verify asks for one look every time | Bench baseline | open (the machine checks above carry the load instead) |
 | F-78 | verify gave up when the page was still loading after 30 s: the first start of the bench app's dev server after a reinstall timed out three times in a row, so the agent never saw its table errors | Bench rerun, #4 | fixed 1.10.0 (one more load, waiting for the load event only) |
 | F-79 | No card asked for numbers formatted for the UI language: "€ 57573" and "4210 eenheden" in a Dutch app, where the baseline agent had written 57.573 by chance | Bench rerun on 1.10, #4 and #6 | fixed 1.10.0 (`patterns/alignment.md`: `Intl.NumberFormat`) |
-| F-80 | Two of three restyles created a `.new.tsx` copy of the page and deleted it again: the card's "never delete and recreate it" put the idea there | Bench rerun on 1.10, #4 and #5 | fixed 1.10.0 (restyle card: "edit the file in place with small edits") |
+| F-80 | Restyles rewrote whole pages: two created a `.new.tsx` copy, and after the card said "no new copy" one deleted the page with `Remove-Item` and recreated it, dropping the ID column again. Every scope failure of the day came from a whole-file rewrite | Bench reruns on 1.10, #4, #5, #6 | fixed 1.10.0 (restyle card: "small edits to the existing file: never write the whole file at once, never delete it, never make a copy") |
 | F-81 | On a phone, five text buttons wrapped into four ragged rows above the tenants, and verify had nothing to report because nothing was cut off | Bench rerun on 1.10, #6 | fixed 1.10.0 (toolbar-wrap error at 480px and under; `bad-toolbar` fixture) |
 | F-82 | A search hint longer than its box ("Zoek op gebruiker of huu") at both widths; verify does not read placeholders | Bench rerun on 1.10, #5 | fixed 1.10.0 (placeholder warning; `bad-placeholder` fixture) |
+| F-83 | verify used any server on a busy port, so another project's Vite on 5173 could have been checked instead of the app | Bench rerun on 1.10, #6 (TradChart running) | fixed 1.10.0 (a server found on the port must serve the app's own `index.html` title) |
+| F-84 | Each bench page opened with a comment naming its flaws ("a toolbar that is cut off on a phone (#6, #7)"), and agents read it first: every run until 2026-11-18 had the answer in front of it | Bench rerun on 1.10, #6 | fixed 1.10.0 (comments removed; the flaws are listed in `BENCHMARK.md`) |
+| F-85 | The number-format line sat in `patterns/alignment.md`, which the restyle route does not require: neither #4 nor #6 read it in the second rerun | Bench rerun on 1.10b | fixed 1.10.0 (moved to `SKILL.md`, which every route but the small fix reads) |
 
 ## Runs
 

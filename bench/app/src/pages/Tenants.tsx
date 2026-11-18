@@ -1,4 +1,3 @@
-// Tenants: three different statuses in the data, a toolbar that is cut off on a phone (#6, #7).
 import { Badge, Button, Card, SearchBox, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { ArrowDownload20Regular, ArrowSync20Regular, Filter20Regular, Link20Regular, Print20Regular, Settings20Regular } from "@fluentui/react-icons";
 import { useState } from "react";
