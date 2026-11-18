@@ -27,8 +27,8 @@ const IGNORE = /^(\.fluent-kit\/|\.github\/|\.vscode\/|\.verify-profile\/|node_m
 // Hash of each page in the bench app, for the browser check.
 const PAGE_OF = { "src/pages/Home.tsx": "home", "src/pages/ActivityLog.tsx": "activity", "src/pages/Tenants.tsx": "tenants", "src/pages/Billing.tsx": "billing", "src/pages/InvoiceForm.tsx": "invoice", "src/App.tsx": "tenants" };
 // English words that do not occur in Dutch UI text. One of them in new UI text means a label was left in English.
-const DUTCH = /\b(de|het|een|van|en|niet|geen|voor|met|naar|nog|zijn|wordt|alle|pas|bij|uit)\b/i;
-const ENGLISH = /\b(the|and|of|your|view|details|loading|error|errors|search|save|cancel|activity|settings|page|next|previous|tenants?|billing|invoices?|customers?|connected|failed|show|more|add|edit|delete|close|back|select|empty|retry|try again|last updated|no results|total|amount|paid|unpaid|overview|recent)\b/i;
+const DUTCH = /\b(de|het|een|van|en|niet|geen|voor|met|naar|nog|zijn|wordt|alle|pas|bij|uit|op|zoek|om|te)\b/i; // "of" is Dutch for "or": it is on neither list
+const ENGLISH = /\b(the|and|your|view|details|loading|error|errors|search|save|cancel|activity|settings|page|next|previous|tenants?|billing|invoices?|customers?|connected|failed|show|more|add|edit|delete|close|back|select|empty|retry|try again|last updated|no results|total|amount|paid|unpaid|overview|recent)\b/i;
 
 const git = (cwd, a) => spawnSync("git", a, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).stdout || "";
 const read = (p) => { try { return readFileSync(p, "utf8"); } catch { return null; } };
@@ -122,7 +122,7 @@ export function scoreRun({ app, prompt, browser = true, out }) {
     const errs = JSON.parse(rules.stdout).findings.filter((f) => f.severity === "error" && touched.has(f.file.replace(/\\/g, "/")));
     if (errs.length) cf.push(`${errs.length} kit rule error(s) in changed files: ${[...new Set(errs.map((e) => `${e.rule} (${e.file}:${e.line})`))].slice(0, 3).join(", ")}`);
   } catch { cu.push("kit rules did not run"); }
-  const english = addedText(app).filter((t) => ENGLISH.test(t) && !DUTCH.test(t)); // "of" and "details" are Dutch words too
+  const english = addedText(app).filter((t) => ENGLISH.test(t) && !DUTCH.test(t)); // "details" is a Dutch word too
   if (english.length) cf.push(`new UI text in English in a Dutch app: ${english.slice(0, 3).map((t) => `"${t.slice(0, 40)}"`).join(", ")}`);
   for (const [file, rx] of Object.entries(exp.must || {})) for (const [p, why] of rx) if (!new RegExp(p).test(read(join(app, file)) || "")) cf.push(`${file}: ${why}`);
   for (const [file, rx] of Object.entries(exp.mustNot || {})) for (const [p, why] of rx) if (new RegExp(p).test(read(join(app, file)) || "")) cf.push(`${file}: ${why}`);

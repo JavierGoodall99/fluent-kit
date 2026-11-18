@@ -17,7 +17,7 @@ Any page that shows values, rows or several blocks. A grid of cards holding rows
 
 **Alignment**
 - One left edge: page title, section titles and cards start at the same x, with no extra indent.
-- Numbers (counts, money, durations, percentages): right-aligned, header too, with `fontVariantNumeric: "tabular-nums"` and the same decimals in a column. The unit goes in the header or label, not in every cell.
+- Numbers (counts, money, durations, percentages): right-aligned, header too, with `fontVariantNumeric: "tabular-nums"` and the same decimals in a column, formatted for the UI language with `Intl.NumberFormat` (4.210 and € 57.573 in Dutch). The unit goes in the header or label, not in every cell.
 - Label and value pairs: one grid for all rows, so the values line up. `gridTemplateColumns: "1fr auto"` puts numbers at the right edge; `"max-content 1fr"` lines text values up on one left edge. The label is a caption in `colorNeutralForeground3`. Never one flex row per pair.
 - Icon and text: `alignItems: "center"`; text in two sizes on one line: `"baseline"`. Icons in a column of rows share one size.
 - Repeated rows and cards show the same parts in the same places. An empty value shows "-"; the row never collapses.
