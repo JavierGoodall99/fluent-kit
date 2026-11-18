@@ -82,7 +82,7 @@ function kitInfo(app) {
   const kit = manifest?.kit || {};
   const h = createHash("sha256");
   const skill = manifest?.skill || ".github/skills/fluent-ui";
-  for (const f of (manifest?.files || []).filter((x) => x.startsWith(`${skill}/`)).sort()) { h.update(f.slice(skill.length + 1)); try { h.update(readFileSync(join(app, f))); } catch { h.update("missing"); } }
+  for (const f of (manifest?.files || []).filter((x) => x.startsWith(`${skill}/`)).sort()) { h.update(f.slice(skill.length + 1)); try { const c = readFileSync(join(app, f)); h.update(/\.(md|tsx?|json)$/.test(f) ? Buffer.from(c.toString("utf8").replace(/\r\n/g, "\n")) : c); } catch { h.update("missing"); } } // line endings ignored, as install.mjs does
   const now = manifest ? h.digest("hex").slice(0, 12) : null;
   return { version: kit.version ?? null, commit: kit.commit ?? null, fingerprint: kit.fingerprint ?? null, fingerprintNow: now, changed: !!(kit.fingerprint && now && kit.fingerprint !== now) };
 }

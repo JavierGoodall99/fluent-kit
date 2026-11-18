@@ -13,7 +13,7 @@
 //   States   verify, run here by the scorer at 1440 and 375px on the changed page: no new errors, and nothing newly cut off,
 //            scrolling sideways, covering text or too small. Problems the page already had before the run do not count.
 // First glance and honest note stay with the person: those two letters are always "-".
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -62,8 +62,14 @@ function consistency(dir) {
 function before(app, fn) {
   const tmp = mkdtempSync(join(tmpdir(), "fk-score-"));
   try { spawnSync("git", ["worktree", "add", "--detach", tmp, "HEAD"], { cwd: app, stdio: "ignore" }); return fn(tmp); }
-  finally { spawnSync("git", ["worktree", "remove", "--force", tmp], { cwd: app, stdio: "ignore" }); rmSync(tmp, { recursive: true, force: true }); }
+  finally {
+    // Remove the links to the app's node_modules and .fluent-kit/deps first. On Windows, deleting the worktree with the
+    // junctions still in it deletes what they point to: the app's own folders.
+    for (const d of LINKED) { const p = join(tmp, d); try { if (lstatSync(p).isSymbolicLink()) { try { unlinkSync(p); } catch { rmdirSync(p); } } } catch { /* not linked */ } }
+    spawnSync("git", ["worktree", "remove", "--force", tmp], { cwd: app, stdio: "ignore" }); rmSync(tmp, { recursive: true, force: true });
+  }
 }
+const LINKED = ["node_modules", join(".fluent-kit", "deps")];
 
 export function scoreRun({ app, prompt, browser = true, out }) {
   const exp = EXPECT[String(prompt)];
@@ -150,7 +156,7 @@ export function scoreRun({ app, prompt, browser = true, out }) {
     let old = exp.new ? [] : (() => { try { return JSON.parse(readFileSync(cache, "utf8")); } catch { return null; } })();
     if (!old) {
       old = before(app, (tmp) => {
-        for (const d of ["node_modules", join(".fluent-kit", "deps")]) if (existsSync(join(app, d))) symlinkSync(join(app, d), join(tmp, d), "junction");
+        for (const d of LINKED) if (existsSync(join(app, d))) symlinkSync(join(app, d), join(tmp, d), "junction");
         const rep = verifyIn(tmp, join(tmp, ".fluent-kit", "out"));
         return rep.renders ? rep.problems.map(kind) : null;
       });
