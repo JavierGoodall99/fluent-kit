@@ -103,6 +103,10 @@ function BadColumns() {
   const rows = [["Woonstichting De Linde", "Utrecht", "Gekoppeld"], ["Stichting Eigen Haard", "Amsterdam", "Fout bij synchroniseren"], ["Woonbedrijf Noord", "Groningen", "Niet ingesteld"]];
   return <div>{rows.map(([n, c, b]) => <div key={n} style={{ display: "flex", gap: 16, padding: 8 }}><span style={{ flexGrow: 1 }}>{n}</span><span style={{ width: 120 }}>{c}</span><Badge>{b}</Badge><span style={{ width: 100 }} /></div>)}</div>;
 }
+// A cell squeezed with overflow-wrap "anywhere": the tenant name breaks inside the word (bench #4, 1.10e, F-91).
+function BadBrokenWord() {
+  return <Table style={{ width: 300 }}><TableBody><TableRow><TableCell>16-11-2026</TableCell><TableCell style={{ overflowWrap: "anywhere", width: 70 }}>Woonstichting De Linde</TableCell></TableRow></TableBody></Table>;
+}
 function BadPlaceholder() {
   return <Input style={{ width: 140 }} placeholder="Zoek op gebruiker of huurder" aria-label="Zoeken" />;
 }
@@ -136,6 +140,7 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-toolbar": () => <Page><BadToolbar /></Page>,
   "bad-placeholder": () => <Page><BadPlaceholder /></Page>,
   "bad-columns": () => <Page><BadColumns /></Page>,
+  "bad-broken-word": () => <Page><BadBrokenWord /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,

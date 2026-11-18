@@ -14,6 +14,7 @@
 - A uniform card grid with scrolling cards stays uniform: fix problems inside it, not its size.
 - Muted is not invisible: "off" or "not set up" items use `colorNeutralForeground3` with the state in words, never `opacity`.
 - Change only the page you were asked about. The app shell, shared components and other pages stay as they are, even when a check flags them: suggest the fix in the note. The one exception is the global styles `context.mjs` asks for.
+- Fix a layout problem with layout: hide or stack a cell, or wrap between words. Never shorten a label or break a word to clear a check.
 
 **Finish**: `node .fluent-kit/scripts/check.mjs --finish --page /page` (the Pages line of context.mjs shows the form). Answer the critique `verify` prints from the contact sheet once; change the page only where an answer is no.
 

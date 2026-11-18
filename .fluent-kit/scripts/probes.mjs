@@ -117,3 +117,20 @@ export function columnsProbe() {
   }
   return out;
 }
+// A word broken across two lines on a phone ("Woonstichti / ng"): overflow-wrap "anywhere" used to clear a cut-off (bench #4, 1.10e).
+export function brokenWordProbe() {
+  if (window.innerWidth > 480) return [];
+  const out = [], range = document.createRange();
+  for (const cell of [...document.querySelectorAll("td, th, [role=cell], [role=gridcell], .fui-Card, .fui-Badge")].slice(0, 300)) {
+    const walk = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n && out.length < 3; n = walk.nextNode()) {
+      for (const w of n.textContent.matchAll(/\S{4,}/g)) {
+        range.setStart(n, w.index); range.setEnd(n, w.index + w[0].length);
+        const tops = new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top)));
+        if (tops.size > 1 && !out.includes(w[0])) { out.push(w[0]); break; }
+      }
+    }
+    if (out.length >= 3) break;
+  }
+  return out;
+}
