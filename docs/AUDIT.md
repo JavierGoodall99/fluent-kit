@@ -144,6 +144,8 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-91 | Tenant names broke inside the word on a phone ("Woonstichti / ng") after the agent set `overflowWrap: "anywhere"` to clear a cut-off, and verify passed it | Bench rerun on 1.10e, #4 | fixed 1.10.0 (warning for a word whose letters sit on two lines at 480px and under; `bad-broken-word` fixture) |
 | F-92 | To clear warnings the agent shortened labels ("Gebruiker nieuw" for "Gebruiker toegevoegd") instead of changing the layout | Bench rerun on 1.10e, #4 | fixed 1.10.0 (restyle card: fix layout with layout; never shorten a label or break a word to clear a check) |
 | F-93 | An agent wrote the whole page through a Node script (`writeFileSync`), which gets round "never write the whole file at once"; a diff cannot tell that from a thorough restyle | Bench rerun on 1.10e, #4 | open (the scope checks judge the result) |
+| F-94 | On a phone the activity table kept three columns: badges wrapped into two-line pills, tenant names were cut to "…" in every row, and the filter's value sat on two lines. verify passed it: an ellipsis is a deliberate cut and the badges wrapped between words | Bench rerun on 1.10f, #5 | fixed 1.10.0 (warning for a badge, button or dropdown value on two text lines, and for a table column after the first cut with "…" in half its rows or more at 480px and under; `bad-pill` and `bad-cut-column` fixtures) |
+| F-95 | Six toolbar controls on two lines at 375px passed the toolbar check (up to two lines), and the note said they "fit on one line" | Bench rerun on 1.10f, #6 | fixed 1.10.0 (four or more controls must fit on one line on a phone; extras go in an Overflow menu, as `patterns/list.md` says) |
 
 ## Runs
 

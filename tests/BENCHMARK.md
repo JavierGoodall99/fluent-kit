@@ -217,6 +217,18 @@ After PR #49: warnings the change caused fail `--finish`, and list rows that do 
 
 Median 28 credits and 3m 03s, worst 29.7 credits and 3m 30s. The machine passed all three; the person failed two, both on things verify could not see then. #4 cleared warnings by changing text: shortened badge labels and `overflowWrap: "anywhere"`, which broke tenant names inside the word on a phone (F-91, F-92); it also wrote the whole page through a Node script (F-93). #5 removed the toolbar's wrap, so the page scrolled 71px sideways at 375px, and the comparison matched that to the original 239px (F-90). #6 is clean: fixed column widths, the phone actions in a "Meer acties" menu.
 
+### Bench app rerun on 1.10, sixth batch (2026-11-18, kit 60922fc)
+
+After PR #50: a page that scrolls sideways by another amount counts as new, broken words are flagged, and the restyle card says to fix layout with layout. `--out ../bench-runs-1.10f`.
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 29.7 | 2m 34s | 4 | Y | 2 | +94 −30 (2 files) | P-PPP- | P | P | P | P | P | P |
+| #5 | 27.1 | 2m 36s | 5 | Y | 2 | +63 −29 (1 file) | P-PPP- | P | P | P | P | F | P |
+| #6 | 31 | 3m 17s | 5 | Y | 4 | +45 −19 (1 file) | P-PPP- | P | P | P | P | P | F |
+
+Median 29.7 credits and 2m 36s, worst 31 credits and 3m 17s. #4 is the cleanest #4 yet: small edits, no text shortened, a phone table of time and type, € 57.573 (its first glance is weaker: the error count is not red, and type codes stay raw). #5's phone table kept three columns, with two-line badges and tenant names cut to "…" (F-94). #6 lined its columns up at 1440px, but its phone toolbar took two lines while the note said one (F-95). The machine passed all three again; both failures are what verify could not see yet.
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.

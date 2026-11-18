@@ -22,7 +22,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSy
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { POPUP_CAP, SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager, problemKinds } from "./lib.mjs";
-import { brokenWordProbe, columnsProbe, gridProbe, overlapProbe, placeholderProbe, popupProbe, scrollbarProbe, wrapProbe } from "./probes.mjs";
+import { brokenWordProbe, columnsProbe, squashProbe, gridProbe, overlapProbe, placeholderProbe, popupProbe, scrollbarProbe, wrapProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
@@ -465,6 +465,9 @@ renders: for (const url of urls) {
       if (wraps.length) note("error", where, `A toolbar wraps onto several lines at this width (${wraps.join("; ")}). Icon-only buttons with a Tooltip, extras in an Overflow "..." menu, on one line with search (patterns/list.md, Narrow).`);
       const broken = await page.evaluate(brokenWordProbe).catch(() => []);
       if (broken.length) note("warn", where, `A word is broken across two lines: ${broken.map((w) => `"${w.slice(0, 24)}"`).join(", ")}. Wrap between words: hide or stack a cell instead of overflow-wrap "anywhere" or word-break.`);
+      const sq = await page.evaluate(squashProbe).catch(() => ({ wrapped: [], cut: [] }));
+      if (sq.wrapped.length) note("warn", where, `A label wraps onto two lines inside its badge, button or dropdown: ${sq.wrapped.map((w) => `"${w}"`).join(", ")}. Keep it on one line: hide a column or give it room (patterns/list.md, Narrow).`);
+      if (sq.cut.length) note("warn", where, `A table column is cut with "…" in most rows at this width: ${sq.cut.join("; ")}. Hide it, or show it under the first column (patterns/list.md, Narrow).`);
       const cols = await page.evaluate(columnsProbe).catch(() => []);
       if (cols.length) note("warn", where, `Rows of a list do not line up (${cols.join("; ")}). Give the cells after the name fixed widths, or use a Table (patterns/alignment.md).`);
       const hints = await page.evaluate(placeholderProbe).catch(() => []);

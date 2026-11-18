@@ -10,6 +10,7 @@ Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were 
 - **verify flags a toolbar that wraps into ragged rows on a phone,** and a placeholder longer than its box.
 - **Numbers are formatted for the UI language** (`SKILL.md`, every page): 4.210 and € 57.573 in Dutch.
 - **Problems the page already had are not yours.** `check.mjs --finish` checks the committed page once (per commit and page, in a temporary worktree) and verify lists what was already wrong apart, never as an error. An agent no longer changes the shared shell to clear an old error.
+- **verify flags a squashed table on a phone:** a badge, button or dropdown value that wraps onto two lines, and a column cut with "…" in most rows. A toolbar of four or more controls must fit on one line on a phone.
 - **A page that scrolls sideways by another amount counts as new,** so a restyle cannot pass with a smaller overflow listed as old.
 - **verify flags words broken across two lines on a phone,** and the restyle card says to fix layout with layout, never by shortening a label or breaking a word.
 - **Warnings your change caused fail `--finish`.** With the page's old problems listed apart, every warning left is new, shown as NEW, and must be fixed like an error.
