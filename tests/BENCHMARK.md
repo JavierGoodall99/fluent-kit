@@ -193,6 +193,18 @@ After PR #45: problems the page already had are listed apart, small edits only, 
 
 Median 30.3 credits and 4m 30s, worst 48.3 credits and 7m 52s. Two of three runs pass quality, with no hints in the source. #5 is the first fully clean restyle: 14 small edits, every column kept, and `--finish` passing with the planted tab bar listed as already there. #4 saw that list and still changed `App.tsx`, as the card's "say which pages it affects" allowed (F-87). #6 fixed every status without a hint, but a cut-off message named an icon-only button as `<button>` with nothing after it, and finding it took four extra check rounds (F-86). Stage 1 fails on #4's scope and both runs' time.
 
+### Bench app rerun on 1.10, fourth batch (2026-11-18, kit 74626f0)
+
+After PR #47: a restyle changes only its page, and cut-off messages name icon-only buttons. `--out ../bench-runs-1.10d`.
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 25 | 2m 05s | 4 | Y | 2 | +97 −27 (1 file) | P-PPP- | P | P | P | P | P | P |
+| #5 | 28 | 2m 19s | 5 | Y | 2 | +76 −30 (1 file) | P-PPF- | P | P | P | P | F | F |
+| #6 | 21.3 | 2m 19s | 5 | Y | 2 | +54 −18 (1 file) | P-PPP- | P | P | P | P | P | P |
+
+Median 25 credits and 2m 19s, worst 28 credits and 2m 19s: the fastest and cheapest batch since the baseline, with no hints in the source. #4 left `App.tsx` alone and showed € 57.573; #6 put the phone toolbar's actions in a "..." menu, as the list pattern says. Stage 1 fails on #5 alone: a table that scrolls a little sideways at 375px, which verify reported as a warning and the note left out (F-89). #6's columns shift per row at 1440px, a note rather than a fail (F-88).
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.

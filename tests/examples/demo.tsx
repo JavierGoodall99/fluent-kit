@@ -1,7 +1,7 @@
 // Renders every example in the skill with demo data, one per URL hash (#status-grid, #list-page, ...), so CI can open each
 // one in a browser and check it the way verify checks an app. Typed against each example's own props: when an example
 // changes its props, the type check fails here. Used by tests/render-examples.mjs only; never installed.
-import { Button, Card, Dropdown, FluentProvider, Input, Link, Option, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
+import { Badge, Button, Card, Dropdown, FluentProvider, Input, Link, Option, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppNavExample } from "../../.github/skills/fluent-ui/examples/app-nav";
@@ -98,6 +98,11 @@ function BadTable({ width, scroll }: { width: number; scroll?: boolean }) {
 function BadToolbar() {
   return <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{["Alles synchroniseren", "Filteren op status", "Exporteren naar Excel", "Afdrukken", "Instellingen"].map((l) => <Button key={l}>{l}</Button>)}</div>;
 }
+// Rows whose status badge has no fixed width: the cells before it shift on every row (bench #6, 1.10d, F-88).
+function BadColumns() {
+  const rows = [["Woonstichting De Linde", "Utrecht", "Gekoppeld"], ["Stichting Eigen Haard", "Amsterdam", "Fout bij synchroniseren"], ["Woonbedrijf Noord", "Groningen", "Niet ingesteld"]];
+  return <div>{rows.map(([n, c, b]) => <div key={n} style={{ display: "flex", gap: 16, padding: 8 }}><span style={{ flexGrow: 1 }}>{n}</span><span style={{ width: 120 }}>{c}</span><Badge>{b}</Badge><span style={{ width: 100 }} /></div>)}</div>;
+}
 function BadPlaceholder() {
   return <Input style={{ width: 140 }} placeholder="Zoek op gebruiker of huurder" aria-label="Zoeken" />;
 }
@@ -130,6 +135,7 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-wide-table": () => <Page><BadTable width={320} scroll /></Page>,
   "bad-toolbar": () => <Page><BadToolbar /></Page>,
   "bad-placeholder": () => <Page><BadPlaceholder /></Page>,
+  "bad-columns": () => <Page><BadColumns /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,

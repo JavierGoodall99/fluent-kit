@@ -10,6 +10,8 @@ Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were 
 - **verify flags a toolbar that wraps into ragged rows on a phone,** and a placeholder longer than its box.
 - **Numbers are formatted for the UI language** (`SKILL.md`, every page): 4.210 and € 57.573 in Dutch.
 - **Problems the page already had are not yours.** `check.mjs --finish` checks the committed page once (per commit and page, in a temporary worktree) and verify lists what was already wrong apart, never as an error. An agent no longer changes the shared shell to clear an old error.
+- **Warnings your change caused fail `--finish`.** With the page's old problems listed apart, every warning left is new, shown as NEW, and must be fixed like an error.
+- **verify flags list rows whose columns do not line up** at desktop width.
 - **A restyle changes only its page.** The app shell, shared components and other pages stay as they are, even when a check flags them; the fix goes in the note.
 - **Cut-off messages find icon-only buttons:** by their label, or by size and place on the screen.
 - **The restyle card asks for small edits to the existing file:** never write the whole file at once, never delete it, never make a copy.
