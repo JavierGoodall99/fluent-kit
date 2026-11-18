@@ -1,6 +1,6 @@
 {
   "name": "@javiergoodall/fluentui-kit",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "Makes GitHub Copilot and other coding agents build React UI with Fluent UI v9, Fluent icons and design tokens only.",
   "license": "MIT",
   "author": "Javier Goodall",
