@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9.3
+Releases now publish from GitHub Actions through npm trusted publishing, with a provenance badge on npm. No change to the kit itself.
+
 ## 1.9.2
 Renamed to `@javiergoodall/fluentui-kit`, and the repo to `JavierGoodall99/fluentui-kit`.
 
