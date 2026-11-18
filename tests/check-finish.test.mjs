@@ -153,6 +153,22 @@ try {
   assert.match(r.out, /full check \(a new UI file\)/);
   assert.match(r.out, /\$ node \.fluent-kit\/scripts\/verify\.mjs --start \/ --full/);
 
+  // A hash-routed app: the page of the changed file is read from the router, and wins over a --page that names another (F-71).
+  d = project("hash", { playwright: true });
+  mkdirSync(join(d, "src/pages"), { recursive: true });
+  const tenants = (pad) => `import { Card, makeStyles, tokens } from "@fluentui/react-components";\nconst useS = makeStyles({ c: { padding: tokens.${pad} } });\nexport const Tenants = () => <Card className={useS().c}>Huurders</Card>;\n`;
+  writeFileSync(join(d, "src/pages/Tenants.tsx"), tenants("spacingHorizontalS"));
+  writeFileSync(join(d, "src/App.tsx"), 'import { Tenants } from "./pages/Tenants";\nexport const PAGES = { tenants: ["Huurders", Tenants] };\nexport const key = () => window.location.hash.slice(1);\n');
+  spawnSync("git", ["-c", "user.email=t@t", "-c", "user.name=t", "add", "."], { cwd: d });
+  spawnSync("git", ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "pages"], { cwd: d });
+  writeFileSync(join(d, "src/pages/Tenants.tsx"), tenants("spacingHorizontalL"));
+  r = finish(d, "--page", "/tenants");
+  assert.match(r.out, /\$ node \.fluent-kit\/scripts\/verify\.mjs --start \/#tenants/, r.out);
+  assert.match(r.out, /checked \/#tenants, the page of the changed file, not \/tenants/);
+  // A full URL: the server already runs, so verify gets the URL and no --start.
+  r = finish(d, "--page", "http://localhost:9/#tenants");
+  assert.match(r.out, /\$ node \.fluent-kit\/scripts\/verify\.mjs http:\/\/localhost:9\/#tenants/, r.out);
+
   // A Next.js route is read from the file path (verify then fails to start here, which is reported, not hidden).
   d = project("next", { playwright: true });
   writeFileSync(join(d, "package.json"), JSON.stringify({ name: "next", private: true, type: "module", dependencies: { next: "15.0.0" } }));
