@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- The bench scorer no longer deletes the app's `.fluent-kit/deps` (and possibly `node_modules`) on Windows. It linked them into a temporary copy of the app with junctions, and deleting that copy deleted what they pointed to. It now removes the links first.
+- `record-run.mjs` no longer warns that the kit is not clean on a Windows checkout: it ignores line endings in the skill files, as the installer does.
 - `tests/bench-setup.mjs` works on Windows: it no longer runs git through a shell, which split the bench author name and failed at `git add`. The scorer's type check also works when the app path has spaces.
 
 ## 1.9.3
