@@ -17,7 +17,7 @@ const names = all.filter((n) => !n.startsWith("bad-"));
 const PAGE_LEVEL = /\[(landmark-one-main|page-has-heading-one|region)\]/;
 const CLICK = { "status-grid": "role=button[name='Expand Payments']", "form-page": "role=combobox[name='Team']" };
 // Fixtures that break a rule on purpose: verify must report each one, or its probe has stopped working.
-const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ }, "bad-clip": { expect: /^Content is cut off by its container: <span>/ } };
+const BAD = { "bad-grid": { expect: /^Cards in a grid are not one size/ }, "bad-dropdown": { click: "role=combobox", expect: /^An open list is too tall/ }, "bad-scrollbar": { expect: /^Scrolling areas use the browser's default scrollbar/ }, "bad-links": { expect: /link\(s\) shorter than 24px crowd/ }, "bad-clip": { expect: /^Content is cut off by its container: <span>/ }, "bad-spill": { expect: /^Text runs out of its cell over the next one/ }, "bad-wide-table": { widths: "375", expect: /^A table scrolls sideways at this width/ } };
 const FAIL = /^(A control covers text|Cards in a grid are not one size|An open list is too tall|Scrolling areas use the browser)/;
 
 let server;
@@ -56,7 +56,7 @@ try {
     }
   }
   for (const [name, bad] of Object.entries(BAD)) {
-    const r = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#${name}`, "--widths", "1440", "--out", out, "--no-login", ...(bad.click ? ["--click", bad.click] : [])], { env: { ...process.env, CI: "1" } });
+    const r = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#${name}`, "--widths", bad.widths || "1440", "--out", out, "--no-login", ...(bad.click ? ["--click", bad.click] : [])], { env: { ...process.env, CI: "1" } });
     let report; try { report = JSON.parse(readFileSync(join(out, "verify-report.json"), "utf8")); } catch { report = { problems: [] }; }
     if (!report.problems.some((p) => bad.expect.test(p.msg))) failures.push(`${name}: verify did not report what this fixture breaks (${bad.expect}); its probe no longer works.\n${(r.stdout + r.stderr).trim().split("\n").slice(-6).join("\n")}`);
   }

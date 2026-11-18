@@ -95,7 +95,7 @@ Prompts 4 to 6 restyle pages that already exist. Prompts 1 to 3 (new page), 7 (s
 | 1. Smoke test | one run each of #4, #5, #6 | every run: route followed, ≤45 credits, ≤4 minutes, 6 of 6 quality checks |
 | 2. Consistency | two more runs per prompt (runs 2 and 3) | across all 9 runs: median ≤45 credits and ≤4 minutes, worst ≤90 credits and ≤8 minutes, no quality check fails |
 
-**Route followed** means the agent read only its route before the first edit: the always-on block, `SKILL.md`, `tasks/restyle.md`, at most one `patterns/` card (and `deviations.md` if a control needed it), plus the app's own files. Reading anything in `research/` (or an old kit's `docs/`), another task card, or searching the repo for design guidance is a **N**.
+**Route followed** means the agent read only its route before the first edit: the always-on block, `SKILL.md`, `tasks/restyle.md`, at most one `patterns/` card, plus `patterns/alignment.md` (`SKILL.md` sends pages with values there) and `deviations.md` if a control needed it, plus the app's own files. Reading anything in `research/` (or an old kit's `docs/`), another task card, or searching the repo for design guidance is a **N**.
 
 **Files read before edit**: in the Copilot chat, count the "Read" steps (files and searches) above the first edit. Kit files and app files both count.
 
@@ -144,6 +144,18 @@ Nine runs of prompts 4 to 6 by Javier, Copilot Agent, Claude Sonnet 5.5, on the 
 | #6 tenants | 37.3, 34.0, 12.4 | 3m10s, 3m41s, 0m58s | y |
 
 Median 25.2 credits and 2m27s; worst 37.3 credits and 3m41s. The old kit took 14m04s and 189.9 credits on the home screen.
+
+### Bench app baseline (2026-11-18, kit a4a4e72 = 1.9.3)
+
+Stage 1, one run each, Copilot Agent with Claude Sonnet 5.5 on Windows, scored by Javier. Auto is the scorer of that day, which had the bugs in F-75; the person's letters are the result.
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 26.5 | 1m 43s | 7 | Y | 3 (2 not run) | +49 −33 (1 file) | P-FP?- | P | P | P | P | F | P |
+| #5 | 32.8 | 1m 16s | 6 | Y | 1 (1 not run) | +65 −31 (1 file) | P-PFP- | F | P | P | P | F | P |
+| #6 | 25.7 | 2m 25s | 6 | Y | 2 | +78 −19 (1 file) | P-FPP- | P | P | P | P | P | P |
+
+Median 26.5 credits and 1m 43s, worst 32.8 credits and 2m 25s: well inside the targets. Stage 1 fails on quality. #4: the recent-activity table at 375px ran its text over the next cell and scrolled sideways, and the agent called the scroll deliberate (F-72). #5: the agent checked `/` instead of `/#activity` (F-71); at 375px the page scrolls 239px sideways and a KPI label is cut off; it dropped the ID column unasked (F-74). #6: it checked `/tenants` three times (Home, in a hash-routed app) before `/#tenants`, with two edit rounds driven by the wrong page. A dev server already on port 5173 broke the check in #4 and probably #5 (F-73). No run opened the contact sheet (F-77).
 
 ### Results
 

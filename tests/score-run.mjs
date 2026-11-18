@@ -27,6 +27,7 @@ const IGNORE = /^(\.fluent-kit\/|\.github\/|\.vscode\/|\.verify-profile\/|node_m
 // Hash of each page in the bench app, for the browser check.
 const PAGE_OF = { "src/pages/Home.tsx": "home", "src/pages/ActivityLog.tsx": "activity", "src/pages/Tenants.tsx": "tenants", "src/pages/Billing.tsx": "billing", "src/pages/InvoiceForm.tsx": "invoice", "src/App.tsx": "tenants" };
 // English words that do not occur in Dutch UI text. One of them in new UI text means a label was left in English.
+const DUTCH = /\b(de|het|een|van|en|niet|geen|voor|met|naar|nog|zijn|wordt|alle|pas|bij|uit)\b/i;
 const ENGLISH = /\b(the|and|of|your|view|details|loading|error|errors|search|save|cancel|activity|settings|page|next|previous|tenants?|billing|invoices?|customers?|connected|failed|show|more|add|edit|delete|close|back|select|empty|retry|try again|last updated|no results|total|amount|paid|unpaid|overview|recent)\b/i;
 
 const git = (cwd, a) => spawnSync("git", a, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).stdout || "";
@@ -96,7 +97,9 @@ export function scoreRun({ app, prompt, browser = true, out }) {
   if (!after || !was) uu.push("consistency scan failed");
   else if (exp.uniform === "same-or-fewer") {
     // A style the app did not have before is drift, even when an old one went away at the same time.
-    const fresh = after.filter((s) => !was.some((w) => w.style === s.style));
+    // A card that only gained a background (it blended into the page before) keeps its style.
+    const bare = (x) => x.replace(/background=\S+/, "").replace(/\s+/g, " ").trim();
+    const fresh = after.filter((s) => !was.some((w) => w.style === s.style || (/background=default/.test(w.style) && bare(w.style) === bare(s.style))));
     if (fresh.length) uf.push(`new card style(s) the app did not have: ${fresh.map((s) => `${s.style} in ${s.where.join(", ")}`).join("; ")}`);
   }
   else if (exp.uniform?.match) {
@@ -119,7 +122,7 @@ export function scoreRun({ app, prompt, browser = true, out }) {
     const errs = JSON.parse(rules.stdout).findings.filter((f) => f.severity === "error" && touched.has(f.file.replace(/\\/g, "/")));
     if (errs.length) cf.push(`${errs.length} kit rule error(s) in changed files: ${[...new Set(errs.map((e) => `${e.rule} (${e.file}:${e.line})`))].slice(0, 3).join(", ")}`);
   } catch { cu.push("kit rules did not run"); }
-  const english = addedText(app).filter((t) => ENGLISH.test(t));
+  const english = addedText(app).filter((t) => ENGLISH.test(t) && !DUTCH.test(t)); // "of" and "details" are Dutch words too
   if (english.length) cf.push(`new UI text in English in a Dutch app: ${english.slice(0, 3).map((t) => `"${t.slice(0, 40)}"`).join(", ")}`);
   for (const [file, rx] of Object.entries(exp.must || {})) for (const [p, why] of rx) if (!new RegExp(p).test(read(join(app, file)) || "")) cf.push(`${file}: ${why}`);
   for (const [file, rx] of Object.entries(exp.mustNot || {})) for (const [p, why] of rx) if (new RegExp(p).test(read(join(app, file)) || "")) cf.push(`${file}: ${why}`);
@@ -141,34 +144,41 @@ export function scoreRun({ app, prompt, browser = true, out }) {
     if (!hash) xu.push("could not find the new page's route in App.tsx");
   }
   const verifyJs = join(app, ".fluent-kit", "scripts", "verify.mjs");
+  const port = +((read(join(app, "vite.config.ts")) || "").match(/port:\s*(\d+)/)?.[1] || 5173);
+  const taken = () => spawnSync(process.execPath, ["-e", `require("net").connect(${port}, "localhost").on("connect", () => process.exit(1)).on("error", () => process.exit(0))`]).status === 1;
   const verifyIn = (cwd, dir) => {
     const r = spawnSync(process.execPath, [verifyJs, "--start", `/#${hash}`, "--widths", "1440,375", "--out", dir, "--no-login"], { cwd, encoding: "utf8", env: { ...process.env, CI: "1" }, timeout: 300000 });
-    try { return JSON.parse(readFileSync(join(dir, "verify-report.json"), "utf8")); } catch { return { renders: 0, tail: (r.stdout + r.stderr).trim().split("\n").at(-1)?.slice(0, 120) }; }
+    try { return JSON.parse(readFileSync(join(dir, "verify-report.json"), "utf8")); } catch { return { renders: 0, tail: (r.stdout + r.stderr).trim().split("\n").slice(-3).join(" | ").slice(0, 300) }; }
   };
-  const kind = (p) => `${p.level} ${p.msg.replace(/\d+/g, "N").slice(0, 60)}`;
+  // One kind per item a message lists ("cut off: <button> A; <span> B. Let it wrap"), so a new item next to an old one counts.
+  const kinds = (p) => { const m = p.msg.replace(/\d+/g, "N").match(/^(.*?: )(<.+?)(\. [A-Z].*)?$/); return m ? m[2].split("; ").map((i) => `${p.level} ${m[1]}${i}`) : [`${p.level} ${p.msg.replace(/\d+/g, "N").slice(0, 90)}`]; };
+  const isOld = (was) => (p) => kinds(p).every((k) => (was || []).includes(k));
   if (!browser) xu.push("browser check skipped (--no-browser)");
   else if (!hash) { /* reason above */ }
   else if (!existsSync(verifyJs)) xu.push("the kit is not installed in the app");
+  else if (taken()) xu.push(`port ${port} is in use: stop the dev server there, then record again with --force before you reset`); // verify would check that server, before and after alike
   else {
     // Problems the page had before the run do not count against it: verify the untouched page once, cached per base commit
     // in .bench/ (git-ignored, so the reset after a run keeps it). A new page had nothing before.
-    const base = git(app, ["rev-parse", "--short", "HEAD"]).trim(), cache = join(app, ".bench", `verify-${base}-${hash}.json`);
+    const base = git(app, ["rev-parse", "--short", "HEAD"]).trim(), cache = join(app, ".bench", `verify2-${base}-${hash}.json`); // verify2: one kind per listed item
     let old = exp.new ? [] : (() => { try { return JSON.parse(readFileSync(cache, "utf8")); } catch { return null; } })();
     if (!old) {
       old = before(app, (tmp) => {
         for (const d of LINKED) if (existsSync(join(app, d))) symlinkSync(join(app, d), join(tmp, d), "junction");
         const rep = verifyIn(tmp, join(tmp, ".fluent-kit", "out"));
-        return rep.renders ? rep.problems.map(kind) : null;
+        return rep.renders ? rep.problems.flatMap(kinds) : null;
       });
       if (old) { mkdirSync(dirname(cache), { recursive: true }); writeFileSync(cache, JSON.stringify(old)); }
       else xu.push("verify could not render the page before the run, so every problem counts");
     }
+    // The before-run dev server must be gone: verify uses a server it finds on the port, and that one served the old code.
+    for (let i = 0; i < 40 && taken(); i++) spawnSync(process.execPath, ["-e", "setTimeout(() => {}, 500)"]);
     const dir = out || mkdtempSync(join(tmpdir(), "fk-score-verify-"));
     const rep = verifyIn(app, dir);
     if (!rep.renders) xu.push(`verify did not render the page (${rep.tail || "no output"})`);
     else {
-      info.verify = { renders: rep.renders, errors: rep.errors, warnings: rep.warnings, out: dir, alreadyThere: rep.problems.filter((p) => (old || []).includes(kind(p))).length };
-      for (const p of rep.problems.filter((q) => !(old || []).includes(kind(q)))) {
+      info.verify = { renders: rep.renders, errors: rep.errors, warnings: rep.warnings, out: dir, alreadyThere: rep.problems.filter(isOld(old)).length };
+      for (const p of rep.problems.filter((q) => !isOld(old)(q))) {
         if (p.level === "error") xf.push(`verify error: ${p.msg.slice(0, 140)}`);
         else if (p.level === "warn" && /scroll(s)? sideways|cut off|covers text|smaller than 24px|crowd another|not one size|too tall/i.test(p.msg)) xf.push(`verify: ${p.msg.slice(0, 140)}`);
       }

@@ -1,7 +1,7 @@
 // Renders every example in the skill with demo data, one per URL hash (#status-grid, #list-page, ...), so CI can open each
 // one in a browser and check it the way verify checks an app. Typed against each example's own props: when an example
 // changes its props, the type check fails here. Used by tests/render-examples.mjs only; never installed.
-import { Card, Dropdown, FluentProvider, Link, Option, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
+import { Card, Dropdown, FluentProvider, Link, Option, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppNavExample } from "../../.github/skills/fluent-ui/examples/app-nav";
@@ -83,6 +83,17 @@ function BadDropdown() {
 function BadClip() {
   return <Card style={{ width: 120 }}><Text size={600}>€&nbsp;1.234.567.890</Text></Card>; // a figure wider than its card
 }
+// A table squeezed into a narrow box: its cells keep one line, so the text runs over the next cell (bench run #4, F-72).
+const cols = ["Tijdstip", "Gebeurtenis", "Gebruiker", "Huurder"];
+function BadTable({ width, scroll }: { width: number; scroll?: boolean }) {
+  const table = (
+    <Table style={scroll ? { minWidth: 900 } : undefined}>
+      <TableHeader><TableRow>{cols.map((c) => <TableHeaderCell key={c}>{c}</TableHeaderCell>)}</TableRow></TableHeader>
+      <TableBody>{[1, 2, 3].map((i) => <TableRow key={i}>{["16-11-2026 11:00", "SYNC_OK_DONE", "m.jansen", "WoonstichtingDeLinde"].map((v) => <TableCell key={v} style={{ whiteSpace: "nowrap" }}>{v}</TableCell>)}</TableRow>)}</TableBody>
+    </Table>
+  );
+  return <div style={{ width, overflowX: scroll ? "auto" : undefined }}>{table}</div>;
+}
 function BadLinks() {
   return <div>{["Edit", "Copy", "Delete"].map((l) => <div key={l}><Link href={`#${l}`}>{l}</Link></div>)}</div>; // stacked, 20px apart
 }
@@ -108,6 +119,8 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-scrollbar": () => <Page><BadScrollbar /></Page>,
   "bad-links": () => <Page><BadLinks /></Page>,
   "bad-clip": () => <Page><BadClip /></Page>,
+  "bad-spill": () => <Page><BadTable width={300} /></Page>,
+  "bad-wide-table": () => <Page><BadTable width={320} scroll /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,

@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { skillPath } from "./lib.mjs";
+import { pageRoutes, skillPath } from "./lib.mjs";
 
 const ROUTES = ["restyle", "new-page", "new-app", "migrate"];
 const args = process.argv.slice(2);
@@ -91,6 +91,8 @@ if (noPackage) {
   if (detect.rampContrastFailures) lines.push(`Contrast:  a ramp from that colour fails ${detect.rampContrastFailures} contrast check(s); make-theme.mjs stops and prints a darker shade to offer.`);
 }
 lines.push(`Language:  ${out.language ? `${out.language}: write UI text in it.` : detect.localeAdvice}`);
+const pages = (route === "restyle" || route === "new-page") && detect.framework !== "next" ? pageRoutes(root) : null;
+if (pages) lines.push(`Pages:     ${pages.hash ? "hash routing" : "routes"}: --page ${pages.url("<key>")} (${[...new Set(pages.pages.map((p) => p.key))].slice(0, 8).join(", ")}).`);
 if (out.guidance.length) lines.push(`Guidance:  ${out.guidance.join(", ")}: the repo's own rules win over the kit where they conflict.`);
 if (detect.possibleSharedPackages?.length) lines.push(`Shared UI: ${detect.possibleSharedPackages.slice(0, 3).join(", ")} may be the company's shared UI package (a guess from the name): check it, and use its components first.`);
 if (detect.framework === "next") lines.push("Next.js:   files with makeStyles, hooks or handlers need \"use client\"; pass strings, not icons, from Server to Client Components; mount a virtualized DataGrid and @fluentui/react-charts on the client only (next/dynamic with ssr: false); a hydration diff made only of <i data-tabster-dummy> is a known Fluent issue (mention it, do not restructure the page).");

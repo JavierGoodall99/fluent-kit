@@ -121,6 +121,13 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-68 | `context.mjs` printed profile lines that said "none" or restated kit defaults; the dashboard example carried a third chart | Token audit, 2026-11 | fixed 1.8.0 |
 | F-69 | CI failed AUD-09 on `main` since 1.7.0: the bad-grid fixture's short cards fit on one line with the runner's fonts (52px), under the grid probe's 60px floor, so the probe saw one row of equal cards | CI, 1.7.0 to 1.7.1 | fixed 1.8.0 (every fixture card wraps to 3 lines or more in any font) |
 | F-70 | verify's cut-off probe missed text that overflows its own box inside a card, and never looked at tabs or table cells: the bench home page at 375px had all three and passed | Bench app, first scored run | fixed 1.9.0 (wider probe; `bad-clip` fixture) |
+| F-71 | Agents passed the wrong `--page` in all three bench restyles: the app routes by hash, `/tenants` fell back to Home, and `/` is Home | Bench baseline, 2026-11-18 | fixed 1.10.0 (`context.mjs` prints a Pages line; `--finish` reads the app's router and checks the page of the changed file) |
+| F-72 | verify missed table text that runs over the next cell, and a table mostly off screen at 375px was only a warning, which the agent called deliberate | Bench baseline, #4 | fixed 1.10.0 (cell-spill probe and wide-table error; restyle points to `patterns/list.md` Narrow; `bad-spill` and `bad-wide-table` fixtures) |
+| F-73 | With the person's dev server on the port (Vite `strictPort`), verify could not start a server, and a full URL in `--finish --page` did not help | Bench baseline, #4 and #5 | fixed 1.10.0 (verify checks the server already on the busy port; `--finish --page` takes a full URL) |
+| F-74 | A restyle dropped a column nobody asked about (the activity log's ID) | Bench baseline, #5 | fixed 1.10.0 (restyle card: keep every column, field and action) |
+| F-75 | The bench scorer: a card that only gained a background failed Uniform; Dutch text with "of" counted as English; a new cut-off item merged into an old message was missed; its second verify met the first one's server; on Windows it deleted the app's `.fluent-kit/deps` through junctions | Bench baseline | fixed 1.10.0 |
+| F-76 | The benchmark's route rule allowed one pattern card, but `SKILL.md` sends pages with values to `patterns/alignment.md` as well | Bench baseline, #4 | fixed 1.10.0 (`BENCHMARK.md` and `record-run.mjs` allow it) |
+| F-77 | No agent opened the contact sheet in three runs, although verify asks for one look every time | Bench baseline | open (the machine checks above carry the load instead) |
 
 ## Runs
 

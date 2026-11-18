@@ -21,7 +21,7 @@ import { join, relative, resolve, sep, extname, basename, dirname } from "node:p
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { POPUP_CAP, SETUP_CMD, hasPlaywright, packageManager, skillPath, tscPath } from "./lib.mjs";
+import { POPUP_CAP, SETUP_CMD, hasPlaywright, packageManager, pageRoutes, skillPath, tscPath } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -315,12 +315,16 @@ function finish(ruleErrors) {
   if (!flag("--no-verify") && !flag("--full") && change.small && !change.layout.length && !change.styled.length && !opt("--click"))
     return done([...steps, `verify not needed (only text or icons changed, ${change.lines} line(s)): say in your reply that it was not checked in a browser`], 0);
   if (!hasPlaywright(root)) return done([...steps, `verify not available (Playwright is not installed): say in your reply that the UI was not verified. Do not install packages yourself; the person can enable the check once with: ${SETUP_CMD}`], 0);
-  const page = opt("--page") || inferPage(change.visible);
+  // The page of the changed file wins over a --page that names another one: three bench runs checked the wrong page (F-71).
+  let page = opt("--page");
+  const url = /^https?:\/\//.test(page || ""), inferred = url ? null : inferPage(change.visible);
+  if (page && inferred && page.split("?")[0] !== inferred) { steps.push(`checked ${inferred}, the page of the changed file, not ${page}`); page = inferred; }
+  page = page || inferred;
   if (!page) return done([...steps, `verify needed (${change.visible.slice(0, 3).map((f) => shown(f)).join(", ")} changed visibly): run again with --page /path-of-that-page (with its #hash if the app routes by hash)`], 2);
 
   const full = flag("--full") || change.newFiles > 0;
   if (full && !flag("--full")) steps.push("full check (a new UI file)");
-  const vArgs = ["--start", page, ...(full ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])];
+  const vArgs = [...(url ? [] : ["--start"]), page, ...(full ? ["--full"] : []), ...(opt("--click") ? ["--click", opt("--click")] : [])]; // a full URL: the server already runs
   console.log(`\n$ node .fluent-kit/scripts/verify.mjs ${vArgs.map((a) => (/\s|\[/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
   const v = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), "verify.mjs"), ...vArgs], { cwd: root, stdio: "inherit" });
   const hint = change.overlays.length && !opt("--click") ? ` Something in ${change.overlays.slice(0, 3).map((f) => shown(f)).join(", ")} opens on a click: add --click "role=button[name='<the button that opens it>']".` : "";
@@ -347,6 +351,11 @@ function typecheck() {
 
 // Next.js routes can be read from the file path; anything else needs --page.
 function inferPage(changedFiles) {
+  let next = false; try { const p = JSON.parse(readFileSync(join(root, "package.json"), "utf8")); next = !!{ ...p.dependencies, ...p.devDependencies }.next; } catch { /* none */ }
+  if (!next) { // read the app's own router: hash keys or React Router paths (F-71)
+    const r = pageRoutes(root), keys = new Set(changedFiles.flatMap((f) => r?.pages.filter((p) => p.file === f).map((p) => p.key) || []));
+    return keys.size === 1 ? r.url([...keys][0]) : null;
+  }
   const routes = new Set();
   for (const f of changedFiles) {
     const r = relative(root, f).split(sep).join("/");
