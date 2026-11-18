@@ -42,6 +42,7 @@ No card fits: `tasks/new-page.md`.
 - A grid of cards is one size: fixed rows (`gridAutoRows`: 250px, 380px with a chart), each card fills its row, its body scrolls (`flexGrow: 1`, `minHeight: 0`, `overflowY: "auto"`, `tabIndex={0}`, `scrollbarGutter: "stable"`). Content never sets a card's size.
 - A long popup list (`Dropdown`, `Combobox`, `Menu`) is capped at 320px and scrolls; `check.mjs` prints how.
 - Scrollbars are thin and themed once, in the global styles, never per component (`context.mjs` prints the rule when missing).
+- Numbers in the UI language's format with `Intl.NumberFormat` (4.210 and € 57.573 in Dutch).
 - Pages with values, rows or several blocks: `patterns/alignment.md`.
 
 Type roles the cards name:

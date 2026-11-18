@@ -119,3 +119,6 @@ export function pageRoutes(root) {
   const pages = found.filter((p) => hash || !p.map);
   return pages.length ? { hash, pages, url: (key) => (hash ? `/#${key}` : `/${key}`) } : null;
 }
+
+// One kind per item a verify problem lists ("cut off: <button> A; <span> B. Let it wrap"), digits as N: compares a page before and after a change.
+export const problemKinds = (p) => { const m = p.msg.replace(/\d+/g, "N").match(/^(.*?: )(<.+?)(\. [A-Z].*)?$/); return m ? m[2].split("; ").map((i) => `${p.level} ${m[1]}${i}`) : [`${p.level} ${p.msg.replace(/\d+/g, "N").slice(0, 90)}`]; };

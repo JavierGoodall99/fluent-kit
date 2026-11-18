@@ -5,7 +5,8 @@
 2. Brief, three lines: who uses the page, the job, what they must see in five seconds.
 
 **Rules**
-- Improve, do not rebuild: keep every column, field and action, the grouping and the order, edit the file in place with small edits (no new copy of it), and say in the note what should go. Edit each part of a file once.
+- Improve, do not rebuild: keep every column, field and action, the grouping and the order, and say in the note what should go.
+- Change the page with small edits to the existing file: never write the whole file at once, never delete it, never make a copy. Edit each part of a file once.
 - A visual request changes how it looks, not what it does: no new filters, cards that act, or new data. Suggest those in the note.
 - Fix what is visibly wrong first: language, colours, cut-off text, contrast, missing states, text lines over about 80 characters, a table that does not fit a phone (`patterns/list.md`, Narrow).
 - First glance: verdict and key numbers on the first screen; detail behind a click; about 150 words on the first screen at most.

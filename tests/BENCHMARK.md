@@ -38,7 +38,7 @@ Vague, as real users write. Mix of new pages, restyles and small fixes.
 
 ## The bench app: run the prompts anywhere
 
-`bench/app/` is a small public app made for these prompts, so a run does not need the private pilot app. It is a Dutch tenant portal on Fluent v9 with five pages, each with the flaws its prompts are about: Dashboard (home, #4), Activiteitenlogboek (activity log, #5 and #8: KPI cards in another style than home), Huurders (tenants, #6 and #7: every tenant shown as "Gekoppeld", a toolbar cut off on a phone), Facturatie (billing, #11) and Nieuwe factuur (invoice form, #10). `src/data.ts` holds the data the new-page prompts (#1, #2, #3, #9) need.
+`bench/app/` is a small public app made for these prompts, so a run does not need the private pilot app. It is a Dutch tenant portal on Fluent v9 with five pages, each with the flaws its prompts are about: Dashboard (home, #4), Activiteitenlogboek (activity log, #5 and #8: KPI cards in another style than home), Huurders (tenants, #6 and #7: every tenant shown as "Gekoppeld", a toolbar cut off on a phone), Facturatie (billing, #11) and Nieuwe factuur (invoice form, #10). `src/data.ts` holds the data the new-page prompts (#1, #2, #3, #9) need. The app's source has no comments about its flaws: until 2026-11-18 each page opened with one ("a toolbar that is cut off on a phone (#6, #7)"), and agents read it before they started, so runs before that date had the answer in front of them.
 
 ```
 node tests/bench-setup.mjs ../fluent-kit-bench     # copy, git, npm install, this kit, baseline of old findings, commit

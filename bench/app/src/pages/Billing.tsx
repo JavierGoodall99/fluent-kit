@@ -1,4 +1,3 @@
-// Billing: amounts left-aligned with mixed decimals and no grouping (#11).
 import { Card, Text, makeStyles } from "@fluentui/react-components";
 import { invoiceTotals, invoices } from "../data";
 

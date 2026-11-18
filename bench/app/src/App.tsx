@@ -1,4 +1,3 @@
-// App shell: a tab bar that does not fit on a phone (#7). Pages are chosen by the URL hash.
 import { Tab, TabList, makeStyles, tokens } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
 import { ActivityLog } from "./pages/ActivityLog";

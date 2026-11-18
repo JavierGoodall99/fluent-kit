@@ -1,4 +1,4 @@
-// Sample data for the benchmark app. Pages import their data and their features (filter, export, pages, totals) from here.
+// Sample data for the app.
 
 export type TenantStatus = "gekoppeld" | "niet-ingesteld" | "fout";
 export interface Tenant { id: string; name: string; city: string; units: number; status: TenantStatus; lastSync: string | null }
@@ -59,7 +59,6 @@ export interface Customer { id: number; name: string }
 export const customers: Customer[] = Array.from({ length: 300 }, (_, i) => ({ id: i + 1, name: `Klant ${String(i + 1).padStart(3, "0")} (${tenants[i % tenants.length].city})` }));
 export function saveInvoice(values: Record<string, string>) { console.info("save", values); return true; }
 
-// For the new-page prompts (#1 integrations, #2 profile, #3 open tasks, #9 teams).
 export const integrations = [
   { id: "ad", name: "Microsoft Entra ID", connected: true, lastRun: "2026-11-16T08:00:00Z" },
   { id: "ex", name: "Exact Online", connected: true, lastRun: "2026-11-16T06:00:00Z" },

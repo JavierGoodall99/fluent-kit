@@ -4,7 +4,7 @@
   "2": { "kind": "new page", "edit": ["src/App.tsx"], "new": "profile", "uniform": "same-or-fewer" },
   "3": { "kind": "new page", "edit": ["src/App.tsx"], "new": "tasks", "uniform": "same-or-fewer" },
   "4": { "kind": "restyle", "edit": ["src/pages/Home.tsx"], "keep": { "src/pages/Home.tsx": ["eventCounts", "invoiceTotals", "tenants", "events"] }, "uniform": "same-or-fewer" },
-  "5": { "kind": "restyle", "edit": ["src/pages/ActivityLog.tsx"], "keep": { "src/pages/ActivityLog.tsx": ["filterEvents", "exportActivityCsv", "paginate", "eventCounts", "SearchBox"] }, "uniform": "same-or-fewer" },
+  "5": { "kind": "restyle", "edit": ["src/pages/ActivityLog.tsx"], "keep": { "src/pages/ActivityLog.tsx": ["filterEvents", "exportActivityCsv", "paginate", "eventCounts", "SearchBox"] }, "must": { "src/pages/ActivityLog.tsx": [["(?<!key=)\\{\\s*\\w+\\.id\\s*\\}", "the ID column was removed"]] }, "uniform": "same-or-fewer" },
   "6": {
     "kind": "restyle", "edit": ["src/pages/Tenants.tsx"], "keep": { "src/pages/Tenants.tsx": ["searchTenants", "connectTenant", "tenantStatusLabel"] },
     "mustNot": { "src/pages/Tenants.tsx": [["tenantStatusLabel\\.gekoppeld", "every tenant shown as Gekoppeld; the data has three statuses"]] },

@@ -8,9 +8,12 @@ Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were 
 - **A dev server that is already running is used.** When the port is taken ("Port 5173 is already in use"), verify checks the page on the server there instead of giving up. `--finish --page` also takes a full URL.
 - **Restyles keep every column, field and action** unless asked.
 - **verify flags a toolbar that wraps into ragged rows on a phone,** and a placeholder longer than its box.
-- **Numbers are formatted for the UI language** (`patterns/alignment.md`): 4.210 and € 57.573 in Dutch.
-- **The restyle card asks for small edits in place,** after agents twice created a copy of the page and deleted it.
+- **Numbers are formatted for the UI language** (`SKILL.md`, every page): 4.210 and € 57.573 in Dutch.
+- **Problems the page already had are not yours.** `check.mjs --finish` checks the committed page once (per commit and page, in a temporary worktree) and verify lists what was already wrong apart, never as an error. An agent no longer changes the shared shell to clear an old error.
+- **The restyle card asks for small edits to the existing file:** never write the whole file at once, never delete it, never make a copy.
+- **verify only uses a server on a busy port when it serves this app** (its `index.html` title), not another project on the same port.
 - **A slow first page load no longer stops the check.** When a dev server's first start keeps the page loading past 30 seconds, verify loads it once more and checks it.
+- The bench app's source no longer names its own flaws in comments. The scorer checks the activity log's ID column, retries verify once, and uses the kit's own before-and-after comparison.
 - The bench scorer: a card that only gained a background is not a new style; Dutch text is not read as English; a new cut-off item next to an old one counts; it waits for its first dev server to stop, and refuses to score the browser part while your own server holds the port. The benchmark's route rule allows `patterns/alignment.md`.
 - The bench scorer no longer deletes the app's `.fluent-kit/deps` (and possibly `node_modules`) on Windows. It linked them into a temporary copy of the app with junctions, and deleting that copy deleted what they pointed to. It now removes the links first.
 - `record-run.mjs` no longer warns that the kit is not clean on a Windows checkout: it ignores line endings in the skill files, as the installer does.

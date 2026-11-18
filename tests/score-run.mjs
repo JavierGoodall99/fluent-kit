@@ -14,6 +14,7 @@
 //            scrolling sideways, covering text or too small. Problems the page already had before the run do not count.
 // First glance and honest note stay with the person: those two letters are always "-".
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
+import { problemKinds } from "../.fluent-kit/scripts/lib.mjs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -146,12 +147,14 @@ export function scoreRun({ app, prompt, browser = true, out }) {
   const verifyJs = join(app, ".fluent-kit", "scripts", "verify.mjs");
   const port = +((read(join(app, "vite.config.ts")) || "").match(/port:\s*(\d+)/)?.[1] || 5173);
   const taken = () => spawnSync(process.execPath, ["-e", `require("net").connect(${port}, "localhost").on("connect", () => process.exit(1)).on("error", () => process.exit(0))`]).status === 1;
-  const verifyIn = (cwd, dir) => {
-    const r = spawnSync(process.execPath, [verifyJs, "--start", `/#${hash}`, "--widths", "1440,375", "--out", dir, "--no-login"], { cwd, encoding: "utf8", env: { ...process.env, CI: "1" }, timeout: 300000 });
-    try { return JSON.parse(readFileSync(join(dir, "verify-report.json"), "utf8")); } catch { return { renders: 0, tail: (r.stdout + r.stderr).trim().split("\n").slice(-3).join(" | ").slice(0, 300) }; }
+  const verifyIn = (cwd, dir, again = true) => {
+    const r = spawnSync(process.execPath, [verifyJs, "--start", `/#${hash}`, "--widths", "1440,375", "--out", dir, "--no-login", "--fresh-server"], { cwd, encoding: "utf8", env: { ...process.env, CI: "1" }, timeout: 300000 });
+    try { const rep = JSON.parse(readFileSync(join(dir, "verify-report.json"), "utf8")); if (rep.renders) return rep; } catch { /* below */ }
+    // Once more after a pause: on Windows the dev server can crash right after the previous one stopped (bench #5, 1.10).
+    if (again) { spawnSync(process.execPath, ["-e", "setTimeout(() => {}, 5000)"]); return verifyIn(cwd, dir, false); }
+    return { renders: 0, tail: (r.stdout + r.stderr).trim().split("\n").slice(-10).join(" | ").replace(/\r/g, "").slice(0, 600) };
   };
-  // One kind per item a message lists ("cut off: <button> A; <span> B. Let it wrap"), so a new item next to an old one counts.
-  const kinds = (p) => { const m = p.msg.replace(/\d+/g, "N").match(/^(.*?: )(<.+?)(\. [A-Z].*)?$/); return m ? m[2].split("; ").map((i) => `${p.level} ${m[1]}${i}`) : [`${p.level} ${p.msg.replace(/\d+/g, "N").slice(0, 90)}`]; };
+  const kinds = problemKinds; // the same comparison check --finish makes
   const isOld = (was) => (p) => kinds(p).every((k) => (was || []).includes(k));
   if (!browser) xu.push("browser check skipped (--no-browser)");
   else if (!hash) { /* reason above */ }

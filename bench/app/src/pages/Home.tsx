@@ -1,4 +1,3 @@
-// Home: KPI cards and recent activity. Deliberately rough (fixed colours, margins, no empty or narrow-screen handling) for prompt #4.
 import { Card, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { eventCounts, events, invoiceTotals, invoices, tenants } from "../data";
 

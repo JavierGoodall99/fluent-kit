@@ -7,6 +7,7 @@ import { createServer } from "node:http";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { problemKinds } from "../.fluent-kit/scripts/lib.mjs";
 import { spawn } from "node:child_process";
 
 const tmp = mkdtempSync(join(tmpdir(), "fk-examples-"));
@@ -60,6 +61,12 @@ try {
     let report; try { report = JSON.parse(readFileSync(join(out, "verify-report.json"), "utf8")); } catch { report = { problems: [] }; }
     if (!report.problems.some((p) => bad.expect.test(p.msg))) failures.push(`${name}: verify did not report what this fixture breaks (${bad.expect}); its probe no longer works.\n${(r.stdout + r.stderr).trim().split("\n").slice(-6).join("\n")}`);
   }
+  // Problems the page had before a change (check --finish passes them as --known) are listed apart and never fail the run (F-65).
+  const known = join(tmp, "known.json");
+  await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#bad-clip`, "--widths", "1440", "--out", out, "--no-login"], { env: { ...process.env, CI: "1" } });
+  writeFileSync(known, JSON.stringify(JSON.parse(readFileSync(join(out, "verify-report.json"), "utf8")).problems.flatMap(problemKinds)));
+  const k = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#bad-clip`, "--widths", "1440", "--out", out, "--no-login", "--known", known], { env: { ...process.env, CI: "1" } });
+  if (k.status !== 0 || !/Already on the page before your change/.test(k.stdout)) failures.push(`--known: a problem the page already had still fails the run (exit ${k.status}).\n${k.stdout.trim().split("\n").slice(-6).join("\n")}`);
   for (const n of notes) console.log(n);
   for (const f of failures) console.log(`FAIL  ${f}`);
   console.log(failures.length ? `\nrender-examples: ${failures.length} problem(s) in ${names.length} examples.` : `render-examples: all ${names.length} examples render clean at 1440 and 375px; ${Object.keys(BAD).length} bad fixtures are caught.`);
