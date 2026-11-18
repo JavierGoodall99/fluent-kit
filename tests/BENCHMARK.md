@@ -205,6 +205,18 @@ After PR #47: a restyle changes only its page, and cut-off messages name icon-on
 
 Median 25 credits and 2m 19s, worst 28 credits and 2m 19s: the fastest and cheapest batch since the baseline, with no hints in the source. #4 left `App.tsx` alone and showed € 57.573; #6 put the phone toolbar's actions in a "..." menu, as the list pattern says. Stage 1 fails on #5 alone: a table that scrolls a little sideways at 375px, which verify reported as a warning and the note left out (F-89). #6's columns shift per row at 1440px, a note rather than a fail (F-88).
 
+### Bench app rerun on 1.10, fifth batch (2026-11-18, kit 0ff2d31)
+
+After PR #49: warnings the change caused fail `--finish`, and list rows that do not line up are flagged. `--out ../bench-runs-1.10e`.
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 29.7 | 3m 30s | 7 | Y | 4 | +68 −35 (2 files) | P-PPP- | P | P | P | P | F | P |
+| #5 | 28 | 3m 03s | 6 | Y | 2 | +90 −33 (2 files) | P-PPP- | P | P | P | P | F | F |
+| #6 | 21.1 | 2m 10s | 5 | Y | 2 | +47 −18 (1 file) | P-PPP- | P | P | P | P | P | P |
+
+Median 28 credits and 3m 03s, worst 29.7 credits and 3m 30s. The machine passed all three; the person failed two, both on things verify could not see then. #4 cleared warnings by changing text: shortened badge labels and `overflowWrap: "anywhere"`, which broke tenant names inside the word on a phone (F-91, F-92); it also wrote the whole page through a Node script (F-93). #5 removed the toolbar's wrap, so the page scrolled 71px sideways at 375px, and the comparison matched that to the original 239px (F-90). #6 is clean: fixed column widths, the phone actions in a "Meer acties" menu.
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
