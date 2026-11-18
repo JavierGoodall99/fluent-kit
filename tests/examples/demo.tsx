@@ -107,6 +107,14 @@ function BadColumns() {
 function BadBrokenWord() {
   return <Table style={{ width: 300 }}><TableBody><TableRow><TableCell>16-11-2026</TableCell><TableCell style={{ overflowWrap: "anywhere", width: 70 }}>Woonstichting De Linde</TableCell></TableRow></TableBody></Table>;
 }
+// Bench #5, 1.10f: badges that wrap inside their pill, and a tenant column cut with "…" on every row (F-94).
+function BadPill() {
+  return <div style={{ width: 90 }}><Badge appearance="tint">Synchronisatie geslaagd</Badge></div>;
+}
+const ellipsis = { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 80 } as const;
+function BadCutColumn() {
+  return <Table style={{ width: 330 }}><TableBody>{["Woonstichting De Linde", "Stichting Eigen Haard", "Wooncorporatie Zuid"].map((t) => <TableRow key={t}><TableCell>16 nov 2026</TableCell><TableCell>Inloggen</TableCell><TableCell><div style={ellipsis}>{t}</div></TableCell></TableRow>)}</TableBody></Table>;
+}
 function BadPlaceholder() {
   return <Input style={{ width: 140 }} placeholder="Zoek op gebruiker of huurder" aria-label="Zoeken" />;
 }
@@ -141,6 +149,8 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-placeholder": () => <Page><BadPlaceholder /></Page>,
   "bad-columns": () => <Page><BadColumns /></Page>,
   "bad-broken-word": () => <Page><BadBrokenWord /></Page>,
+  "bad-pill": () => <Page><BadPill /></Page>,
+  "bad-cut-column": () => <Page><BadCutColumn /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,

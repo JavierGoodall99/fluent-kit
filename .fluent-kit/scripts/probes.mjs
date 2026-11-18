@@ -87,7 +87,7 @@ export function wrapProbe() {
     const cs = getComputedStyle(el); // a wrapping row, not a column of buttons stacked on purpose
     if (kids.length < 3 || (el.getAttribute("role") !== "toolbar" && !(/flex/.test(cs.display) && cs.flexDirection.startsWith("row") && cs.flexWrap !== "nowrap"))) continue;
     const rows = new Set(kids.map((c) => Math.round(c.getBoundingClientRect().top / 8)));
-    if (rows.size > 2) out.push(`${kids.length} controls on ${rows.size} lines`);
+    if (rows.size > (kids.length >= 4 ? 1 : 2)) out.push(`${kids.length} controls on ${rows.size} lines`); // four or more: one line, extras in Overflow (bench #6, 1.10f)
   }
   return out.slice(0, 2);
 }
@@ -133,4 +133,26 @@ export function brokenWordProbe() {
     if (out.length >= 3) break;
   }
   return out;
+}
+
+// A label that should sit on one line wraps inside its pill or button ("Synchronisatie / geslaagd"), and a table column
+// cut with "…" in most rows on a phone: both mean the row has too many columns at this width (bench #5, 1.10f).
+export function squashProbe() {
+  const range = document.createRange(), lines = (el) => { // text lines only: an icon or a visually hidden label is not a line
+    const tops = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) { if (!n.textContent.trim()) continue; range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) tops.push(r.top); }
+    const h = parseFloat(getComputedStyle(el).fontSize) * 0.6;
+    return tops.sort((a, b) => a - b).filter((t, i, a) => i === 0 || t - a[i - 1] > h).length;
+  };
+  const wrapped = [...document.querySelectorAll(".fui-Badge, .fui-Button, .fui-Dropdown__button")].filter((el) => el.getBoundingClientRect().width && (el.textContent || "").trim() && lines(el) > 1).slice(0, 3).map((el) => el.textContent.trim().slice(0, 30));
+  const cut = [];
+  if (window.innerWidth <= 480) for (const t of document.querySelectorAll("table, [role=grid]")) {
+    const rows = [...t.querySelectorAll("tbody tr, [role=row]")].filter((r) => !r.querySelector("th, [role=columnheader]"));
+    const n = Math.max(0, ...rows.map((r) => r.children.length));
+    for (let i = 1; i < n && rows.length >= 3; i++) { // the first column is the name: "…" with the full name on hover is fine there
+      const clipped = rows.filter((r) => { const c = r.children[i]; return c && c.getBoundingClientRect().width && [c, ...c.querySelectorAll("*")].some((e) => e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).textOverflow === "ellipsis"); });
+      if (clipped.length >= rows.length / 2) cut.push(`column ${i + 1} (${clipped.length} of ${rows.length} rows)`);
+    }
+  }
+  return { wrapped, cut: cut.slice(0, 2) };
 }
