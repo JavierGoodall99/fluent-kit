@@ -181,6 +181,18 @@ After PR #44 (toolbar and placeholder checks, number format in `alignment.md`, "
 
 Median 28.5 credits and 2m 43s, worst 30.8 credits and 3m 20s: every run under 4 minutes for the first time. Stage 1 fails on scope. #4: `--finish` kept failing on the planted tab bar, so the agent changed the shared `App.tsx` (F-65). #5: after "no new copy", it deleted the page and recreated it, and dropped the ID column (F-80). #6 (a redo; the first attempt's dev server ran out of memory) is the first clean run: icon toolbar on a phone after the new check, status per tenant, 4.210. Neither #4 nor #6 opened `alignment.md`, so #4 still showed € 57573 (F-85).
 
+### Bench app rerun on 1.10, third batch (2026-11-18, kit a2a5ab5)
+
+After PR #45: problems the page already had are listed apart, small edits only, number format in `SKILL.md`, and the first batch with no hint comments in the app. `--out ../bench-runs-1.10c`.
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 28.2 | 4m 30s | 5 | Y | 4 | +124 −31 (3 files) | F-PPF- | F | P | P | P | F | P |
+| #5 | 30.3 | 2m 58s | 6 | Y | 3 | +152 −33 (1 file) | P-PPP- | P | P | P | P | P | P |
+| #6 | 48.3 | 7m 52s | 4 | Y | 8 | +50 −18 (1 file) | P-PPP- | P | P | P | P | P | P |
+
+Median 30.3 credits and 4m 30s, worst 48.3 credits and 7m 52s. Two of three runs pass quality, with no hints in the source. #5 is the first fully clean restyle: 14 small edits, every column kept, and `--finish` passing with the planted tab bar listed as already there. #4 saw that list and still changed `App.tsx`, as the card's "say which pages it affects" allowed (F-87). #6 fixed every status without a hint, but a cut-off message named an icon-only button as `<button>` with nothing after it, and finding it took four extra check rounds (F-86). Stage 1 fails on #4's scope and both runs' time.
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
