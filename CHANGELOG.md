@@ -7,6 +7,9 @@ Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were 
 - **verify catches squeezed tables.** Text that runs out of its table cell over the next one is an error, and so is a table that scrolls sideways with more than a quarter of it off screen. The restyle card points to the narrow layout in `patterns/list.md`.
 - **A dev server that is already running is used.** When the port is taken ("Port 5173 is already in use"), verify checks the page on the server there instead of giving up. `--finish --page` also takes a full URL.
 - **Restyles keep every column, field and action** unless asked.
+- **verify flags a toolbar that wraps into ragged rows on a phone,** and a placeholder longer than its box.
+- **Numbers are formatted for the UI language** (`patterns/alignment.md`): 4.210 and € 57.573 in Dutch.
+- **The restyle card asks for small edits in place,** after agents twice created a copy of the page and deleted it.
 - **A slow first page load no longer stops the check.** When a dev server's first start keeps the page loading past 30 seconds, verify loads it once more and checks it.
 - The bench scorer: a card that only gained a background is not a new style; Dutch text is not read as English; a new cut-off item next to an old one counts; it waits for its first dev server to stop, and refuses to score the browser part while your own server holds the port. The benchmark's route rule allows `patterns/alignment.md`.
 - The bench scorer no longer deletes the app's `.fluent-kit/deps` (and possibly `node_modules`) on Windows. It linked them into a temporary copy of the app with junctions, and deleting that copy deleted what they pointed to. It now removes the links first.

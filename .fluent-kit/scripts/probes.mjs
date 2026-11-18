@@ -78,3 +78,26 @@ export function scrollbarProbe() {
   }
   return out;
 }
+// A row of three or more buttons that wraps onto more than two lines on a phone: ragged, and it pushes the content down (F-81).
+export function wrapProbe() {
+  if (window.innerWidth > 480) return [];
+  const out = [];
+  for (const el of document.querySelectorAll("[role=toolbar], div")) {
+    const kids = [...el.children].filter((c) => c.matches(".fui-Button, .fui-SearchBox, .fui-Dropdown, .fui-ToolbarButton, button") && c.getBoundingClientRect().width);
+    const cs = getComputedStyle(el); // a wrapping row, not a column of buttons stacked on purpose
+    if (kids.length < 3 || (el.getAttribute("role") !== "toolbar" && !(/flex/.test(cs.display) && cs.flexDirection.startsWith("row") && cs.flexWrap !== "nowrap"))) continue;
+    const rows = new Set(kids.map((c) => Math.round(c.getBoundingClientRect().top / 8)));
+    if (rows.size > 2) out.push(`${kids.length} controls on ${rows.size} lines`);
+  }
+  return out.slice(0, 2);
+}
+// A search or input hint longer than its box: the person reads half a sentence (bench #5, F-82).
+export function placeholderProbe() {
+  const ctx = document.createElement("canvas").getContext("2d"), out = [];
+  for (const el of document.querySelectorAll("input[placeholder]")) {
+    const cs = getComputedStyle(el); if (!el.clientWidth || !el.placeholder) continue;
+    ctx.font = `${cs.fontSize} ${cs.fontFamily}`;
+    if (ctx.measureText(el.placeholder).width > el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1) out.push(`"${el.placeholder.slice(0, 40)}" in a ${el.clientWidth}px box`);
+  }
+  return out.slice(0, 2);
+}

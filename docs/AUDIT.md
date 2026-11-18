@@ -129,6 +129,10 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-76 | The benchmark's route rule allowed one pattern card, but `SKILL.md` sends pages with values to `patterns/alignment.md` as well | Bench baseline, #4 | fixed 1.10.0 (`BENCHMARK.md` and `record-run.mjs` allow it) |
 | F-77 | No agent opened the contact sheet in three runs, although verify asks for one look every time | Bench baseline | open (the machine checks above carry the load instead) |
 | F-78 | verify gave up when the page was still loading after 30 s: the first start of the bench app's dev server after a reinstall timed out three times in a row, so the agent never saw its table errors | Bench rerun, #4 | fixed 1.10.0 (one more load, waiting for the load event only) |
+| F-79 | No card asked for numbers formatted for the UI language: "€ 57573" and "4210 eenheden" in a Dutch app, where the baseline agent had written 57.573 by chance | Bench rerun on 1.10, #4 and #6 | fixed 1.10.0 (`patterns/alignment.md`: `Intl.NumberFormat`) |
+| F-80 | Two of three restyles created a `.new.tsx` copy of the page and deleted it again: the card's "never delete and recreate it" put the idea there | Bench rerun on 1.10, #4 and #5 | fixed 1.10.0 (restyle card: "edit the file in place with small edits") |
+| F-81 | On a phone, five text buttons wrapped into four ragged rows above the tenants, and verify had nothing to report because nothing was cut off | Bench rerun on 1.10, #6 | fixed 1.10.0 (toolbar-wrap error at 480px and under; `bad-toolbar` fixture) |
+| F-82 | A search hint longer than its box ("Zoek op gebruiker of huu") at both widths; verify does not read placeholders | Bench rerun on 1.10, #5 | fixed 1.10.0 (placeholder warning; `bad-placeholder` fixture) |
 
 ## Runs
 

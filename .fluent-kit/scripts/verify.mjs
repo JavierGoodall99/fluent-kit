@@ -21,7 +21,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readlinkSync, rmSy
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { POPUP_CAP, SETUP_CMD, axeSourcePath, installVerifyDeps, loadPlaywright, packageManager } from "./lib.mjs";
-import { gridProbe, overlapProbe, popupProbe, scrollbarProbe } from "./probes.mjs";
+import { gridProbe, overlapProbe, placeholderProbe, popupProbe, scrollbarProbe, wrapProbe } from "./probes.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
@@ -453,6 +453,10 @@ renders: for (const url of urls) {
       if (tall.length) note("warn", where, popupMsg(tall));
       const bars = await page.evaluate(scrollbarProbe).catch(() => []);
       if (bars.length) note("warn", where, scrollMsg(bars));
+      const wraps = await page.evaluate(wrapProbe).catch(() => []);
+      if (wraps.length) note("error", where, `A toolbar wraps onto several lines at this width (${wraps.join("; ")}). Icon-only buttons with a Tooltip, extras in an Overflow "..." menu, on one line with search (patterns/list.md, Narrow).`);
+      const hints = await page.evaluate(placeholderProbe).catch(() => []);
+      if (hints.length) note("warn", where, `A placeholder is cut off: ${hints.join("; ")}. Shorten it or widen the box.`);
       if (tab.length) note("warn", where, "Hydration warning caused only by Fluent's tabster focus helpers (<i data-tabster-dummy>) inserted before React hydrated. Known Fluent + Next.js timing issue, not caused by this page; do not rewrite the page for it. Confirm it also appears (or not) in a production build before spending time on it.");
       }
 

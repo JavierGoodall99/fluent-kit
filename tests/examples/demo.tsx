@@ -1,7 +1,7 @@
 // Renders every example in the skill with demo data, one per URL hash (#status-grid, #list-page, ...), so CI can open each
 // one in a browser and check it the way verify checks an app. Typed against each example's own props: when an example
 // changes its props, the type check fails here. Used by tests/render-examples.mjs only; never installed.
-import { Card, Dropdown, FluentProvider, Link, Option, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
+import { Button, Card, Dropdown, FluentProvider, Input, Link, Option, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppNavExample } from "../../.github/skills/fluent-ui/examples/app-nav";
@@ -94,6 +94,13 @@ function BadTable({ width, scroll }: { width: number; scroll?: boolean }) {
   );
   return <div style={{ width, overflowX: scroll ? "auto" : undefined }}>{table}</div>;
 }
+// Five text buttons that wrap into ragged rows on a phone (bench #6, F-81), and a hint longer than its box (bench #5, F-82).
+function BadToolbar() {
+  return <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{["Alles synchroniseren", "Filteren op status", "Exporteren naar Excel", "Afdrukken", "Instellingen"].map((l) => <Button key={l}>{l}</Button>)}</div>;
+}
+function BadPlaceholder() {
+  return <Input style={{ width: 140 }} placeholder="Zoek op gebruiker of huurder" aria-label="Zoeken" />;
+}
 function BadLinks() {
   return <div>{["Edit", "Copy", "Delete"].map((l) => <div key={l}><Link href={`#${l}`}>{l}</Link></div>)}</div>; // stacked, 20px apart
 }
@@ -121,6 +128,8 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-clip": () => <Page><BadClip /></Page>,
   "bad-spill": () => <Page><BadTable width={300} /></Page>,
   "bad-wide-table": () => <Page><BadTable width={320} scroll /></Page>,
+  "bad-toolbar": () => <Page><BadToolbar /></Page>,
+  "bad-placeholder": () => <Page><BadPlaceholder /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,

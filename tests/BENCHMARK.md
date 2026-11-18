@@ -157,6 +157,18 @@ Stage 1, one run each, Copilot Agent with Claude Sonnet 5.5 on Windows, scored b
 
 Median 26.5 credits and 1m 43s, worst 32.8 credits and 2m 25s: well inside the targets. Stage 1 fails on quality. #4: the recent-activity table at 375px ran its text over the next cell and scrolled sideways, and the agent called the scroll deliberate (F-72). #5: the agent checked `/` instead of `/#activity` (F-71); at 375px the page scrolls 239px sideways and a KPI label is cut off; it dropped the ID column unasked (F-74). #6: it checked `/tenants` three times (Home, in a hash-routed app) before `/#tenants`, with two edit rounds driven by the wrong page. A dev server already on port 5173 broke the check in #4 and probably #5 (F-73). No run opened the contact sheet (F-77).
 
+### Bench app rerun on 1.10 (2026-11-18, kit ffc81b5)
+
+Same protocol, `--out ../bench-runs-1.10`, the dev server warmed once before the first run (F-78).
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 28.2 | 4m 31s | 8 | Y | 5 (3 not run) | +91 −32 (1 file) | P-PPP- | P | P | P | P | P | P |
+| #5 | 32.1 | 2m 28s | 7 | Y | 3 | +120 −33 (1 file) | P-PFP- | P | P | P | P | P | P |
+| #6 | 21.7 | 1m 37s | 6 | Y | 2 | +21 −9 (1 file) | P-PPP- | P | P | P | P | F | P |
+
+Median 28.2 credits and 2m 28s, worst 32.1 credits and 4m 31s. Every run checked the right page, and verify's table errors made the agent fix the phone layout in #4 and #5. Stage 1 still fails: #4 took over 4 minutes (three check rounds and a `.new.tsx` copy it deleted, F-80), and #6's toolbar wrapped into four ragged rows on a phone with nothing to flag it (F-81). Auto Correct F on #5 is the scorer reading Dutch "of" as English. Also seen: numbers without a thousands separator (F-79) and a cut-off search hint (F-82).
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
