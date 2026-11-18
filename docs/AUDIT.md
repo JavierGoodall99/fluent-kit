@@ -136,6 +136,8 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-83 | verify used any server on a busy port, so another project's Vite on 5173 could have been checked instead of the app | Bench rerun on 1.10, #6 (TradChart running) | fixed 1.10.0 (a server found on the port must serve the app's own `index.html` title) |
 | F-84 | Each bench page opened with a comment naming its flaws ("a toolbar that is cut off on a phone (#6, #7)"), and agents read it first: every run until 2026-11-18 had the answer in front of it | Bench rerun on 1.10, #6 | fixed 1.10.0 (comments removed; the flaws are listed in `BENCHMARK.md`) |
 | F-85 | The number-format line sat in `patterns/alignment.md`, which the restyle route does not require: neither #4 nor #6 read it in the second rerun | Bench rerun on 1.10b | fixed 1.10.0 (moved to `SKILL.md`, which every route but the small fix reads) |
+| F-86 | A cut-off message named an icon-only button as "<button>" with nothing after it, and the agent spent four check rounds, a Playwright script of its own and a hidden dev server finding it (7m 52s, 48.3 credits) | Bench rerun on 1.10c, #6 | fixed 1.10.0 (no text: the aria-label, or the button's size and place on the screen) |
+| F-87 | The restyle card said "changing a shared component other pages use: say which pages it affects", which read as permission: with the planted tab-bar error listed as already there, #4 still changed `App.tsx` and disclosed it | Bench rerun on 1.10c, #4 | fixed 1.10.0 (change only the page asked about; the shell, shared components and other pages stay, and the fix goes in the note) |
 
 ## Runs
 

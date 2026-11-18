@@ -414,7 +414,10 @@ renders: for (const url of urls) {
               if (/(hidden|clip)/.test(o.overflowX)) { const ar = a.getBoundingClientRect(); if (r.right > ar.right + 1 || r.left < ar.left - 1) return true; }
             }
             return false;
-          }).slice(0, 4).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 24)}`),
+          }).slice(0, 4).map((el) => { // an icon-only button has no text: give its label, or where it is (F-86)
+            const r = el.getBoundingClientRect(), by = el.getAttribute("aria-labelledby"), name = (el.textContent || el.getAttribute("aria-label") || (by && document.getElementById(by)?.textContent) || el.title || "").trim();
+            return `<${el.tagName.toLowerCase()}> ${name ? name.slice(0, 24) : `(no text, ${Math.round(r.width)}x${Math.round(r.height)}px at x ${Math.round(r.left)}, y ${Math.round(r.top)})`}`;
+          }),
         };
       });
       // An app that crashes on load shows an empty page, so every other check would only repeat the crash: report the crash alone.
@@ -541,7 +544,7 @@ for (const g of uniq) {
   const shot = g.where.map((x) => shotFor.get(x)).find(Boolean);
   console.log(`${g.level === "error" ? "ERROR" : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
 }
-if (before.length) console.log(`\nAlready on the page before your change (not yours to fix unless asked; name them in your note):\n${before.map((g) => `  - ${g.level}: ${g.msg.slice(0, 140)}`).join("\n")}`);
+if (before.length) console.log(`\nAlready on the page before your change (leave them, even in a shared file; name them in your note):\n${before.map((g) => `  - ${g.level}: ${g.msg.slice(0, 140)}`).join("\n")}`);
 if (advice.length) {
   console.log("\nAdvisory (judgement calls: change them only if they are part of what you were asked; otherwise name them in your note. Never re-run verify for these):");
   for (const g of advice) console.log(`  - ${g.msg} (${placeOf(g)})`);
