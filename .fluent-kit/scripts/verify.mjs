@@ -101,6 +101,17 @@ const stopServer = () => {
   server = null;
 };
 process.on("exit", stopServer);
+const answers = async (u) => { try { await fetch(u, { signal: AbortSignal.timeout(2000) }); return true; } catch { return false; } };
+// A dev server can exit just after it prints its URL (a machine short of memory, a stale cache). If nothing answers, start it once more.
+let launch = null, restarts = 0;
+const revive = async (u) => {
+  if (await answers(u)) return true;
+  if (!launch || restarts++ >= 1) return false;
+  console.log(`Note: the dev server exited and nothing answers at ${u}. Starting it again.`);
+  launch();
+  for (let i = 0; i < 90; i++) { if (await answers(u)) return true; await new Promise((r) => setTimeout(r, 500)); }
+  return false;
+};
 process.on("SIGINT", () => process.exit(130));
 process.on("SIGTERM", () => process.exit(143));
 process.on("SIGHUP", () => process.exit(129));
@@ -127,9 +138,12 @@ if (startServer) {
   console.log(`Starting dev server: ${cmd}`);
   let log = "";
   let exited = false, reused = false;
+  const URLS = /https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g;
+  launch = () => {
+  log = ""; exited = false;
   server = spawn(cmd, { shell: true, cwd, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, BROWSER: "none", FORCE_COLOR: "0", NO_COLOR: "1" } });
   try { mkdirSync(dirname(serverFile), { recursive: true }); writeFileSync(serverFile, JSON.stringify({ pid: server.pid, cwd, at: new Date().toISOString() })); } catch { /* best effort */ }
-  const ready = new Promise((resolveUrl) => {
+  return new Promise((resolveUrl) => {
     let timer = null, noted = null; // the busy-port note is printed once per URL, not once per chunk of server output
     const onData = (d) => {
       log = (log + d.toString()).slice(-4000);
@@ -142,30 +156,35 @@ if (startServer) {
       if (busy && noted !== all[all.length - 1]) { noted = all[all.length - 1]; console.log("Note: the dev server reported a busy port. Using " + noted + " (another project may be using the default port). Check the heading printed below against the page you asked for before you trust the run."); }
     };
     server.stdout.on("data", onData); server.stderr.on("data", onData);
-    server.on("exit", () => {
+    const me = server;
+    me.on("exit", async () => {
+      if (me !== server) return;
       exited = true;
       // The dev server stopped at once, often because one is already running for this project ("another instance is already running"
-      // and it prints that server's URL). Use that URL instead of failing.
-      const all = log.replace(ANSI, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g);
-      if (args.includes("--fresh-server")) { resolveUrl(null); return; } // the before-change check: a running server shows the changed page
-      if (all) { console.log("Note: the dev server did not start a new instance; using the one already running at " + all[all.length - 1] + "."); reused = true; resolveUrl(all[all.length - 1]); return; }
+      // and it prints that server's URL). Use that URL instead of failing, but only if something answers there: otherwise the server died.
+      const all = log.replace(ANSI, "").match(URLS);
       // "Port 5173 is already in use" with no URL (Vite's strictPort): the person's own dev server is usually running there (F-73).
       const port = log.replace(ANSI, "").match(/port\D{0,12}(\d{2,5})\D{0,20}(?:in use|already)|EADDRINUSE\D*(\d{2,5})/i);
-      if (port) { const u = `http://localhost:${port[1] || port[2]}`; console.log(`Note: port ${port[1] || port[2]} is in use, so no new dev server started; checking the one already running at ${u}. Check the heading below against the page you asked for.`); reused = true; resolveUrl(u); } else resolveUrl(null);
+      const u = all ? all[all.length - 1] : port ? `http://localhost:${port[1] || port[2]}` : null;
+      if (u && !(await answers(u))) { resolveUrl(u); return; } // nothing there: the caller starts the server again
+      if (args.includes("--fresh-server")) { resolveUrl(null); return; } // the before-change check: a running server shows the changed page
+      if (u) { console.log(all ? `Note: the dev server did not start a new instance; using the one already running at ${u}.` : `Note: port ${port[1] || port[2]} is in use, so no new dev server started; checking the one already running at ${u}. Check the heading below against the page you asked for.`); reused = true; resolveUrl(u); } else resolveUrl(null);
     });
     setTimeout(() => resolveUrl(null), 90000);
   });
-  let base = await ready;
+  };
+  let base = await launch();
   if (!base) { console.error(`${exited ? "The dev server exited without printing a localhost URL." : "The dev server did not report a URL within 90 seconds."}\nLast output:\n${log.slice(-800)}\nIf another dev server is already running (the log may say "port in use" or "already running"), pass its full URL instead, for example http://localhost:3000/your-page. Otherwise fix the server error. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
   // The URL in the server output is not always the one that answers: when a port is busy the server prints several (3001, then 3000), or
   // another instance is already running. Try the one chosen first, then every other URL it printed, until one responds.
-  const answers = async (u) => { try { await fetch(u, { signal: AbortSignal.timeout(2000) }); return true; } catch { return false; } };
   let live = null;
   for (let i = 0; i < 60 && !live; i++) {
-    const seen = [...new Set(log.replace(ANSI, "").match(/https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]):\d+/g) || [])].reverse();
+    const seen = [...new Set(log.replace(ANSI, "").match(URLS) || [])].reverse();
     for (const u of [base, ...seen.filter((x) => x !== base)]) if (await answers(u)) { live = u; break; }
+    if (!live && exited) break; // the server is gone and nothing else answers: do not wait out the 30 seconds
     if (!live) await new Promise((r) => setTimeout(r, 500));
   }
+  if (!live && await revive(base)) live = base;
   if (!live) { console.error(`The dev server printed ${base} but nothing answered there (or at any other URL it printed) within 30 seconds.\nLast output:\n${log.slice(-600)}\nIf you already have the server running, pass its full URL, for example http://localhost:3000/your-page. If you cannot verify, say that verification was NOT done.`); process.exit(2); }
   if (live !== base) { console.log(`Note: nothing answered at ${base}; using ${live}, which the dev server also printed.`); base = live; }
   // A server found on the port must be this app's: another project on the same port would be checked instead (F-83).
@@ -297,6 +316,8 @@ renders: for (const url of urls) {
       page.on("console", (m) => { if (m.type() === "error" && !(/Failed to load resource/.test(m.text()) && /\/favicon\.ico(\?|$)/.test(m.location()?.url || ""))) errors.push(shortError(m.text())); });
       try {
         await page.goto(url, { waitUntil: "networkidle", timeout: 30000 }).catch(async (e) => {
+          // The server we started died after it was ready: start it again once and retry.
+          if (/ERR_CONNECTION_REFUSED/.test(String(e)) && await revive(new URL(url).origin)) { await page.goto(url, { waitUntil: "load", timeout: 60000 }); await page.waitForTimeout(2000); return; }
           // A dev server's first start bundles and reloads, so the network may not go quiet (F-78).
           if (!/timeout/i.test(String(e))) throw e;
           await page.goto(url, { waitUntil: "load", timeout: 60000 }); await page.waitForTimeout(2000);

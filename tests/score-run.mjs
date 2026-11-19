@@ -151,7 +151,7 @@ export function scoreRun({ app, prompt, browser = true, out }) {
     const r = spawnSync(process.execPath, [verifyJs, "--start", `/#${hash}`, "--widths", "1440,375", "--out", dir, "--no-login", "--fresh-server"], { cwd, encoding: "utf8", env: { ...process.env, CI: "1" }, timeout: 300000 });
     try { const rep = JSON.parse(readFileSync(join(dir, "verify-report.json"), "utf8")); if (rep.renders) return rep; } catch { /* below */ }
     // Once more after a pause: on Windows the dev server can crash right after the previous one stopped (bench #5, 1.10).
-    if (again) { spawnSync(process.execPath, ["-e", "setTimeout(() => {}, 5000)"]); return verifyIn(cwd, dir, false); }
+    if (again) { spawnSync(process.execPath, ["-e", "setTimeout(() => {}, 5000)"]); try { rmSync(join(cwd, "node_modules", ".vite"), { recursive: true, force: true }); } catch { /* in use */ } return verifyIn(cwd, dir, false); }
     return { renders: 0, tail: (r.stdout + r.stderr).trim().split("\n").slice(-10).join(" | ").replace(/\r/g, "").slice(0, 600) };
   };
   const kinds = problemKinds; // the same comparison check --finish makes

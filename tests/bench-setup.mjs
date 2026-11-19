@@ -5,7 +5,7 @@
 // install the kit from this checkout, record the app's existing rule findings as the kit's baseline (as a team adopting the
 // kit would), commit. After a run: record it with tests/record-run.mjs (it scores the bench app by itself), then reset with
 // git reset --hard && git clean -fd.
-import { cpSync, existsSync, readdirSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,6 +30,12 @@ const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: kit, en
 run(process.execPath, [join(kit, "install.mjs"), target, "--no-cloud-setup"], kit);
 run(process.execPath, [join(".fluent-kit", "scripts", "check.mjs"), ".", "--baseline"]);
 git("add", "-A"); git("commit", "-qm", `kit ${commit}`, "--allow-empty"); // the same kit again: nothing new to commit
+
+// A stale Vite cache or a dev server left on the port makes the first browser check of a run fail (F-100).
+rmSync(join(target, "node_modules", ".vite"), { recursive: true, force: true });
+const port = +(readFileSync(join(target, "vite.config.ts"), "utf8").match(/port:\s*(\d+)/)?.[1] || 5173);
+const taken = spawnSync(process.execPath, ["-e", `require("net").connect(${port}, "localhost").on("connect", () => process.exit(1)).on("error", () => process.exit(0))`]).status === 1;
+if (taken) console.log(`\nWARNING: something is already listening on port ${port}. Stop it before the runs: the check would use it instead of the bench app.`);
 
 const rec = relative(target, join(kit, "tests", "record-run.mjs")).replace(/\\/g, "/");
 console.log(`

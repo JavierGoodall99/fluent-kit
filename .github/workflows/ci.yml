@@ -42,6 +42,9 @@ jobs:
       - name: Every example renders clean (AUD-09)
         run: node tests/render-examples.mjs
 
+      - name: verify starts a dev server again when it exits (F-100)
+        run: node tests/verify-restart.test.mjs
+
       - name: Links in shipped files
         run: node tests/links.mjs
 
