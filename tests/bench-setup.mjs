@@ -29,7 +29,7 @@ if (!args.includes("--no-install")) { run("npm", ["install", "--no-audit", "--no
 const commit = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: kit, encoding: "utf8" }).stdout.trim() || "unknown";
 run(process.execPath, [join(kit, "install.mjs"), target, "--no-cloud-setup"], kit);
 run(process.execPath, [join(".fluent-kit", "scripts", "check.mjs"), ".", "--baseline"]);
-git("add", "-A"); git("commit", "-qm", `kit ${commit}`);
+git("add", "-A"); git("commit", "-qm", `kit ${commit}`, "--allow-empty"); // the same kit again: nothing new to commit
 
 const rec = relative(target, join(kit, "tests", "record-run.mjs")).replace(/\\/g, "/");
 console.log(`

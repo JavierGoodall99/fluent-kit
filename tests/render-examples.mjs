@@ -69,7 +69,11 @@ try {
   // ...and with the old problems known, a warning the change caused fails it (an empty list: the page had none before).
   writeFileSync(known, "[]");
   const w = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#bad-placeholder`, "--widths", "1440", "--out", out, "--no-login", "--known", known], { env: { ...process.env, CI: "1" } });
-  if (w.status !== 1 || !/NEW +A placeholder is cut off/.test(w.stdout)) failures.push(`--known: a warning the change caused did not fail the run (exit ${w.status}).`);
+  if (w.status !== 1 || !/ERROR \(new\) +A placeholder is cut off/.test(w.stdout)) failures.push(`--known: a warning the change caused did not fail the run (exit ${w.status}).`);
+  // ...and fewer table columns than before is an error (a restyle keeps every column).
+  writeFileSync(known, JSON.stringify({ kinds: [], columns: 99 }));
+  const c = await run(process.execPath, [resolve(".fluent-kit/scripts/verify.mjs"), `${base}#large-list`, "--widths", "1440", "--out", out, "--no-login", "--known", known], { env: { ...process.env, CI: "1" } });
+  if (c.status !== 1 || !/The table has fewer columns than before \(99 before/.test(c.stdout)) failures.push(`--known: a table that lost columns did not fail the run (exit ${c.status}).`);
   if (k.status !== 0 || !/Already on the page before your change/.test(k.stdout)) failures.push(`--known: a problem the page already had still fails the run (exit ${k.status}).\n${k.stdout.trim().split("\n").slice(-6).join("\n")}`);
   for (const n of notes) console.log(n);
   for (const f of failures) console.log(`FAIL  ${f}`);
