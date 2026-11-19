@@ -272,12 +272,12 @@ const overlapMsg = (list) => `A control covers text: ${list.join("; ")}. Usually
 const scrollMsg = (list) => `Scrolling areas use the browser's default scrollbar: ${list.join("; ")}. Theme it once in the global styles (allowed in any task, even a restyle), never per component: context.mjs prints the rule.`;
 const gridMsg = (list) => `Cards in a grid are not one size (${list.join("; ")}). Fixed rows, and the card body scrolls: SKILL.md, "Every page".`;
 const popupMsg = (list) => `An open list is too tall: ${list.join("; ")}. Cap it at 320px so it scrolls. ${POPUP_CAP}`;
-let loaded = 0;
+let loaded = 0, columns = 0;
 async function runAxe(page, where) {
   if (!axeSource) return;
   try {
     await page.evaluate(axeSource);
-    const res = await page.evaluate(async () => { const r = await window.axe.run({ exclude: [["[data-tabster-dummy]"]] }, { resultTypes: ["violations"] }); return r.violations.map((v) => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, target: v.nodes[0]?.target?.join(" "), html: (v.nodes[0]?.html || "").replace(/\s+/g, " ").slice(0, 160) })); });
+    const res = await page.evaluate(async () => { const r = await window.axe.run({ exclude: [["[data-tabster-dummy]"]] }, { resultTypes: ["violations"] }); return r.violations.filter((v) => v.id !== "region" || v.nodes.some((n) => !document.querySelector(n.target.join(" "))?.closest("[data-portal-node]"))).map((v) => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, target: v.nodes[0]?.target?.join(" "), html: (v.nodes[0]?.html || "").replace(/\s+/g, " ").slice(0, 160) })); });
     for (const v of res) note(v.impact === "critical" || v.impact === "serious" ? "error" : "warn", where, `Accessibility [${v.id}] ${v.help} (${v.nodes} element(s), e.g. ${v.target}${v.html ? ` , html: ${v.html}` : ""})`);
   } catch (e) { note("warn", where, `axe could not run: ${String(e).split("\n")[0]}`); }
 }
@@ -358,6 +358,7 @@ renders: for (const url of urls) {
           tiny, tinyLinks,
           emptyBody: document.body.innerText.trim().length === 0,
           // Containers that scroll sideways: on a narrow screen the part that is off-screen can hide the key column.
+          cols: window.innerWidth >= 1024 ? Math.max(0, ...[...document.querySelectorAll("table, [role=grid]")].map((t) => t.querySelectorAll("th, [role=columnheader]").length)) : 0,
           hscroll: window.innerWidth <= 480 ? [...document.querySelectorAll("div, section, main, table")].filter((el) => { const o = getComputedStyle(el); const r = el.getBoundingClientRect(); return /(auto|scroll)/.test(o.overflowX) && el.scrollWidth > el.clientWidth + 1 && r.width > 0 && r.height > 0; }).map((el) => (el.querySelector("table, [role=grid]") && el.scrollWidth > 1.25 * el.clientWidth ? Math.round(100 - (100 * el.clientWidth) / el.scrollWidth) : 0)) : [],
           // Table text that runs out of its cell over the next one (a fixed-layout table squeezed to a phone): visible, not clipped (F-72).
           spill: [...document.querySelectorAll("td, th, [role=cell], [role=gridcell], [role=columnheader]")].filter((el) => el.scrollWidth > el.clientWidth + 2 && el.clientWidth > 0 && !/(hidden|clip)/.test(getComputedStyle(el).overflowX)).slice(0, 3).map((el) => `<${el.tagName.toLowerCase()}> ${(el.textContent || "").trim().slice(0, 24)}`),
@@ -430,6 +431,7 @@ renders: for (const url of urls) {
       if (info.overflow > 1) note("error", where, `Page scrolls sideways (${info.overflow}px wider than the window). Fix the layout for this width.`);
       if (info.longlines.length) note("advice", where, `Text lines are too long to read comfortably (over about 100 characters across): ${info.longlines.join("; ")}. Cap the text width (max-width around 70 to 80ch, tokens for spacing) and let the card or page be wider than the text.`);
       if (info.clipped.length) note("error", where, `Content is cut off by its container: ${info.clipped.join("; ")}. Let it wrap or move it into an overflow menu at this width.`);
+      columns = Math.max(columns, info.cols);
       const wide = Math.max(0, ...info.hscroll);
       if (wide) note("error", where, `A table scrolls sideways at this width with ${wide}% of it off screen. Keep the name and the status on screen: hide other columns or move one short value under the name (patterns/list.md, Narrow).`);
       else if (info.hscroll.length) note("warn", where, `${info.hscroll.length} container(s) scroll sideways at this width. Check that the identifying column and the status stay on screen (hide or move less important columns, or use a list).`);
@@ -466,8 +468,8 @@ renders: for (const url of urls) {
       const broken = await page.evaluate(brokenWordProbe).catch(() => []);
       if (broken.length) note("warn", where, `A word is broken across two lines: ${broken.map((w) => `"${w.slice(0, 24)}"`).join(", ")}. Wrap between words: hide or stack a cell instead of overflow-wrap "anywhere" or word-break.`);
       const sq = await page.evaluate(squashProbe).catch(() => ({ wrapped: [], cut: [] }));
-      if (sq.wrapped.length) note("warn", where, `A label wraps onto two lines inside its badge, button or dropdown: ${sq.wrapped.map((w) => `"${w}"`).join(", ")}. Keep it on one line: hide a column or give it room (patterns/list.md, Narrow).`);
-      if (sq.cut.length) note("warn", where, `A table column is cut with "…" in most rows at this width: ${sq.cut.join("; ")}. Hide it, or show it under the first column (patterns/list.md, Narrow).`);
+      if (sq.wrapped.length) note("warn", where, `A label wraps onto two lines inside its badge, button or dropdown: ${sq.wrapped.map((w) => `"${w}"`).join(", ")}. Keep it on one line: hide a column or give it room (patterns/list.md, Narrow; the code: useNarrow in examples/large-list.tsx).`);
+      if (sq.cut.length) note("warn", where, `A table column is cut with "…" in most rows at this width: ${sq.cut.join("; ")}. Hide it, or show it under the first column (patterns/list.md, Narrow; the code: useNarrow in examples/large-list.tsx).`);
       const cols = await page.evaluate(columnsProbe).catch(() => []);
       if (cols.length) note("warn", where, `Rows of a list do not line up (${cols.join("; ")}). Give the cells after the name fixed widths, or use a Table (patterns/alignment.md).`);
       const hints = await page.evaluate(placeholderProbe).catch(() => []);
@@ -534,13 +536,15 @@ await browser.close();
 
 if (!axeSource && useAxe) problems.push({ level: "warn", where: "setup", msg: `axe-core is not installed, so accessibility was not checked. Do not install it yourself; the person can run: ${SETUP_CMD}` });
 // Same problem at several widths or schemes is reported once, with the list of places and the screenshot to open.
+let known = null, knownCols = 0; try { const k = JSON.parse(readFileSync(opt("--known", ""), "utf8")); known = Array.isArray(k) ? k : k.kinds; knownCols = k.columns || 0; } catch { /* no before-change check */ }
+// A restyle keeps every column: fewer table columns at desktop width than before is the change's doing (bench #5: the ID column, three times).
+if (known && columns && columns < knownCols) problems.push({ level: "error", where: "desktop", msg: `The table has fewer columns than before (${knownCols} before, ${columns} now). Keep every column; hide one on a phone instead (patterns/list.md, Narrow).` });
 const groups = new Map();
 for (const p of problems) {
   const k = p.level + "|" + p.msg;
   if (!groups.has(k)) groups.set(k, { level: p.level, msg: p.msg, where: [] });
   groups.get(k).where.push(p.where);
 }
-let known = null; try { known = JSON.parse(readFileSync(opt("--known", ""), "utf8")); } catch { /* no before-change check */ }
 const all = [...groups.values()];
 for (const g of all) g.before = g.level !== "advice" && !!known && problemKinds(g).every((k) => known.includes(k));
 const before = all.filter((g) => g.before);
@@ -550,7 +554,7 @@ const advice = all.filter((g) => g.level === "advice");
 const placeOf = (g) => (g.where.length > 3 ? `${g.where.length} checks across ${loaded} renders` : g.where.join(", "));
 for (const g of uniq) {
   const shot = g.where.map((x) => shotFor.get(x)).find(Boolean);
-  console.log(`${g.level === "error" ? "ERROR" : mine(g) ? "NEW  " : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
+  console.log(`${g.level === "error" ? "ERROR" : mine(g) ? "ERROR (new)" : "warn "}  ${g.msg}\n       at: ${placeOf(g)}${shot ? `\n       open: ${shot}` : ""}`);
 }
 if (before.length) console.log(`\nAlready on the page before your change (leave them, even in a shared file; name them in your note):\n${before.map((g) => `  - ${g.level}: ${g.msg.slice(0, 140)}`).join("\n")}`);
 if (advice.length) {
@@ -560,7 +564,7 @@ if (advice.length) {
 // With the page's old problems known, every warning left is one this change caused: fix it like an error (bench #5, 1.10d).
 const errs = uniq.filter((p) => p.level === "error" || mine(p)).length;
 Object.assign(runLog, { renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, kinds: uniq.map((g) => g.msg.replace(/\d+/g, "N").slice(0, 60)) }); // kinds: for doctor --report
-try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, urls, renders: loaded, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
+try { writeFileSync(join(outDir, "verify-report.json"), JSON.stringify({ at: runLog.at, args, urls, renders: loaded, columns, errors: errs, warnings: uniq.length - errs, advisory: advice.length, problems: all, contactSheet: sheet, screenshots: shots }, null, 2) + "\n"); } catch { /* report is optional */ }
 console.log(`\nfluent-kit verify: ${loaded} renders, ${errs} ${known ? "problem(s) your change caused (must fix)" : "error(s) (must fix)"}, ${uniq.length - errs} warning(s) (fix if your change caused them, otherwise mention them)${before.length ? `, ${before.length} already there before` : ""}${advice.length ? `, ${advice.length} advisory` : ""}.`);
 if (sheet) console.log(`Look once at ${sheet} (every first screen and opened state in one image). Open another screenshot only where a problem above says "open:". All files: ${outDir}`);
 else console.log(`Screenshots: ${outDir}. Open the 1440px *-first.png once, and other files only where a problem above says "open:".`);

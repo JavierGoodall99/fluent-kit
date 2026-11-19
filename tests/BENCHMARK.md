@@ -229,6 +229,18 @@ After PR #50: a page that scrolls sideways by another amount counts as new, brok
 
 Median 29.7 credits and 2m 36s, worst 31 credits and 3m 17s. #4 is the cleanest #4 yet: small edits, no text shortened, a phone table of time and type, € 57.573 (its first glance is weaker: the error count is not red, and type codes stay raw). #5's phone table kept three columns, with two-line badges and tenant names cut to "…" (F-94). #6 lined its columns up at 1440px, but its phone toolbar took two lines while the note said one (F-95). The machine passed all three again; both failures are what verify could not see yet.
 
+### Bench app rerun on 1.10, seventh batch (2026-11-19, kit 96dc781)
+
+After PR #52: two-line pills, columns cut with an ellipsis and two-line phone toolbars are flagged. `--out ../bench-runs-1.10g`.
+
+| Prompt | Credits | Time | Files read | Route | Verify calls | Diff | Auto | Scope | 5 s | Uniform | Correct | States | Note |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 35.9 | 3m 09s | 5 | Y | 3 | +124 −32 (2 files) | P-PPP- | P | P | P | P | P | P |
+| #5 | 34.4 | 3m 40s | 5 | Y | 4 | +80 −32 (2 files) | P-PFP- | F | P | P | F | P | P |
+| #6 | 32.6 | 4m 20s | 5 | Y | 7 | +53 −18 (1 file) | P-PPF- | P | P | P | P | F | F |
+
+Median 34.4 credits and 3m 40s, worst 35.9 credits and 4m 20s: the stricter checks cost rounds. #4 is the most complete #4 so far (a red sync-error card, readable type labels, € 57.573, a clean phone table). #5 dropped the ID column a third time (F-97), shortened badges and renamed Huurder to Organisatie, and stopped with the check failing on Fluent's own popup (F-98). #6 reached a one-line phone toolbar by trial in seven rounds, then missed a cut-off search hint printed as `NEW` because it filtered the output for "ERROR" (F-96). For the first time the machine and the person agreed on the failures in #5 and #6.
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.

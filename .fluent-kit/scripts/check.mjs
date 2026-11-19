@@ -341,7 +341,7 @@ function finish(ruleErrors) {
 function before(page, extra) {
   const head = spawnSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).stdout?.trim();
   if (!head) return null;
-  const file = join(root, ".fluent-kit", "out", "before", `${head}-${page.replace(/\W+/g, "_")}.json`);
+  const file = join(root, ".fluent-kit", "out", "before", `${head}-${page.replace(/\W+/g, "_")}-2.json`);
   if (existsSync(file)) return file;
   const tmp = mkdtempSync(join(tmpdir(), "fk-before-")), links = ["node_modules", join(".fluent-kit", "deps")];
   try {
@@ -355,7 +355,7 @@ function before(page, extra) {
     const port = (String(rep.urls?.[0]).match(/:(\d+)\//) || [])[1];
     for (let i = 0; port && i < 40 && spawnSync(process.execPath, ["-e", `require("net").connect(${port}, "localhost").on("connect", () => process.exit(1)).on("error", () => process.exit(0))`]).status === 1; i++) spawnSync(process.execPath, ["-e", "setTimeout(() => {}, 500)"]);
     if (!rep.renders) return null;
-    mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify(rep.problems.flatMap(problemKinds)));
+    mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify({ kinds: rep.problems.flatMap(problemKinds), columns: rep.columns || 0 }));
     return file;
   } catch { return null; } finally {
     // Unlink the junctions first: on Windows, removing the worktree with them in it deletes what they point to.
