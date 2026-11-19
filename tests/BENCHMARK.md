@@ -95,6 +95,29 @@ Prompts 4 to 6 restyle pages that already exist. Prompts 1 to 3 (new page), 7 (s
 | 1. Smoke test | one run each of #4, #5, #6 | every run: route followed, ≤45 credits, ≤4 minutes, 6 of 6 quality checks |
 | 2. Consistency | two more runs per prompt (runs 2 and 3) | across all 9 runs: median ≤45 credits and ≤4 minutes, worst ≤90 credits and ≤8 minutes, no quality check fails |
 
+### Frozen bar for 1.10 (set 2026-11-19, before stage 2)
+
+Written down first so the results cannot move it. The kit is frozen at the merge of PR #55 (which includes #54). Nothing in the kit changes between stage 2 runs.
+
+**Done** means 9 runs (run 1 of each prompt from batch 1.10h, with #6 repeated, plus runs 2 and 3 of each) with: at least 8 of 9 passing, median 35 credits or less and 4 minutes or less, worst 60 credits or less and 8 minutes or less. Then 1.10.0 is released. (The Targets table above stays the bar for wide use; this one is tighter on cost because the baseline cost 26.5 credits.)
+
+A run **fails** on any one of these:
+- **Scope:** a column, field or action removed; a shared file or another page changed; a label shortened to clear a check.
+- **Correct:** wrong data, or UI text not in the app's language.
+- **Every state:** at 375px the page scrolls sideways, text overlaps or runs over another cell, a word breaks across lines, or a cell is squashed (a two-line badge or button, a column cut with "…" in most rows). Fluent has no responsive table or toolbar, so a phone layout that is plain but breaks none of these passes.
+- **Honest note:** the note claims something false, such as a page checked that the check never loaded.
+- **5 s and Uniform:** only when the page is hard to read at a glance or looks like it belongs to another app.
+
+**Notes only** (written down, never a fail): raw status codes shown as labels, a badge hard to read in dark mode, an error count not shown in red.
+
+**Repeat, do not count:** a run where the check never loaded the page because the dev server died (F-100, fixed in #55). The repeat replaces it.
+
+**What gets fixed after stage 2:** only a failure that shows in at least 2 of the 3 runs of the same prompt. A failure in one run goes into `docs/AUDIT.md` as a finding and the kit is left alone. Cost and time are judged on the median, not on one slow run.
+
+`tests/record-run.mjs --summary` still prints its verdict against the wide-use targets (45 and 90 credits, no quality check fails). For 1.10 use this section.
+
+Run on a machine with little else open: close MCP servers and other dev servers first, and make sure nothing listens on port 5173 (`bench-setup` warns).
+
 **Route followed** means the agent read only its route before the first edit: the always-on block, `SKILL.md`, `tasks/restyle.md`, at most one `patterns/` card, plus `patterns/alignment.md` (`SKILL.md` sends pages with values there) and `deviations.md` if a control needed it, plus the app's own files. Reading anything in `research/` (or an old kit's `docs/`), another task card, or searching the repo for design guidance is a **N**.
 
 **Files read before edit**: in the Copilot chat, count the "Read" steps (files and searches) above the first edit. Kit files and app files both count.
@@ -240,6 +263,18 @@ After PR #52: two-line pills, columns cut with an ellipsis and two-line phone to
 | #6 | 32.6 | 4m 20s | 5 | Y | 7 | +53 −18 (1 file) | P-PPF- | P | P | P | P | F | F |
 
 Median 34.4 credits and 3m 40s, worst 35.9 credits and 4m 20s: the stricter checks cost rounds. #4 is the most complete #4 so far (a red sync-error card, readable type labels, € 57.573, a clean phone table). #5 dropped the ID column a third time (F-97), shortened badges and renamed Huurder to Organisatie, and stopped with the check failing on Fluent's own popup (F-98). #6 reached a one-line phone toolbar by trial in seven rounds, then missed a cut-off search hint printed as `NEW` because it filtered the output for "ERROR" (F-96). For the first time the machine and the person agreed on the failures in #5 and #6.
+
+### Bench app rerun on 1.10, eighth batch (2026-11-19, kit b906351)
+
+Run 1 of each prompt after PR #53, `--out ../bench-runs-1.10h`. Figures from the run notes: files read and verify calls were not kept for all three.
+
+| Prompt | Credits | Time | Quality | What happened |
+| --- | --- | --- | --- | --- |
+| #4 | 40.6 | 4m 20s | PPPPPP | Six verify calls, four of them on cell overflow. The phone table hid the time column and kept Type and Huurder. |
+| #5 | 54 | 4m 33s | PPPPPP | The first draft had 6 phone problems; the end result is clean. |
+| #6 | 20.6 | 2m 23s | PPPPFP | The agent's check never loaded the page (the dev server exited after "ready" and verify took it for a running one, F-100). The note said so. The scorer's retry found six toolbar controls on five lines and cut-off city names. |
+
+Median 40.6 credits and 4m 20s, worst 54 credits and 4m 33s. Cost is up from 26.5 at baseline because the checks send agents through more rounds; #54 added the command bar example and #55 the server restart. These runs count toward the frozen bar above, except that #6 run 1 is repeated (check never ran).
 
 ### Results
 
