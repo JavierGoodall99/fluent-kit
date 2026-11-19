@@ -10,6 +10,7 @@ Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were 
 - **verify flags a toolbar that wraps into ragged rows on a phone,** and a placeholder longer than its box.
 - **Numbers are formatted for the UI language** (`SKILL.md`, every page): 4.210 and € 57.573 in Dutch.
 - **Problems the page already had are not yours.** `check.mjs --finish` checks the committed page once (per commit and page, in a temporary worktree) and verify lists what was already wrong apart, never as an error. An agent no longer changes the shared shell to clear an old error.
+- **New example `examples/command-bar.tsx`:** a search box and actions that stay on one line at every width, with the actions that do not fit in a "..." menu. `patterns/list.md` and verify's toolbar message point to it.
 - **A restyle that drops a table column fails `--finish`:** the column count at desktop width is compared with the page before the change.
 - **New problems print as `ERROR (new)`,** so an agent that filters the output for errors sees them. Fluent's own popups no longer trip axe's landmark rule.
 - **verify flags a squashed table on a phone:** a badge, button or dropdown value that wraps onto two lines, and a column cut with "…" in most rows. A toolbar of four or more controls must fit on one line on a phone.

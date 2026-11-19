@@ -3,6 +3,7 @@
 // changes its props, the type check fails here. Used by tests/render-examples.mjs only; never installed.
 import { Badge, Button, Card, Dropdown, FluentProvider, Input, Link, Option, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text, makeStaticStyles, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useState, type ComponentProps, type ReactNode } from "react";
+import { ArrowDownload20Regular, ArrowSync20Regular, Filter20Regular, Print20Regular, Settings20Regular } from "@fluentui/react-icons";
 import { createRoot } from "react-dom/client";
 import { AppNavExample } from "../../.github/skills/fluent-ui/examples/app-nav";
 import { ConfirmDeleteDialog } from "../../.github/skills/fluent-ui/examples/confirm-dialog";
@@ -11,6 +12,7 @@ import { EditDrawer } from "../../.github/skills/fluent-ui/examples/edit-drawer"
 import { EmptyState } from "../../.github/skills/fluent-ui/examples/empty-state";
 import { FormPage } from "../../.github/skills/fluent-ui/examples/form-page";
 import { GalleryPage } from "../../.github/skills/fluent-ui/examples/gallery-page";
+import { CommandBar } from "../../.github/skills/fluent-ui/examples/command-bar";
 import { DataCards } from "../../.github/skills/fluent-ui/examples/data-card";
 import { CustomerListPage } from "../../.github/skills/fluent-ui/examples/large-list";
 import { ItemListPage } from "../../.github/skills/fluent-ui/examples/list-page";
@@ -118,6 +120,12 @@ function BadCutColumn() {
 function BadPlaceholder() {
   return <Input style={{ width: 140 }} placeholder="Zoek op gebruiker of huurder" aria-label="Zoeken" />;
 }
+// Five actions, as on the bench app's tenant page: on a phone, the bar keeps one line and the rest go in "...".
+function CommandBarDemo() {
+  const [q, setQ] = useState("");
+  const actions = [["sync", "Sync all", <ArrowSync20Regular />], ["filter", "Filter by status", <Filter20Regular />], ["export", "Export to Excel", <ArrowDownload20Regular />], ["print", "Print", <Print20Regular />], ["settings", "Settings", <Settings20Regular />]] as const;
+  return <><Text as="h1" size={600} weight="semibold">Tenants</Text><CommandBar query={q} onQuery={setQ} actions={actions.map(([id, label, icon]) => ({ id, label, icon }))} /></>;
+}
 function BadLinks() {
   return <div>{["Edit", "Copy", "Delete"].map((l) => <div key={l}><Link href={`#${l}`}>{l}</Link></div>)}</div>; // stacked, 20px apart
 }
@@ -152,6 +160,7 @@ const DEMOS: Record<string, () => ReactNode> = {
   "bad-pill": () => <Page><BadPill /></Page>,
   "bad-cut-column": () => <Page><BadCutColumn /></Page>,
   "confirm-dialog": () => <Page><Overlay kind="dialog" /></Page>,
+  "command-bar": () => <Page><CommandBarDemo /></Page>,
   "dashboard": () => <Page><Dashboard /></Page>,
   "data-card": () => <Page><DataCards cards={dataCards} /></Page>,
   "edit-drawer": () => <Page><Overlay kind="drawer" /></Page>,

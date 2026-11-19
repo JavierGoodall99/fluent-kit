@@ -28,4 +28,4 @@ Scan, compare, sort or select same-shaped records.
 **Narrow (under 640px)**
 - Keep the name and the status on screen; hide other columns or move one short value under the name. Never scroll sideways to reach the key column.
 - Rows keep Fluent's height; a cell wraps to two lines at most.
-- Toolbar: icon-only buttons (named, with a `Tooltip`), extras in an `Overflow` "..." menu, on the same line as search.
+- Toolbar: icon-only buttons (named, with a `Tooltip`), extras in an `Overflow` "..." menu, on the same line as search (`examples/command-bar.tsx`).

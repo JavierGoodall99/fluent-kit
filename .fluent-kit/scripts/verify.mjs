@@ -464,7 +464,7 @@ renders: for (const url of urls) {
       const bars = await page.evaluate(scrollbarProbe).catch(() => []);
       if (bars.length) note("warn", where, scrollMsg(bars));
       const wraps = await page.evaluate(wrapProbe).catch(() => []);
-      if (wraps.length) note("error", where, `A toolbar wraps onto several lines at this width (${wraps.join("; ")}). Icon-only buttons with a Tooltip, extras in an Overflow "..." menu, on one line with search (patterns/list.md, Narrow).`);
+      if (wraps.length) note("error", where, `A toolbar wraps onto several lines at this width (${wraps.join("; ")}). Icon-only buttons with a Tooltip, extras in an Overflow "..." menu, on one line with search (the code: examples/command-bar.tsx).`);
       const broken = await page.evaluate(brokenWordProbe).catch(() => []);
       if (broken.length) note("warn", where, `A word is broken across two lines: ${broken.map((w) => `"${w.slice(0, 24)}"`).join(", ")}. Wrap between words: hide or stack a cell instead of overflow-wrap "anywhere" or word-break.`);
       const sq = await page.evaluate(squashProbe).catch(() => ({ wrapped: [], cut: [] }));

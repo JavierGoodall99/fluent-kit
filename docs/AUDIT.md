@@ -149,6 +149,7 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-96 | New problems were printed as `NEW`, and an agent that filtered the output for "ERROR" never saw one (a cut-off search hint); its note said only an old error remained | Bench rerun on 1.10g, #6 | fixed 1.10.0 (printed as `ERROR (new)`) |
 | F-97 | #5 dropped the ID column in three of eight runs, although the restyle card says to keep every column | Bench reruns on 1.10, #5 | fixed 1.10.0 (`--finish` compares the number of table columns at desktop width with the page before the change: fewer is an error). A renamed header is not caught: renaming "TS" to "Tijdstip" is the point of #5 |
 | F-98 | With `--click` opening a Fluent Dropdown, axe's `region` rule flagged the open list, which Fluent renders in a portal outside the page's landmarks; under the new-warnings rule the agent could not fix it and stopped with the check failing | Bench rerun on 1.10g, #5 | fixed 1.10.0 (`region` findings inside a Fluent portal are dropped) |
+| F-99 | No example showed a command bar that keeps one line on a phone, so agents reached it by trial: #6 took four check rounds (CSS, a matchMedia hook, flex) and 4m 20s | Bench rerun on 1.10g, #6 | fixed 1.10.0 (`examples/command-bar.tsx`: search plus actions in `Overflow`, extras in a "..." menu; `patterns/list.md` and the toolbar-wrap message point to it) |
 
 ## Runs
 
