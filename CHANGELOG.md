@@ -1,7 +1,9 @@
 # Changelog
 
-## 1.10.0 (unreleased)
+## 1.10.0 (2026-11-19)
 Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were fast and cheap, and two failed on a phone without the agent seeing it.
+
+Measured on the bench app with kit `bdd5344` (six restyle runs, GitHub Copilot, Claude Sonnet 5.5): 5 of 6 pass all six quality checks, median 28.3 credits and 3 minutes, worst 33.9 credits and 3m 57s. The planned third run of each prompt was not done, so the 8 of 9 bar in `tests/BENCHMARK.md` is not fully measured. Known issues for 1.11: an agent can still shorten a label to clear a phone check (#5 run 2, F-101), and still rewrites parts of a file with a PowerShell script (F-93).
 
 - **The check looks at the right page.** `context.mjs` prints a Pages line with how the app addresses pages (`--page /#<key>` in a hash-routed app). `check.mjs --finish` reads the app's router, finds the page of the file you changed, and checks that page when `--page` names another one.
 - **verify catches squeezed tables.** Text that runs out of its table cell over the next one is an error, and so is a table that scrolls sideways with more than a quarter of it off screen. The restyle card points to the narrow layout in `patterns/list.md`.

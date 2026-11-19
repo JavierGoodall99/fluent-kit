@@ -151,6 +151,7 @@ Status: **fixed** (version, guarding check) or **open**.
 | F-98 | With `--click` opening a Fluent Dropdown, axe's `region` rule flagged the open list, which Fluent renders in a portal outside the page's landmarks; under the new-warnings rule the agent could not fix it and stopped with the check failing | Bench rerun on 1.10g, #5 | fixed 1.10.0 (`region` findings inside a Fluent portal are dropped) |
 | F-99 | No example showed a command bar that keeps one line on a phone, so agents reached it by trial: #6 took four check rounds (CSS, a matchMedia hook, flex) and 4m 20s | Bench rerun on 1.10g, #6 | fixed 1.10.0 (`examples/command-bar.tsx`: search plus actions in `Overflow`, extras in a "..." menu; `patterns/list.md` and the toolbar-wrap message point to it) |
 | F-100 | verify took a dev server that exited right after printing its URL for "the one already running", so the check died with `ERR_CONNECTION_REFUSED` (4 times on one Windows machine short of memory: #4 1.10, #5 1.10b scorer, #6 1.10h agent and scorer). The agent never saw its page | Bench reruns, 1.10 to 1.10h | fixed 1.10.0 (verify uses an exited server's URL only if something answers there; otherwise it starts the server once more, also on a refused page load; `bench-setup.mjs` clears `node_modules/.vite` and stops what listens on 5173) |
+| F-101 | An agent shortened its own badge labels to fit a phone, against the restyle card ("never shorten a label"); the scorer cannot see it | Bench stage 2, #5 run 2 (1.10i) | open, one run in six, known issue for 1.11 |
 
 ## Runs
 
