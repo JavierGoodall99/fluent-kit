@@ -114,6 +114,12 @@ A run **fails** on any one of these:
 
 **What gets fixed after stage 2:** only a failure that shows in at least 2 of the 3 runs of the same prompt. A failure in one run goes into `docs/AUDIT.md` as a finding and the kit is left alone. Cost and time are judged on the median, not on one slow run.
 
+**Stop rule** (so new findings do not reopen the bar):
+1. **At most one fix round** after stage 2, and only for failures that show in 2 of the 3 runs of a prompt. Then re-run just those prompts, 3 runs each, against the same bar.
+2. **Anything else is a known issue,** not a blocker: a one-run failure, a notes-only item, or something found by looking at a passing run's screenshots. It goes in `docs/AUDIT.md` as a finding for 1.11. Looking harder at the same runs never changes their score.
+3. **After the fix round the result stands.** If the bar is met, release 1.10.0. If it is not, the person decides: release with the gap named in the CHANGELOG, or stop. No second fix round.
+4. **Accepted limits** (not failures, not findings): Fluent has no responsive table, toolbar or dropdown, so a phone layout may be plain, hide columns or scroll inside a card. A phone layout that is not the best possible is a note, not a fail.
+
 `tests/record-run.mjs --summary` still prints its verdict against the wide-use targets (45 and 90 credits, no quality check fails). For 1.10 use this section.
 
 Run on a machine with little else open: close MCP servers and other dev servers first, and make sure nothing listens on port 5173 (`bench-setup` warns).
