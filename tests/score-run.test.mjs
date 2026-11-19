@@ -83,6 +83,10 @@ export function ActivityLog() {
   edit("src/pages/InvoiceForm.tsx", '<Field label="Uw referentie">', '<Field label="Your reference" hint="Optioneel">');
   assert.deepEqual(addedText(app), ["Your reference"]);
   reset();
+  // A prop that holds an expression is code, not text: title={e.tenant} is not an English label.
+  edit("src/pages/InvoiceForm.tsx", '<Field label="Uw referentie">', '<Field label="Uw referentie" title={e.tenant}>');
+  assert.deepEqual(addedText(app), ["Uw referentie"]);
+  reset();
 
   console.log("score-run: all tests passed");
 } finally {

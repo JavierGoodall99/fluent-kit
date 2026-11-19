@@ -52,7 +52,8 @@ export function addedText(app) {
   for (const line of diff.split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++"))) {
     if (/^\+\s*(\/\/|\*|import\b)/.test(line)) continue;
     for (const m of line.matchAll(/>([^<>{}]*[A-Za-z][^<>{}]*)</g)) texts.push(m[1].trim());
-    for (const m of line.matchAll(/\b(?:label|placeholder|aria-label|title|content|description|header)=["{]["`]?([^"`}]+)["`]?/g)) texts.push(m[1].trim());
+    // Only string literals are text: title={e.tenant} is code, not an English label.
+    for (const m of line.matchAll(/\b(?:label|placeholder|aria-label|title|content|description|header)=(?:"([^"]+)"|\{["`]([^"`}]+)["`]\})/g)) texts.push((m[1] || m[2]).trim());
   }
   return texts.filter(Boolean);
 }
