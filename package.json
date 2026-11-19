@@ -56,8 +56,8 @@
     "test:doctor": "node tests/doctor.test.mjs",
     "test:context": "node tests/context.test.mjs",
     "test:scaffold": "bash tests/scaffold-smoke.sh",
-    "audit": "node tests/audit.mjs && node tests/reading-cost.mjs && node tests/links.mjs && node tests/render-examples.mjs",
-    "test:examples": "node tests/render-examples.mjs"
+    "audit": "node tests/audit.mjs && node tests/reading-cost.mjs && node tests/links.mjs && node tests/render-examples.mjs && node tests/verify-restart.test.mjs",
+    "test:examples": "node tests/render-examples.mjs && node tests/verify-restart.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

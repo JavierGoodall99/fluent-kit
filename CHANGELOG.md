@@ -22,6 +22,7 @@ Fixes from the first bench baseline (`tests/BENCHMARK.md`): three restyles were 
 - **Cut-off messages find icon-only buttons:** by their label, or by size and place on the screen.
 - **The restyle card asks for small edits to the existing file:** never write the whole file at once, never delete it, never make a copy.
 - **verify only uses a server on a busy port when it serves this app** (its `index.html` title), not another project on the same port.
+- **verify starts a dev server again if it dies.** A server that exits right after printing its URL is no longer taken for "the one already running": if nothing answers there, verify starts it once more, and does the same when a page load is refused. `bench-setup.mjs` clears Vite's cache and stops what listens on port 5173.
 - **A slow first page load no longer stops the check.** When a dev server's first start keeps the page loading past 30 seconds, verify loads it once more and checks it.
 - The bench app's source no longer names its own flaws in comments. The scorer checks the activity log's ID column, retries verify once, and uses the kit's own before-and-after comparison.
 - The bench scorer: a card that only gained a background is not a new style; Dutch text is not read as English; a new cut-off item next to an old one counts; it waits for its first dev server to stop, and refuses to score the browser part while your own server holds the port. The benchmark's route rule allows `patterns/alignment.md`.
