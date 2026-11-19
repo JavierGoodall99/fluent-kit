@@ -282,6 +282,21 @@ Run 1 of each prompt after PR #53, `--out ../bench-runs-1.10h`. Figures from the
 
 Median 40.6 credits and 4m 20s, worst 54 credits and 4m 33s. Cost is up from 26.5 at baseline because the checks send agents through more rounds; #54 added the command bar example and #55 the server restart. These runs count toward the frozen bar above, except that #6 run 1 is repeated (check never ran).
 
+### Bench app, stage 2 on the frozen kit (2026-11-19, kit bdd5344)
+
+Six of the nine planned runs, `--out ../bench-runs-1.10i`. The person stopped after run 2 of each prompt. #6 run 1 is the repeat of the 1.10h run whose check never loaded the page.
+
+| Prompt | Run | Credits | Time | Files read | Verify calls | Quality | What happened |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| #4 | 1 | 32.6 | 3m 57s | 7 | 6 | PPPPPP | Phone table kept time and tenant, hid type and user. |
+| #5 | 1 | 33.9 | 3m 39s | 5 | 3 | PPPPPP | All six columns on desktop, two stacked columns on a phone. The scorer's English-text fail was a false positive (`title={e.tenant}`), fixed in #58. |
+| #6 | 1 | 27 | 2m 22s | 5 | 2 | PPPPPP | Read `command-bar.tsx`; one-line phone toolbar; real status per row. |
+| #4 | 2 | 25.6 | 3m 06s | 5 | 4 | PPPPPP | Header row left out of the table (note only). |
+| #5 | 2 | 29.6 | 2m 54s | 5 | 2 | FPPPPP | Shortened its own event labels ("Sync geslaagd", "Gebruiker erbij") to fit a phone: Scope fail (F-101). |
+| #6 | 2 | 21.3 | 2m 37s | 6 | 3 | PPPPPP | Checked the opened "..." menu with `--click`. |
+
+Median 28.3 credits and 3m 00s, worst 33.9 credits and 3m 57s: inside the frozen bar. 5 of 6 runs pass. The one fail is a single run, so by the stop rule it is a known issue and the kit is not changed. The server restart (#55) held in all six runs. Result: 1.10.0 is released with the gap named in the CHANGELOG (6 of 9 runs measured).
+
 ### Results
 
 Quality columns, in order: Scope, 5 s (first glance), Uniform, Correct, States (every state), Note (honest note). P = pass, F = fail.
